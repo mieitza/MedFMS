@@ -1,7 +1,7 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
-import { vehicles } from './vehicles.js';
-import { drivers } from './drivers.js';
+import { vehicles } from './vehicles';
+import { drivers } from './drivers';
 
 export const fuelTypes = sqliteTable('fuel_types', {
   id: integer('id').primaryKey({ autoIncrement: true }),

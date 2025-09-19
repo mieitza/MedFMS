@@ -1,19 +1,27 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { api } from '$lib/api';
 
 	let isLoading = true;
 	let vehicleCount = 0;
 	let fuelTransactions = 0;
 	let materialItems = 0;
 	let activeDrivers = 0;
+	let user = { fullName: 'User', role: 'user' };
 
 	onMount(async () => {
 		// Check authentication
 		const token = localStorage.getItem('token');
+		const userData = localStorage.getItem('user');
+
 		if (!token) {
 			goto('/');
 			return;
+		}
+
+		if (userData) {
+			user = JSON.parse(userData);
 		}
 
 		// Load dashboard data
@@ -29,6 +37,19 @@
 			isLoading = false;
 		}
 	});
+
+	async function handleLogout() {
+		try {
+			await api.logout();
+			goto('/');
+		} catch (error) {
+			console.error('Logout error:', error);
+			// Force logout even if API call fails
+			localStorage.removeItem('token');
+			localStorage.removeItem('user');
+			goto('/');
+		}
+	}
 </script>
 
 <svelte:head>
@@ -44,8 +65,9 @@
 					<h1 class="text-2xl font-bold text-primary-900">MedFMS</h1>
 				</div>
 				<div class="flex items-center space-x-4">
-					<span class="text-sm text-gray-700">Welcome back!</span>
-					<button class="btn btn-secondary text-sm">
+					<span class="text-sm text-gray-700">Welcome back, {user.fullName}!</span>
+					<span class="text-xs text-gray-500 capitalize">{user.role}</span>
+					<button on:click={handleLogout} class="btn btn-secondary text-sm">
 						Logout
 					</button>
 				</div>

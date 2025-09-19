@@ -1,4 +1,4 @@
-import { getDb } from './index.js';
+import { getDb, initDatabase } from './index.js';
 import {
   users,
   brands,
@@ -15,6 +15,7 @@ import { logger } from '../utils/logger.js';
 
 async function seedDatabase() {
   try {
+    await initDatabase();
     const db = getDb();
 
     logger.info('Seeding database...');

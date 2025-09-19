@@ -1,6 +1,6 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
-import { vehicles } from './vehicles.js';
+import { vehicles } from './vehicles';
 
 export const serviceDefinitions = sqliteTable('service_definitions', {
   id: integer('id').primaryKey({ autoIncrement: true }),

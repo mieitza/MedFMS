@@ -1,8 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { api } from '$lib/api';
 
 	let isAuthenticated = false;
+	let isLoading = false;
+	let error = '';
+	let username = '';
+	let pin = '';
 
 	onMount(() => {
 		// Check if user is authenticated
@@ -12,6 +17,32 @@
 			goto('/dashboard');
 		}
 	});
+
+	async function handleLogin() {
+		if (!username || !pin) {
+			error = 'Please enter both username and PIN';
+			return;
+		}
+
+		isLoading = true;
+		error = '';
+
+		try {
+			const response = await api.login({ username, pin });
+
+			// Store auth data
+			localStorage.setItem('token', response.data.token);
+			localStorage.setItem('user', JSON.stringify(response.data.user));
+
+			// Redirect to dashboard
+			goto('/dashboard');
+		} catch (err) {
+			error = 'Invalid username or PIN';
+			console.error('Login error:', err);
+		} finally {
+			isLoading = false;
+		}
+	}
 </script>
 
 <svelte:head>
@@ -26,7 +57,13 @@
 		</div>
 
 		<div class="card">
-			<form class="space-y-6">
+			<form on:submit|preventDefault={handleLogin} class="space-y-6">
+				{#if error}
+					<div class="bg-red-50 text-red-700 p-3 rounded-md text-sm">
+						{error}
+					</div>
+				{/if}
+
 				<div>
 					<label for="username" class="block text-sm font-medium text-gray-700 mb-2">
 						Username
@@ -34,9 +71,10 @@
 					<input
 						type="text"
 						id="username"
-						name="username"
+						bind:value={username}
 						required
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+						disabled={isLoading}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50"
 						placeholder="Enter username"
 					/>
 				</div>
@@ -48,20 +86,32 @@
 					<input
 						type="password"
 						id="pin"
-						name="pin"
+						bind:value={pin}
 						required
-						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+						disabled={isLoading}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50"
 						placeholder="Enter PIN"
 					/>
 				</div>
 
 				<button
 					type="submit"
-					class="w-full btn btn-primary"
+					disabled={isLoading}
+					class="w-full btn btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					Sign In
+					{#if isLoading}
+						Signing In...
+					{:else}
+						Sign In
+					{/if}
 				</button>
 			</form>
+
+			<div class="mt-4 text-sm text-gray-600 text-center">
+				<strong>Demo Credentials:</strong><br />
+				Username: admin<br />
+				PIN: 1234
+			</div>
 		</div>
 
 		<div class="text-center text-sm text-gray-500">
