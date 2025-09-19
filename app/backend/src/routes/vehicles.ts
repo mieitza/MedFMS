@@ -2,7 +2,10 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { getDb } from '../db/index.js';
 import { vehicles } from '../db/schema/vehicles.js';
-import { eq, like, and } from 'drizzle-orm';
+import { brands, models, vehicleTypes, vehicleStatuses } from '../db/schema/system.js';
+import { drivers } from '../db/schema/drivers.js';
+import { fuelTypes } from '../db/schema/fuel.js';
+import { eq, like, and, or } from 'drizzle-orm';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
 
@@ -37,18 +40,76 @@ router.get('/', async (req, res, next) => {
 
     const db = getDb();
 
-    let query = db.select().from(vehicles);
+    // Build query with joins
+    let baseQuery = db
+      .select({
+        id: vehicles.id,
+        vehicleCode: vehicles.vehicleCode,
+        licensePlate: vehicles.licensePlate,
+        brandId: vehicles.brandId,
+        brandName: brands.brandName,
+        modelId: vehicles.modelId,
+        modelName: models.modelName,
+        year: vehicles.year,
+        fuelTypeId: vehicles.fuelTypeId,
+        fuelTypeName: fuelTypes.fuelName,
+        vehicleTypeId: vehicles.vehicleTypeId,
+        vehicleTypeName: vehicleTypes.typeName,
+        statusId: vehicles.statusId,
+        statusName: vehicleStatuses.statusName,
+        driverId: vehicles.driverId,
+        driverName: drivers.fullName,
+        odometer: vehicles.odometer,
+        description: vehicles.description,
+        active: vehicles.active,
+        createdAt: vehicles.createdAt,
+        updatedAt: vehicles.updatedAt
+      })
+      .from(vehicles)
+      .leftJoin(brands, eq(vehicles.brandId, brands.id))
+      .leftJoin(models, eq(vehicles.modelId, models.id))
+      .leftJoin(fuelTypes, eq(vehicles.fuelTypeId, fuelTypes.id))
+      .leftJoin(vehicleTypes, eq(vehicles.vehicleTypeId, vehicleTypes.id))
+      .leftJoin(vehicleStatuses, eq(vehicles.statusId, vehicleStatuses.id))
+      .leftJoin(drivers, eq(vehicles.driverId, drivers.id))
+      .where(eq(vehicles.active, true));
 
     if (search) {
-      query = query.where(
-        or(
-          like(vehicles.vehicleCode, `%${search}%`),
-          like(vehicles.licensePlate, `%${search}%`)
+      baseQuery = baseQuery.where(
+        and(
+          eq(vehicles.active, true),
+          or(
+            like(vehicles.vehicleCode, `%${search}%`),
+            like(vehicles.licensePlate, `%${search}%`),
+            like(brands.brandName, `%${search}%`),
+            like(models.modelName, `%${search}%`)
+          )
         )
       );
     }
 
-    const results = await query.limit(limit).offset(offset);
+    const results = await baseQuery.limit(limit).offset(offset);
+
+    // Get total count for pagination
+    const totalQuery = db
+      .select({ count: vehicles.id })
+      .from(vehicles)
+      .where(eq(vehicles.active, true));
+
+    if (search) {
+      totalQuery.where(
+        and(
+          eq(vehicles.active, true),
+          or(
+            like(vehicles.vehicleCode, `%${search}%`),
+            like(vehicles.licensePlate, `%${search}%`)
+          )
+        )
+      );
+    }
+
+    const totalResult = await totalQuery;
+    const total = totalResult.length;
 
     res.json({
       success: true,
@@ -56,7 +117,8 @@ router.get('/', async (req, res, next) => {
       pagination: {
         page,
         limit,
-        total: results.length
+        total,
+        pages: Math.ceil(total / limit)
       }
     });
   } catch (error) {

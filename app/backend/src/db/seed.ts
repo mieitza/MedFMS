@@ -1,4 +1,5 @@
 import { getDb, initDatabase } from './index.js';
+import { eq } from 'drizzle-orm';
 import {
   users,
   brands,
@@ -8,7 +9,9 @@ import {
   fuelTypes,
   cities,
   locations,
-  departments
+  departments,
+  vehicles,
+  drivers
 } from './schema/index.js';
 import bcrypt from 'bcrypt';
 import { logger } from '../utils/logger.js';
@@ -90,6 +93,90 @@ async function seedDatabase() {
 
     for (const city of cityData) {
       await db.insert(cities).values(city).onConflictDoNothing();
+    }
+
+    // Seed sample drivers
+    const driverData = [
+      {
+        driverCode: 'DRV001',
+        firstName: 'John',
+        lastName: 'Doe',
+        fullName: 'John Doe',
+        idNumber: '1234567890',
+        licenseNumber: 'LIC001',
+        licenseType: 'B',
+        phoneNumber: '+1234567890',
+        email: 'john.doe@example.com'
+      },
+      {
+        driverCode: 'DRV002',
+        firstName: 'Jane',
+        lastName: 'Smith',
+        fullName: 'Jane Smith',
+        idNumber: '0987654321',
+        licenseNumber: 'LIC002',
+        licenseType: 'C',
+        phoneNumber: '+1987654321',
+        email: 'jane.smith@example.com'
+      }
+    ];
+
+    const insertedDrivers = [];
+    for (const driver of driverData) {
+      const result = await db.insert(drivers).values(driver).onConflictDoNothing().returning();
+      if (result.length > 0) {
+        insertedDrivers.push(result[0]);
+      } else {
+        // Get existing driver
+        const existing = await db.select().from(drivers).where(eq(drivers.driverCode, driver.driverCode)).limit(1);
+        if (existing.length > 0) insertedDrivers.push(existing[0]);
+      }
+    }
+
+    // Seed sample vehicles
+    const vehicleData = [
+      {
+        vehicleCode: 'VEH001',
+        licensePlate: 'ABC-123',
+        brandId: 1, // Toyota
+        modelId: 1,
+        year: 2022,
+        fuelTypeId: 1, // Petrol
+        vehicleTypeId: 1, // Car
+        statusId: 1, // Active
+        driverId: insertedDrivers[0]?.id,
+        odometer: 15000,
+        description: 'Company sedan for executive use'
+      },
+      {
+        vehicleCode: 'VEH002',
+        licensePlate: 'XYZ-456',
+        brandId: 2, // Ford
+        modelId: 2,
+        year: 2021,
+        fuelTypeId: 2, // Diesel
+        vehicleTypeId: 2, // Truck
+        statusId: 1, // Active
+        driverId: insertedDrivers[1]?.id,
+        odometer: 45000,
+        description: 'Heavy duty truck for material transport'
+      },
+      {
+        vehicleCode: 'VEH003',
+        licensePlate: 'DEF-789',
+        brandId: 3, // BMW
+        modelId: 3,
+        year: 2023,
+        fuelTypeId: 3, // Electric
+        vehicleTypeId: 1, // Car
+        statusId: 2, // Maintenance
+        odometer: 8000,
+        description: 'Electric vehicle for sustainable transport'
+      }
+    ];
+
+    for (const vehicle of vehicleData) {
+      await db.insert(vehicles).values(vehicle).onConflictDoNothing();
     }
 
     logger.info('Database seeded successfully');
