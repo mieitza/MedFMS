@@ -112,7 +112,11 @@ router.get('/work-orders', authorize('admin', 'manager', 'operator'), async (req
 
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
 
-    let query = db.select()
+    let query = db.select({
+      maintenance_work_orders: maintenanceWorkOrders,
+      vehicles: vehicles,
+      maintenance_types: maintenanceTypes
+    })
     .from(maintenanceWorkOrders)
     .leftJoin(vehicles, eq(maintenanceWorkOrders.vehicleId, vehicles.id))
     .leftJoin(maintenanceTypes, eq(maintenanceWorkOrders.maintenanceTypeId, maintenanceTypes.id));
@@ -237,7 +241,11 @@ router.get('/work-orders/pending-approval', authorize('admin', 'manager'), async
 
     const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
 
-    const result = await db.select()
+    const result = await db.select({
+      maintenance_work_orders: maintenanceWorkOrders,
+      vehicles: vehicles,
+      maintenance_types: maintenanceTypes
+    })
       .from(maintenanceWorkOrders)
       .leftJoin(vehicles, eq(maintenanceWorkOrders.vehicleId, vehicles.id))
       .leftJoin(maintenanceTypes, eq(maintenanceWorkOrders.maintenanceTypeId, maintenanceTypes.id))
