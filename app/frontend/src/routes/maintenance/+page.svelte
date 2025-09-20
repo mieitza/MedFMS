@@ -72,31 +72,31 @@
       key: 'workOrder.workOrderNumber',
       label: 'Work Order #',
       sortable: true,
-      render: (row) => row?.workOrder?.workOrderNumber || 'N/A'
+      render: (value, row) => row?.workOrder?.workOrderNumber || 'N/A'
     },
     {
       key: 'vehicle.vehicleCode',
       label: 'Vehicle',
       sortable: true,
-      render: (row) => `${row?.vehicle?.vehicleCode || ''} (${row?.vehicle?.licensePlate || ''})`
+      render: (value, row) => `${row?.vehicle?.vehicleCode || ''} (${row?.vehicle?.licensePlate || ''})`
     },
     {
       key: 'maintenanceType.typeName',
       label: 'Maintenance Type',
       sortable: true,
-      render: (row) => row?.maintenanceType?.typeName || ''
+      render: (value, row) => row?.maintenanceType?.typeName || ''
     },
     {
       key: 'workOrder.title',
       label: 'Title',
       sortable: true,
-      render: (row) => row?.workOrder?.title || 'N/A'
+      render: (value, row) => row?.workOrder?.title || 'N/A'
     },
     {
       key: 'workOrder.priority',
       label: 'Priority',
       sortable: true,
-      render: (row) => {
+      render: (value, row) => {
         const priority = row?.workOrder?.priority || 3;
         const priorityLabels = {
           1: { label: 'Urgent', class: 'bg-red-100 text-red-800' },
@@ -113,7 +113,7 @@
       key: 'workOrder.status',
       label: 'Status',
       sortable: true,
-      render: (row) => {
+      render: (value, row) => {
         const status = row?.workOrder?.status || 'unknown';
         const statusClasses = {
           pending: 'bg-yellow-100 text-yellow-800',
@@ -132,13 +132,13 @@
       key: 'workOrder.scheduledDate',
       label: 'Scheduled Date',
       sortable: true,
-      render: (row) => row?.workOrder?.scheduledDate ? new Date(row?.workOrder?.scheduledDate).toLocaleDateString() : '-'
+      render: (value, row) => row?.workOrder?.scheduledDate ? new Date(row?.workOrder?.scheduledDate).toLocaleDateString() : '-'
     },
     {
       key: 'workOrder.estimatedCost',
       label: 'Est. Cost',
       sortable: true,
-      render: (row) => row?.workOrder?.estimatedCost ? `$${parseFloat(row?.workOrder?.estimatedCost).toFixed(2)}` : '-'
+      render: (value, row) => row?.workOrder?.estimatedCost ? `$${parseFloat(row?.workOrder?.estimatedCost).toFixed(2)}` : '-'
     }
   ];
 
