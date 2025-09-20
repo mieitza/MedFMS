@@ -153,9 +153,14 @@
     await Promise.all([
       loadWorkOrders(),
       loadVehicles(),
-      loadMaintenanceTypes(),
-      loadDashboardData()
+      loadMaintenanceTypes()
     ]);
+
+    // Load dashboard data separately with error handling
+    // Don't block page load if dashboard fails
+    setTimeout(() => {
+      loadDashboardData();
+    }, 500);
   });
 
   async function loadWorkOrders() {
@@ -203,6 +208,8 @@
     }
   }
 
+  let dashboardLoadTimeout = null;
+
   async function loadDashboardData() {
     try {
       const response = await api.getMaintenanceDashboard();
@@ -211,6 +218,14 @@
       console.error('Error loading dashboard data:', error);
       dashboardData = null;
     }
+  }
+
+  // Debounced version to prevent excessive API calls
+  function debouncedLoadDashboardData() {
+    if (dashboardLoadTimeout) {
+      clearTimeout(dashboardLoadTimeout);
+    }
+    dashboardLoadTimeout = setTimeout(loadDashboardData, 1000); // 1 second delay
   }
 
   function handleSearch(event) {
@@ -285,7 +300,7 @@
 
       showCreateModal = false;
       await loadWorkOrders();
-      await loadDashboardData(); // Refresh dashboard
+      debouncedLoadDashboardData(); // Refresh dashboard with debouncing
     } catch (error) {
       console.error('Error creating work order:', error);
       alert('Failed to create work order: ' + error.message);
@@ -306,7 +321,7 @@
 
       await api.updateMaintenanceWorkOrderStatus(workOrderId, newStatus, notes);
       await loadWorkOrders();
-      await loadDashboardData(); // Refresh dashboard
+      debouncedLoadDashboardData(); // Refresh dashboard with debouncing
     } catch (error) {
       console.error('Error updating work order status:', error);
       alert('Failed to update status: ' + error.message);
