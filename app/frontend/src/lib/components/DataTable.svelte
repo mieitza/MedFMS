@@ -146,15 +146,15 @@
 				<tr>
 					{#each columns as column}
 						<th
-							class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+							class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 							class:cursor-pointer={column.sortable !== false}
-							style={column.width ? `width: ${column.width}` : ''}
+							style={column.width ? `width: ${column.width}; min-width: ${column.width}` : ''}
 							on:click={() => column.sortable !== false && handleSort(column.key)}
 						>
 							<div class="flex items-center space-x-1">
-								<span>{column.label}</span>
+								<span class="truncate">{column.label}</span>
 								{#if column.sortable !== false}
-									<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										{#if sortField === column.key}
 											{#if sortDirection === 'asc'}
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
@@ -170,7 +170,7 @@
 						</th>
 					{/each}
 					{#if actions.length > 0}
-						<th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+						<th class="sticky right-0 bg-gray-50 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
 							Actions
 						</th>
 					{/if}
@@ -200,21 +200,23 @@
 							on:click={() => handleRowClick(row, index)}
 						>
 							{#each columns as column}
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-									{#if column.render}
-										{@html column.render(getNestedValue(row, column.key), row)}
-									{:else}
-										{getNestedValue(row, column.key) || '-'}
-									{/if}
+								<td class="px-4 py-3 text-sm text-gray-900" style={column.width ? `width: ${column.width}; min-width: ${column.width}` : ''}>
+									<div class="overflow-hidden">
+										{#if column.render}
+											{@html column.render(getNestedValue(row, column.key), row)}
+										{:else}
+											<span class="truncate block">{getNestedValue(row, column.key) || '-'}</span>
+										{/if}
+									</div>
 								</td>
 							{/each}
 							{#if actions.length > 0}
-								<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-									<div class="flex items-center justify-end space-x-2">
+								<td class="sticky right-0 bg-white px-4 py-3 text-right text-sm font-medium border-l border-gray-200">
+									<div class="flex items-center justify-end space-x-1">
 										{#each actions as action}
 											{#if !action.condition || action.condition(row)}
 												<button
-													class="px-3 py-1 text-xs font-medium rounded-md {action.class || 'text-primary-600 hover:text-primary-900'}"
+													class="px-2 py-1 text-xs font-medium rounded {action.class || 'text-primary-600 hover:text-primary-900 hover:bg-primary-50'}"
 													on:click|stopPropagation={() => dispatch('rowAction', { action: action.key, row })}
 												>
 													{action.label}

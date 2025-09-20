@@ -66,36 +66,38 @@
     { value: 5, label: '5 - Optional' }
   ];
 
-  // Data table columns
+  // Data table columns - optimized for better visibility
   const columns = [
     {
       key: 'workOrder.workOrderNumber',
-      label: 'Work Order #',
+      label: 'WO#',
       sortable: true,
+      width: '120px',
       render: (value, row) => row?.workOrder?.workOrderNumber || 'N/A'
     },
     {
       key: 'vehicle.vehicleCode',
       label: 'Vehicle',
       sortable: true,
-      render: (value, row) => `${row?.vehicle?.vehicleCode || ''} (${row?.vehicle?.licensePlate || ''})`
-    },
-    {
-      key: 'maintenanceType.typeName',
-      label: 'Maintenance Type',
-      sortable: true,
-      render: (value, row) => row?.maintenanceType?.typeName || ''
+      width: '140px',
+      render: (value, row) => `${row?.vehicle?.vehicleCode || ''}<br><small class="text-gray-500">${row?.vehicle?.licensePlate || ''}</small>`
     },
     {
       key: 'workOrder.title',
       label: 'Title',
       sortable: true,
-      render: (value, row) => row?.workOrder?.title || 'N/A'
+      width: '200px',
+      render: (value, row) => {
+        const title = row?.workOrder?.title || 'N/A';
+        const type = row?.maintenanceType?.typeName || '';
+        return `<div class="max-w-48"><div class="truncate font-medium">${title}</div><small class="text-gray-500 truncate block">${type}</small></div>`;
+      }
     },
     {
       key: 'workOrder.priority',
       label: 'Priority',
       sortable: true,
+      width: '100px',
       render: (value, row) => {
         const priority = row?.workOrder?.priority || 3;
         const priorityLabels = {
@@ -113,6 +115,7 @@
       key: 'workOrder.status',
       label: 'Status',
       sortable: true,
+      width: '110px',
       render: (value, row) => {
         const status = row?.workOrder?.status || 'unknown';
         const statusClasses = {
@@ -130,15 +133,17 @@
     },
     {
       key: 'workOrder.scheduledDate',
-      label: 'Scheduled Date',
+      label: 'Scheduled',
       sortable: true,
+      width: '110px',
       render: (value, row) => row?.workOrder?.scheduledDate ? new Date(row?.workOrder?.scheduledDate).toLocaleDateString() : '-'
     },
     {
       key: 'workOrder.estimatedCost',
-      label: 'Est. Cost',
+      label: 'Cost',
       sortable: true,
-      render: (value, row) => row?.workOrder?.estimatedCost ? `$${parseFloat(row?.workOrder?.estimatedCost).toFixed(2)}` : '-'
+      width: '90px',
+      render: (value, row) => row?.workOrder?.estimatedCost ? `$${parseFloat(row?.workOrder?.estimatedCost).toFixed(0)}` : '-'
     }
   ];
 
