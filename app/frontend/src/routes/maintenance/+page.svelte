@@ -22,10 +22,8 @@
   let pageSize = 20;
   let totalItems = 0;
 
-  // Filter state
+  // Filter state - removed page and limit to avoid conflicts with pagination
   let filters = {
-    page: 1,
-    limit: 20,
     vehicleId: '',
     status: '',
     priority: '',
@@ -171,13 +169,22 @@
   async function loadWorkOrders() {
     loading = true;
     try {
+      // Extract filter values, excluding page and limit to avoid conflicts
+      const { page: _, limit: __, ...filterParams } = filters;
+
       const response = await api.getMaintenanceWorkOrders({
         page: currentPage,
         limit: pageSize,
         search: searchTerm,
-        ...filters
+        ...filterParams
       });
 
+      console.log('API Request params:', {
+        page: currentPage,
+        limit: pageSize,
+        search: searchTerm,
+        ...filterParams
+      });
       console.log('API Response:', response);
       console.log('Response data:', response.data);
       console.log('Response data length:', response.data?.length);
@@ -256,8 +263,6 @@
 
   function resetFilters() {
     filters = {
-      page: 1,
-      limit: 20,
       vehicleId: '',
       status: '',
       priority: '',

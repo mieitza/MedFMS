@@ -22,36 +22,45 @@
 	let displayedData = [];
 
 	$: {
-		// Filter data based on search term
-		if (searchTerm && data.length > 0) {
-			filteredData = data.filter((item) => {
-				return columns.some((column) => {
-					if (column.searchable === false) return false;
-					const value = item[column.key];
-					return value?.toString().toLowerCase().includes(searchTerm.toLowerCase());
-				});
-			});
-		} else {
+		// When totalItems is provided, we're in server-side mode
+		// The parent component handles filtering, sorting, and pagination
+		if (totalItems > 0) {
+			// Server-side mode: data prop contains only the current page items
 			filteredData = data;
+			displayedData = data;
+		} else {
+			// Client-side mode: handle filtering, sorting, and pagination here
+			// Filter data based on search term
+			if (searchTerm && data.length > 0) {
+				filteredData = data.filter((item) => {
+					return columns.some((column) => {
+						if (column.searchable === false) return false;
+						const value = item[column.key];
+						return value?.toString().toLowerCase().includes(searchTerm.toLowerCase());
+					});
+				});
+			} else {
+				filteredData = data;
+			}
+
+			// Sort data
+			if (sortField) {
+				filteredData = [...filteredData].sort((a, b) => {
+					const aVal = a[sortField];
+					const bVal = b[sortField];
+
+					if (aVal == null) return 1;
+					if (bVal == null) return -1;
+
+					const comparison = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+					return sortDirection === 'desc' ? -comparison : comparison;
+				});
+			}
+
+			// Paginate data
+			const startIndex = (currentPage - 1) * pageSize;
+			displayedData = filteredData.slice(startIndex, startIndex + pageSize);
 		}
-
-		// Sort data
-		if (sortField) {
-			filteredData = [...filteredData].sort((a, b) => {
-				const aVal = a[sortField];
-				const bVal = b[sortField];
-
-				if (aVal == null) return 1;
-				if (bVal == null) return -1;
-
-				const comparison = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-				return sortDirection === 'desc' ? -comparison : comparison;
-			});
-		}
-
-		// Paginate data
-		const startIndex = (currentPage - 1) * pageSize;
-		displayedData = filteredData.slice(startIndex, startIndex + pageSize);
 	}
 
 	function handleSort(columnKey) {
@@ -82,7 +91,7 @@
 		dispatch('export', { format, data: filteredData });
 	}
 
-	$: computedTotalItems = totalItems || filteredData.length;
+	$: computedTotalItems = totalItems > 0 ? totalItems : filteredData.length;
 	$: totalPages = Math.ceil(computedTotalItems / pageSize);
 	$: startItem = (currentPage - 1) * pageSize + 1;
 	$: endItem = Math.min(currentPage * pageSize, computedTotalItems);
