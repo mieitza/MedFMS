@@ -109,7 +109,7 @@ export const vehicleStatuses = sqliteTable('vehicle_statuses', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const fuelTypes = sqliteTable('fuel_types', {
+export const systemFuelTypes = sqliteTable('system_fuel_types', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   typeCode: text('type_code').notNull().unique(),
   typeName: text('type_name').notNull(),
@@ -162,8 +162,8 @@ export type VehicleType = typeof vehicleTypes.$inferSelect;
 export type NewVehicleType = typeof vehicleTypes.$inferInsert;
 export type VehicleStatus = typeof vehicleStatuses.$inferSelect;
 export type NewVehicleStatus = typeof vehicleStatuses.$inferInsert;
-export type FuelType = typeof fuelTypes.$inferSelect;
-export type NewFuelType = typeof fuelTypes.$inferInsert;
+export type SystemFuelType = typeof systemFuelTypes.$inferSelect;
+export type NewSystemFuelType = typeof systemFuelTypes.$inferInsert;
 export type PenaltyDefinition = typeof penaltyDefinitions.$inferSelect;
 export type NewPenaltyDefinition = typeof penaltyDefinitions.$inferInsert;
 export type CustomField = typeof customFields.$inferSelect;

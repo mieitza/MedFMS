@@ -11,6 +11,7 @@ import { rateLimiter } from './middleware/rateLimiter.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { initDatabase } from './db/index.js';
 import router from './routes/index.js';
+import authRoutes from './routes/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -32,7 +33,7 @@ app.use(helmet({
 app.use(cors({
   origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:4173'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -49,6 +50,9 @@ app.use('/api/', rateLimiter);
 
 // Static files for uploads
 app.use('/uploads', express.static(join(__dirname, '../../../uploads')));
+
+// Auth routes mounted directly for legacy support
+app.use('/', authRoutes);
 
 // API routes
 app.use('/api', router);

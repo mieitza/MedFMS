@@ -52,9 +52,15 @@ export const api = {
     localStorage.removeItem('user');
   },
 
-  getAuthHeaders(): Record<string, string> {
+  getAuthHeaders(includeContentType = true): Record<string, string> {
     const token = localStorage.getItem('token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
+    if (includeContentType) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    return headers;
   },
 
   // Vehicles API
@@ -94,10 +100,7 @@ export const api = {
   async createVehicle(vehicleData: any): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/vehicles`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...this.getAuthHeaders(),
-      },
+      headers: this.getAuthHeaders(),
       body: JSON.stringify(vehicleData),
     });
 
@@ -111,10 +114,7 @@ export const api = {
   async updateVehicle(id: number, vehicleData: any): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/vehicles/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...this.getAuthHeaders(),
-      },
+      headers: this.getAuthHeaders(),
       body: JSON.stringify(vehicleData),
     });
 
@@ -190,17 +190,6 @@ export const api = {
     return response.json();
   },
 
-  async getFuelTypes(): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/fuel/types`, {
-      headers: this.getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch fuel types');
-    }
-
-    return response.json();
-  },
 
   async getLocations(): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/system/locations`, {
@@ -262,10 +251,7 @@ export const api = {
   async createDriver(driverData: any): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/drivers`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...this.getAuthHeaders(),
-      },
+      headers: this.getAuthHeaders(),
       body: JSON.stringify(driverData),
     });
 
@@ -279,10 +265,7 @@ export const api = {
   async updateDriver(id: number, driverData: any): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/drivers/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...this.getAuthHeaders(),
-      },
+      headers: this.getAuthHeaders(),
       body: JSON.stringify(driverData),
     });
 
@@ -421,6 +404,609 @@ export const api = {
 
     if (!response.ok) {
       throw new Error('Failed to delete photo');
+    }
+
+    return response.json();
+  },
+
+  // Fuel Management APIs
+  async getFuelTypes() {
+    const response = await fetch(`${API_BASE_URL}/fuel/types`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch fuel types');
+    }
+
+    return response.json();
+  },
+
+  async createFuelType(fuelTypeData) {
+    const response = await fetch(`${API_BASE_URL}/fuel/types`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(fuelTypeData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create fuel type');
+    }
+
+    return response.json();
+  },
+
+  async getFuelStations(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.search) queryParams.append('search', params.search);
+    if (params.active !== undefined) queryParams.append('active', params.active);
+
+    const response = await fetch(`${API_BASE_URL}/fuel/stations?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch fuel stations');
+    }
+
+    return response.json();
+  },
+
+  async createFuelStation(stationData) {
+    const response = await fetch(`${API_BASE_URL}/fuel/stations`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(stationData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create fuel station');
+    }
+
+    return response.json();
+  },
+
+  async getFuelStationById(id) {
+    const response = await fetch(`${API_BASE_URL}/fuel/stations/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch fuel station');
+    }
+
+    return response.json();
+  },
+
+  async updateFuelStation(id, stationData) {
+    const response = await fetch(`${API_BASE_URL}/fuel/stations/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(stationData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update fuel station');
+    }
+
+    return response.json();
+  },
+
+  async getFuelTransactions(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.vehicleId) queryParams.append('vehicleId', params.vehicleId.toString());
+    if (params.driverId) queryParams.append('driverId', params.driverId.toString());
+    if (params.stationId) queryParams.append('stationId', params.stationId.toString());
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+    if (params.transactionType) queryParams.append('transactionType', params.transactionType);
+    if (params.approved !== undefined) queryParams.append('approved', params.approved.toString());
+
+    const response = await fetch(`${API_BASE_URL}/fuel/transactions?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch fuel transactions');
+    }
+
+    return response.json();
+  },
+
+  async createFuelTransaction(transactionData) {
+    const response = await fetch(`${API_BASE_URL}/fuel/transactions`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(transactionData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create fuel transaction');
+    }
+
+    return response.json();
+  },
+
+  async getFuelTransactionById(id) {
+    const response = await fetch(`${API_BASE_URL}/fuel/transactions/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch fuel transaction');
+    }
+
+    return response.json();
+  },
+
+  async updateFuelTransaction(id, transactionData) {
+    const response = await fetch(`${API_BASE_URL}/fuel/transactions/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(transactionData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update fuel transaction');
+    }
+
+    return response.json();
+  },
+
+  async approveFuelTransaction(id) {
+    const response = await fetch(`${API_BASE_URL}/fuel/transactions/${id}/approve`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to approve fuel transaction');
+    }
+
+    return response.json();
+  },
+
+  async getFuelEfficiencyReport(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.vehicleId) queryParams.append('vehicleId', params.vehicleId.toString());
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/fuel/reports/efficiency?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate fuel efficiency report');
+    }
+
+    return response.json();
+  },
+
+  async getVehicleFuelTanks(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.vehicleId) queryParams.append('vehicleId', params.vehicleId.toString());
+
+    const response = await fetch(`${API_BASE_URL}/fuel/tanks?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch fuel tanks');
+    }
+
+    return response.json();
+  },
+
+  async createVehicleFuelTank(tankData) {
+    const response = await fetch(`${API_BASE_URL}/fuel/tanks`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(tankData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create fuel tank');
+    }
+
+    return response.json();
+  },
+
+  async updateVehicleFuelTank(id, tankData) {
+    const response = await fetch(`${API_BASE_URL}/fuel/tanks/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(tankData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update fuel tank');
+    }
+
+    return response.json();
+  },
+
+  // Maintenance Management APIs
+  async getMaintenanceTypes(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.category) queryParams.append('category', params.category);
+    if (params.active !== undefined) queryParams.append('active', params.active);
+
+    const response = await fetch(`${API_BASE_URL}/maintenance/types?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch maintenance types');
+    }
+
+    return response.json();
+  },
+
+  async createMaintenanceType(typeData) {
+    const response = await fetch(`${API_BASE_URL}/maintenance/types`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(typeData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create maintenance type');
+    }
+
+    return response.json();
+  },
+
+  async getMaintenanceWorkOrders(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.vehicleId) queryParams.append('vehicleId', params.vehicleId.toString());
+    if (params.status) queryParams.append('status', params.status);
+    if (params.priority) queryParams.append('priority', params.priority.toString());
+    if (params.assignedTechnicianId) queryParams.append('assignedTechnicianId', params.assignedTechnicianId.toString());
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/maintenance/work-orders?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch work orders');
+    }
+
+    return response.json();
+  },
+
+  async createMaintenanceWorkOrder(workOrderData) {
+    const response = await fetch(`${API_BASE_URL}/maintenance/work-orders`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(workOrderData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create work order');
+    }
+
+    return response.json();
+  },
+
+  async getMaintenanceWorkOrderById(id) {
+    const response = await fetch(`${API_BASE_URL}/maintenance/work-orders/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch work order');
+    }
+
+    return response.json();
+  },
+
+  async updateMaintenanceWorkOrder(id, workOrderData) {
+    const response = await fetch(`${API_BASE_URL}/maintenance/work-orders/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(workOrderData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update work order');
+    }
+
+    return response.json();
+  },
+
+  async updateMaintenanceWorkOrderStatus(id, status, notes) {
+    const response = await fetch(`${API_BASE_URL}/maintenance/work-orders/${id}/status`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ status, notes }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update work order status');
+    }
+
+    return response.json();
+  },
+
+  async getMaintenanceAlerts(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.vehicleId) queryParams.append('vehicleId', params.vehicleId.toString());
+    if (params.alertType) queryParams.append('alertType', params.alertType);
+    if (params.resolved !== undefined) queryParams.append('resolved', params.resolved.toString());
+
+    const response = await fetch(`${API_BASE_URL}/maintenance/alerts?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch maintenance alerts');
+    }
+
+    return response.json();
+  },
+
+  async getMaintenanceSchedules(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.vehicleId) queryParams.append('vehicleId', params.vehicleId.toString());
+
+    const response = await fetch(`${API_BASE_URL}/maintenance/schedules?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch maintenance schedules');
+    }
+
+    return response.json();
+  },
+
+  async getMaintenanceHistory(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.vehicleId) queryParams.append('vehicleId', params.vehicleId.toString());
+    if (params.maintenanceTypeId) queryParams.append('maintenanceTypeId', params.maintenanceTypeId.toString());
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/maintenance/history?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch maintenance history');
+    }
+
+    return response.json();
+  },
+
+  async getMaintenanceDashboard() {
+    const response = await fetch(`${API_BASE_URL}/maintenance/dashboard`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch maintenance dashboard data');
+    }
+
+    return response.json();
+  },
+
+  // Approval workflow APIs
+  async getWorkOrdersForApproval(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.status) queryParams.append('status', params.status);
+    if (params.priority) queryParams.append('priority', params.priority.toString());
+
+    const response = await fetch(`${API_BASE_URL}/maintenance/work-orders/pending-approval?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch work orders for approval');
+    }
+
+    return response.json();
+  },
+
+  async approveWorkOrder(workOrderId, notes = '') {
+    const response = await fetch(`${API_BASE_URL}/maintenance/work-orders/${workOrderId}/approve`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ notes }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to approve work order');
+    }
+
+    return response.json();
+  },
+
+  async rejectWorkOrder(workOrderId, notes) {
+    const response = await fetch(`${API_BASE_URL}/maintenance/work-orders/${workOrderId}/reject`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ notes }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to reject work order');
+    }
+
+    return response.json();
+  },
+
+  async updateWorkOrder(workOrderId, data) {
+    const response = await fetch(`${API_BASE_URL}/maintenance/work-orders/${workOrderId}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update work order');
+    }
+
+    return response.json();
+  },
+
+  async deleteWorkOrder(workOrderId) {
+    const response = await fetch(`${API_BASE_URL}/maintenance/work-orders/${workOrderId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete work order');
+    }
+
+    return response.json();
+  },
+
+  // Materials Management APIs
+  async getMaterials(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.search) queryParams.append('search', params.search);
+
+    const response = await fetch(`${API_BASE_URL}/materials?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch materials');
+    }
+
+    return response.json();
+  },
+
+  async getMaterialById(id) {
+    const response = await fetch(`${API_BASE_URL}/materials/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch material');
+    }
+
+    return response.json();
+  },
+
+  async createMaterial(materialData) {
+    const response = await fetch(`${API_BASE_URL}/materials`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(materialData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create material');
+    }
+
+    return response.json();
+  },
+
+  async updateMaterial(id, materialData) {
+    const response = await fetch(`${API_BASE_URL}/materials/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(materialData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update material');
+    }
+
+    return response.json();
+  },
+
+  async deleteMaterial(id) {
+    const response = await fetch(`${API_BASE_URL}/materials/${id}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete material');
+    }
+
+    return response.json();
+  },
+
+  async getMaterialTransactions(materialId, params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+
+    const response = await fetch(`${API_BASE_URL}/materials/${materialId}/transactions?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch material transactions');
+    }
+
+    return response.json();
+  },
+
+  async createMaterialTransaction(transactionData) {
+    const response = await fetch(`${API_BASE_URL}/materials/transactions`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(transactionData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create material transaction');
+    }
+
+    return response.json();
+  },
+
+  async getLowStockMaterials() {
+    const response = await fetch(`${API_BASE_URL}/materials/low-stock`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch low stock materials');
+    }
+
+    return response.json();
+  },
+
+  async getWarehouses() {
+    const response = await fetch(`${API_BASE_URL}/materials/warehouses`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch warehouses');
+    }
+
+    return response.json();
+  },
+
+  async createWarehouse(warehouseData) {
+    const response = await fetch(`${API_BASE_URL}/materials/warehouses`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(warehouseData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create warehouse');
     }
 
     return response.json();

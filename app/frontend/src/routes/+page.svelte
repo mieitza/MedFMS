@@ -12,7 +12,12 @@
 	onMount(() => {
 		// Check if user is authenticated
 		const token = localStorage.getItem('token');
-		if (token) {
+
+		// Clear any mock tokens from development
+		if (token === 'dev-token-123') {
+			localStorage.removeItem('token');
+			localStorage.removeItem('user');
+		} else if (token) {
 			isAuthenticated = true;
 			goto('/dashboard');
 		}

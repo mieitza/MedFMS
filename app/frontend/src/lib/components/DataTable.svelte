@@ -14,6 +14,7 @@
 	export let showPagination = true;
 	export let showExport = true;
 	export let title = '';
+	export let actions = [];
 
 	const dispatch = createEventDispatcher();
 
@@ -51,29 +52,26 @@
 		// Paginate data
 		const startIndex = (currentPage - 1) * pageSize;
 		displayedData = filteredData.slice(startIndex, startIndex + pageSize);
-		totalItems = filteredData.length;
 	}
 
 	function handleSort(columnKey) {
+		let newDirection;
 		if (sortField === columnKey) {
-			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+			newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 		} else {
-			sortField = columnKey;
-			sortDirection = 'asc';
+			newDirection = 'asc';
 		}
-		dispatch('sort', { field: sortField, direction: sortDirection });
+		dispatch('sort', { field: columnKey, direction: newDirection });
 	}
 
 	function handlePageChange(page) {
-		currentPage = page;
-		dispatch('pagechange', { page: currentPage });
+		dispatch('pagechange', { page });
 	}
 
 	function handleSearch(event) {
 		const target = event.target;
-		searchTerm = target.value;
-		currentPage = 1; // Reset to first page
-		dispatch('search', { term: searchTerm });
+		const term = target.value;
+		dispatch('search', { term });
 	}
 
 	function handleRowClick(row, index) {
@@ -84,9 +82,15 @@
 		dispatch('export', { format, data: filteredData });
 	}
 
-	$: totalPages = Math.ceil(totalItems / pageSize);
+	$: computedTotalItems = totalItems || filteredData.length;
+	$: totalPages = Math.ceil(computedTotalItems / pageSize);
 	$: startItem = (currentPage - 1) * pageSize + 1;
-	$: endItem = Math.min(currentPage * pageSize, totalItems);
+	$: endItem = Math.min(currentPage * pageSize, computedTotalItems);
+
+	function getNestedValue(obj, path) {
+		if (!path || !obj) return obj;
+		return path.split('.').reduce((current, key) => current?.[key], obj);
+	}
 </script>
 
 <div class="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -98,7 +102,7 @@
 					<h3 class="text-lg font-semibold text-gray-900">{title}</h3>
 				{/if}
 				<p class="text-sm text-gray-600 mt-1">
-					{totalItems} {totalItems === 1 ? 'item' : 'items'} total
+					{computedTotalItems} {computedTotalItems === 1 ? 'item' : 'items'} total
 				</p>
 			</div>
 
@@ -165,22 +169,24 @@
 							</div>
 						</th>
 					{/each}
-					<th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-						Actions
-					</th>
+					{#if actions.length > 0}
+						<th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+							Actions
+						</th>
+					{/if}
 				</tr>
 			</thead>
 			<tbody class="bg-white divide-y divide-gray-200">
 				{#if loading}
 					<tr>
-						<td colspan={columns.length + 1} class="px-6 py-12 text-center">
+						<td colspan={columns.length + (actions.length > 0 ? 1 : 0)} class="px-6 py-12 text-center">
 							<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
 							<p class="mt-2 text-gray-500">Loading...</p>
 						</td>
 					</tr>
 				{:else if displayedData.length === 0}
 					<tr>
-						<td colspan={columns.length + 1} class="px-6 py-12 text-center">
+						<td colspan={columns.length + (actions.length > 0 ? 1 : 0)} class="px-6 py-12 text-center">
 							<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
 							</svg>
@@ -196,26 +202,28 @@
 							{#each columns as column}
 								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
 									{#if column.render}
-										{@html column.render(row[column.key], row)}
+										{@html column.render(getNestedValue(row, column.key), row)}
 									{:else}
-										{row[column.key] || '-'}
+										{getNestedValue(row, column.key) || '-'}
 									{/if}
 								</td>
 							{/each}
-							<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-								<button
-									class="text-primary-600 hover:text-primary-900 mr-4"
-									on:click|stopPropagation={() => dispatch('edit', row)}
-								>
-									Edit
-								</button>
-								<button
-									class="text-red-600 hover:text-red-900"
-									on:click|stopPropagation={() => dispatch('delete', row)}
-								>
-									Delete
-								</button>
-							</td>
+							{#if actions.length > 0}
+								<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+									<div class="flex items-center justify-end space-x-2">
+										{#each actions as action}
+											{#if !action.condition || action.condition(row)}
+												<button
+													class="px-3 py-1 text-xs font-medium rounded-md {action.class || 'text-primary-600 hover:text-primary-900'}"
+													on:click|stopPropagation={() => dispatch('rowAction', { action: action.key, row })}
+												>
+													{action.label}
+												</button>
+											{/if}
+										{/each}
+									</div>
+								</td>
+							{/if}
 						</tr>
 					{/each}
 				{/if}
@@ -228,7 +236,7 @@
 		<div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
 			<div class="flex items-center justify-between">
 				<div class="text-sm text-gray-700">
-					Showing {startItem} to {endItem} of {totalItems} results
+					Showing {startItem} to {endItem} of {computedTotalItems} results
 				</div>
 				<div class="flex items-center space-x-2">
 					<button
