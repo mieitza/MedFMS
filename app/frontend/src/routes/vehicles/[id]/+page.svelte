@@ -23,6 +23,11 @@
 	let departments = [];
 	let drivers = [];
 
+	// Maintenance history data
+	let maintenanceHistory = [];
+	let maintenanceLoading = false;
+	let maintenanceError = null;
+
 	$: vehicleId = $page.params.id;
 
 	onMount(async () => {
@@ -35,6 +40,7 @@
 
 		await loadVehicle();
 		await loadDropdownData();
+		await loadMaintenanceHistory();
 	});
 
 	async function loadVehicle() {
@@ -83,6 +89,24 @@
 			drivers = driversResponse.data || [];
 		} catch (error) {
 			console.error('Failed to load dropdown data:', error);
+		}
+	}
+
+	async function loadMaintenanceHistory() {
+		maintenanceLoading = true;
+		maintenanceError = null;
+		try {
+			const response = await api.getMaintenanceHistory({
+				vehicleId: parseInt(vehicleId),
+				limit: 10
+			});
+			maintenanceHistory = response.data || [];
+		} catch (error) {
+			console.error('Failed to load maintenance history:', error);
+			maintenanceError = 'Failed to load maintenance history';
+			maintenanceHistory = [];
+		} finally {
+			maintenanceLoading = false;
 		}
 	}
 
@@ -368,16 +392,84 @@
 				/>
 			</div>
 
-			<!-- Maintenance History - Placeholder for future implementation -->
+			<!-- Maintenance History -->
 			<div class="mt-8">
 				<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-					<h3 class="text-lg font-semibold text-gray-900 mb-4">Maintenance History</h3>
-					<div class="text-center py-8 text-gray-500">
-						<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-						</svg>
-						<p class="mt-2">Maintenance history will be available soon</p>
+					<div class="flex justify-between items-center mb-4">
+						<h3 class="text-lg font-semibold text-gray-900">Maintenance History</h3>
+						<a href="/maintenance/work-orders?vehicleId={vehicle.id}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+							View All
+						</a>
 					</div>
+
+					{#if maintenanceLoading}
+						<div class="text-center py-8">
+							<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+							<p class="mt-2 text-sm text-gray-500">Loading maintenance history...</p>
+						</div>
+					{:else if maintenanceError}
+						<div class="text-center py-8 text-red-500">
+							<svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+							</svg>
+							<p class="mt-2">{maintenanceError}</p>
+						</div>
+					{:else if maintenanceHistory.length === 0}
+						<div class="text-center py-8 text-gray-500">
+							<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+							</svg>
+							<p class="mt-2">No maintenance history found for this vehicle</p>
+						</div>
+					{:else}
+						<div class="space-y-4">
+							{#each maintenanceHistory as record}
+								<div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+									<div class="flex justify-between items-start">
+										<div class="flex-1">
+											<div class="flex items-center space-x-2 mb-2">
+												<h4 class="font-medium text-gray-900">
+													{record.history?.workPerformed || record.maintenanceType?.typeName || 'Maintenance Work'}
+												</h4>
+												<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+													Completed
+												</span>
+											</div>
+											<p class="text-sm text-gray-600 mb-2">
+												{record.maintenanceType?.typeName || 'General Maintenance'}
+											</p>
+											<div class="flex items-center space-x-4 text-xs text-gray-500">
+												{#if record.history?.workOrderId}
+													<span>WO ID: {record.history.workOrderId}</span>
+												{/if}
+												{#if record.history?.maintenanceDate}
+													<span>Date: {new Date(record.history.maintenanceDate).toLocaleDateString()}</span>
+												{/if}
+												{#if record.history?.totalCost}
+													<span>Cost: ${parseFloat(record.history.totalCost).toFixed(2)}</span>
+												{/if}
+												{#if record.history?.odometerReading}
+													<span>Odometer: {record.history.odometerReading} km</span>
+												{/if}
+											</div>
+										</div>
+										<div class="ml-4">
+											{#if record.history?.workOrderId}
+												<a
+													href="/maintenance/work-orders/{record.history.workOrderId}"
+													class="text-blue-600 hover:text-blue-800 text-sm font-medium"
+												>
+													View Details
+												</a>
+											{:else}
+												<span class="text-gray-400 text-sm">History Record</span>
+											{/if}
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
 				</div>
 			</div>
 		{:else}
@@ -405,19 +497,21 @@
 		size="xl"
 		on:close={handleFormCancel}
 	>
-		<VehicleForm
-			{vehicle}
-			{brands}
-			{models}
-			{vehicleTypes}
-			{vehicleStatuses}
-			{fuelTypes}
-			{locations}
-			{departments}
-			{drivers}
-			on:success={handleFormSuccess}
-			on:error={handleFormError}
-			on:cancel={handleFormCancel}
-		/>
+		{#if showEditModal}
+			<VehicleForm
+				{vehicle}
+				{brands}
+				{models}
+				{vehicleTypes}
+				{vehicleStatuses}
+				{fuelTypes}
+				{locations}
+				{departments}
+				{drivers}
+				on:success={handleFormSuccess}
+				on:error={handleFormError}
+				on:cancel={handleFormCancel}
+			/>
+		{/if}
 	</Modal>
 {/if}
