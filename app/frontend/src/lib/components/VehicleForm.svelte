@@ -34,24 +34,29 @@
 	let loading = false;
 	let errors = {};
 
+	let initialized = false;
+	let lastVehicleId = null;
+
 	// Initialize form with vehicle data if editing
-	$: if (vehicle) {
+	$: if (vehicle && brands.length > 0 && (!initialized || vehicle?.id !== lastVehicleId)) {
 		formData = {
 			vehicleCode: vehicle.vehicleCode || '',
 			licensePlate: vehicle.licensePlate || '',
-			brandId: vehicle.brandId || '',
-			modelId: vehicle.modelId || '',
+			brandId: vehicle.brandId?.toString() || '',
+			modelId: vehicle.modelId?.toString() || '',
 			year: vehicle.year || new Date().getFullYear(),
-			fuelTypeId: vehicle.fuelTypeId || '',
-			vehicleTypeId: vehicle.vehicleTypeId || '',
-			statusId: vehicle.statusId || '',
-			locationId: vehicle.locationId || '',
-			departmentId: vehicle.departmentId || '',
-			driverId: vehicle.driverId || '',
+			fuelTypeId: vehicle.fuelTypeId?.toString() || '',
+			vehicleTypeId: vehicle.vehicleTypeId?.toString() || '',
+			statusId: vehicle.statusId?.toString() || '',
+			locationId: vehicle.locationId?.toString() || '',
+			departmentId: vehicle.departmentId?.toString() || '',
+			driverId: vehicle.driverId?.toString() || '',
 			odometer: vehicle.odometer || '',
 			description: vehicle.description || ''
 		};
 		updateFilteredModels();
+		initialized = true;
+		lastVehicleId = vehicle?.id;
 	}
 
 	function updateFilteredModels() {

@@ -15,6 +15,8 @@
 	let currentPage = 1;
 	let pageSize = 20;
 	let totalItems = 0;
+	let sortField = '';
+	let sortDirection = 'asc';
 
 	// Dropdown data
 	let brands = [];
@@ -124,7 +126,14 @@
 		await loadDropdownData();
 	});
 
+	let isLoadingVehicles = false;
+
 	async function loadVehicles() {
+		if (isLoadingVehicles) {
+			return; // Prevent multiple simultaneous calls
+		}
+
+		isLoadingVehicles = true;
 		loading = true;
 		try {
 			const response = await api.getVehicles({
@@ -150,6 +159,7 @@
 			vehicles = [];
 		} finally {
 			loading = false;
+			isLoadingVehicles = false;
 		}
 	}
 
@@ -220,6 +230,12 @@
 		loadVehicles();
 	}
 
+	function handleSort(event) {
+		sortField = event.detail.field;
+		sortDirection = event.detail.direction;
+		loadVehicles();
+	}
+
 	function handleRowClick(event) {
 		const vehicle = event.detail.row;
 		goto(`/vehicles/${vehicle.id}`);
@@ -267,7 +283,6 @@
 
 	function handleFormSuccess(event) {
 		const { type, data } = event.detail;
-		console.log(`Vehicle ${type} successfully:`, data);
 		refreshData();
 	}
 
@@ -325,12 +340,15 @@
 			{currentPage}
 			{pageSize}
 			{totalItems}
+			{sortField}
+			{sortDirection}
 			title="Vehicle Fleet"
 			showSearch={true}
 			showPagination={true}
 			showExport={true}
 			on:search={handleSearch}
 			on:pagechange={handlePageChange}
+			on:sort={handleSort}
 			on:rowclick={handleRowClick}
 			on:edit={handleEdit}
 			on:delete={handleDelete}
@@ -346,18 +364,20 @@
 	size="xl"
 	on:close={closeModals}
 >
-	<VehicleForm
-		vehicle={selectedVehicle}
-		{brands}
-		{models}
-		{vehicleTypes}
-		{vehicleStatuses}
-		{fuelTypes}
-		{locations}
-		{departments}
-		{drivers}
-		on:success={handleFormSuccess}
-		on:error={handleFormError}
-		on:cancel={handleFormCancel}
-	/>
+	{#if showAddModal || showEditModal}
+		<VehicleForm
+			vehicle={selectedVehicle}
+			{brands}
+			{models}
+			{vehicleTypes}
+			{vehicleStatuses}
+			{fuelTypes}
+			{locations}
+			{departments}
+			{drivers}
+			on:success={handleFormSuccess}
+			on:error={handleFormError}
+			on:cancel={handleFormCancel}
+		/>
+	{/if}
 </Modal>
