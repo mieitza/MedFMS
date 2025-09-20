@@ -132,9 +132,40 @@ router.get('/:id', async (req, res, next) => {
     const id = parseInt(req.params.id);
 
     const db = getDb();
-    const [vehicle] = await db.select()
+    const [vehicle] = await db
+      .select({
+        id: vehicles.id,
+        vehicleCode: vehicles.vehicleCode,
+        licensePlate: vehicles.licensePlate,
+        brandId: vehicles.brandId,
+        brandName: brands.brandName,
+        modelId: vehicles.modelId,
+        modelName: models.modelName,
+        year: vehicles.year,
+        fuelTypeId: vehicles.fuelTypeId,
+        fuelTypeName: fuelTypes.fuelName,
+        vehicleTypeId: vehicles.vehicleTypeId,
+        vehicleTypeName: vehicleTypes.typeName,
+        statusId: vehicles.statusId,
+        statusName: vehicleStatuses.statusName,
+        locationId: vehicles.locationId,
+        departmentId: vehicles.departmentId,
+        driverId: vehicles.driverId,
+        driverName: drivers.fullName,
+        odometer: vehicles.odometer,
+        description: vehicles.description,
+        active: vehicles.active,
+        createdAt: vehicles.createdAt,
+        updatedAt: vehicles.updatedAt
+      })
       .from(vehicles)
-      .where(eq(vehicles.id, id))
+      .leftJoin(brands, eq(vehicles.brandId, brands.id))
+      .leftJoin(models, eq(vehicles.modelId, models.id))
+      .leftJoin(fuelTypes, eq(vehicles.fuelTypeId, fuelTypes.id))
+      .leftJoin(vehicleTypes, eq(vehicles.vehicleTypeId, vehicleTypes.id))
+      .leftJoin(vehicleStatuses, eq(vehicles.statusId, vehicleStatuses.id))
+      .leftJoin(drivers, eq(vehicles.driverId, drivers.id))
+      .where(and(eq(vehicles.id, id), eq(vehicles.active, true)))
       .limit(1);
 
     if (!vehicle) {
@@ -240,7 +271,5 @@ router.delete('/:id', authorize('admin', 'manager'), async (req, res, next) => {
   }
 });
 
-// Fix missing import
-import { or } from 'drizzle-orm';
 
 export default router;

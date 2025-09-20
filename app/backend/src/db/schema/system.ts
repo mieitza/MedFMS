@@ -109,6 +109,17 @@ export const vehicleStatuses = sqliteTable('vehicle_statuses', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const fuelTypes = sqliteTable('fuel_types', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  typeCode: text('type_code').notNull().unique(),
+  typeName: text('type_name').notNull(),
+  description: text('description'),
+  unit: text('unit').notNull().default('L'), // Default unit is liters
+  pricePerUnit: real('price_per_unit'),
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
 export const penaltyDefinitions = sqliteTable('penalty_definitions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   penaltyCode: text('penalty_code').notNull().unique(),
@@ -151,6 +162,8 @@ export type VehicleType = typeof vehicleTypes.$inferSelect;
 export type NewVehicleType = typeof vehicleTypes.$inferInsert;
 export type VehicleStatus = typeof vehicleStatuses.$inferSelect;
 export type NewVehicleStatus = typeof vehicleStatuses.$inferInsert;
+export type FuelType = typeof fuelTypes.$inferSelect;
+export type NewFuelType = typeof fuelTypes.$inferInsert;
 export type PenaltyDefinition = typeof penaltyDefinitions.$inferSelect;
 export type NewPenaltyDefinition = typeof penaltyDefinitions.$inferInsert;
 export type CustomField = typeof customFields.$inferSelect;

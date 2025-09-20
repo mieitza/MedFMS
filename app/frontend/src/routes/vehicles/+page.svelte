@@ -1,8 +1,9 @@
-<script lang="ts">
+<script>
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import DataTable from '$lib/components/DataTable.svelte';
 	import Modal from '$lib/components/Modal.svelte';
+	import VehicleForm from '$lib/components/VehicleForm.svelte';
 	import { api } from '$lib/api';
 
 	let vehicles = [];
@@ -25,6 +26,26 @@
 	let departments = [];
 	let drivers = [];
 
+	function renderLicensePlate(value) {
+		return `<span class="font-semibold text-primary-600">${value}</span>`;
+	}
+
+	function renderStatus(value, row) {
+		const colorMap = {
+			'Active': 'bg-green-100 text-green-800',
+			'Maintenance': 'bg-yellow-100 text-yellow-800',
+			'In Maintenance': 'bg-yellow-100 text-yellow-800',
+			'Retired': 'bg-red-100 text-red-800',
+			'Reserved': 'bg-purple-100 text-purple-800'
+		};
+		const colorClass = colorMap[value] || 'bg-gray-100 text-gray-800';
+		return `<span class="px-2 py-1 text-xs font-medium rounded-full ${colorClass}">${value}</span>`;
+	}
+
+	function renderOdometer(value) {
+		return value ? `${value.toLocaleString()} km` : '-';
+	}
+
 	const columns = [
 		{
 			key: 'vehicleCode',
@@ -37,7 +58,7 @@
 			label: 'License Plate',
 			sortable: true,
 			width: '130px',
-			render: (value: string) => `<span class="font-semibold text-primary-600">${value}</span>`
+			render: renderLicensePlate
 		},
 		{
 			key: 'brandName',
@@ -58,13 +79,13 @@
 			width: '80px'
 		},
 		{
-			key: 'fuelType',
+			key: 'fuelTypeName',
 			label: 'Fuel Type',
 			sortable: true,
 			width: '100px'
 		},
 		{
-			key: 'vehicleType',
+			key: 'vehicleTypeName',
 			label: 'Type',
 			sortable: true,
 			width: '100px'
@@ -74,23 +95,14 @@
 			label: 'Status',
 			sortable: true,
 			width: '100px',
-			render: (value: string, row: any) => {
-				const colorMap: Record<string, string> = {
-					'Active': 'bg-green-100 text-green-800',
-					'Maintenance': 'bg-yellow-100 text-yellow-800',
-					'Retired': 'bg-red-100 text-red-800',
-					'Reserved': 'bg-purple-100 text-purple-800'
-				};
-				const colorClass = colorMap[value] || 'bg-gray-100 text-gray-800';
-				return `<span class="px-2 py-1 text-xs font-medium rounded-full ${colorClass}">${value}</span>`;
-			}
+			render: renderStatus
 		},
 		{
 			key: 'odometer',
 			label: 'Odometer',
 			sortable: true,
 			width: '100px',
-			render: (value: number) => value ? `${value.toLocaleString()} km` : '-'
+			render: renderOdometer
 		},
 		{
 			key: 'driverName',
@@ -176,49 +188,49 @@
 		}
 	}
 
-	function getBrandName(brandId: number): string {
+	function getBrandName(brandId) {
 		const brand = brands.find(b => b.id === brandId);
 		return brand?.brandName || 'Unknown';
 	}
 
-	function getModelName(modelId: number): string {
+	function getModelName(modelId) {
 		const model = models.find(m => m.id === modelId);
 		return model?.modelName || 'Unknown';
 	}
 
-	function getStatusName(statusId: number): string {
+	function getStatusName(statusId) {
 		const status = vehicleStatuses.find(s => s.id === statusId);
 		return status?.statusName || 'Unknown';
 	}
 
-	function getDriverName(driverId: number | null): string {
+	function getDriverName(driverId) {
 		if (!driverId) return '-';
 		const driver = drivers.find(d => d.id === driverId);
 		return driver?.fullName || 'Unknown';
 	}
 
-	function handleSearch(event: CustomEvent) {
+	function handleSearch(event) {
 		searchTerm = event.detail.term;
 		currentPage = 1;
 		loadVehicles();
 	}
 
-	function handlePageChange(event: CustomEvent) {
+	function handlePageChange(event) {
 		currentPage = event.detail.page;
 		loadVehicles();
 	}
 
-	function handleRowClick(event: CustomEvent) {
+	function handleRowClick(event) {
 		const vehicle = event.detail.row;
 		goto(`/vehicles/${vehicle.id}`);
 	}
 
-	function handleEdit(event: CustomEvent) {
+	function handleEdit(event) {
 		selectedVehicle = event.detail;
 		showEditModal = true;
 	}
 
-	async function handleDelete(event: CustomEvent) {
+	async function handleDelete(event) {
 		const vehicle = event.detail;
 		if (confirm(`Are you sure you want to delete vehicle ${vehicle.licensePlate}?`)) {
 			try {
@@ -236,7 +248,7 @@
 		showAddModal = true;
 	}
 
-	function handleExport(event: CustomEvent) {
+	function handleExport(event) {
 		const { format, data } = event.detail;
 		console.log(`Exporting ${data.length} vehicles to ${format}`);
 		// TODO: Implement export functionality
@@ -250,6 +262,21 @@
 
 	async function refreshData() {
 		await loadVehicles();
+		closeModals();
+	}
+
+	function handleFormSuccess(event) {
+		const { type, data } = event.detail;
+		console.log(`Vehicle ${type} successfully:`, data);
+		refreshData();
+	}
+
+	function handleFormError(event) {
+		const { message } = event.detail;
+		alert(message);
+	}
+
+	function handleFormCancel() {
 		closeModals();
 	}
 </script>
@@ -291,7 +318,7 @@
 	<!-- Main Content -->
 	<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 		<DataTable
-			{data}={vehicles}
+			data={vehicles}
 			{columns}
 			{loading}
 			{searchTerm}
@@ -319,20 +346,18 @@
 	size="xl"
 	on:close={closeModals}
 >
-	<div class="text-center py-8">
-		<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
-		</svg>
-		<h3 class="mt-2 text-sm font-medium text-gray-900">Vehicle Form</h3>
-		<p class="mt-1 text-sm text-gray-500">The vehicle form will be implemented in the next step.</p>
-	</div>
-
-	<svelte:fragment slot="footer">
-		<button type="button" class="btn btn-secondary" on:click={closeModals}>
-			Cancel
-		</button>
-		<button type="button" class="btn btn-primary">
-			{selectedVehicle ? 'Update' : 'Create'} Vehicle
-		</button>
-	</svelte:fragment>
+	<VehicleForm
+		vehicle={selectedVehicle}
+		{brands}
+		{models}
+		{vehicleTypes}
+		{vehicleStatuses}
+		{fuelTypes}
+		{locations}
+		{departments}
+		{drivers}
+		on:success={handleFormSuccess}
+		on:error={handleFormError}
+		on:cancel={handleFormCancel}
+	/>
 </Modal>

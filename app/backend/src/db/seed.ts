@@ -79,8 +79,53 @@ async function seedDatabase() {
       { brandCode: 'VOLVO', brandName: 'Volvo', country: 'Sweden' }
     ];
 
+    const insertedBrands = [];
     for (const brand of brandData) {
-      await db.insert(brands).values(brand).onConflictDoNothing();
+      const result = await db.insert(brands).values(brand).onConflictDoNothing().returning();
+      if (result.length > 0) {
+        insertedBrands.push(result[0]);
+      } else {
+        // Get existing brand
+        const existing = await db.select().from(brands).where(eq(brands.brandCode, brand.brandCode)).limit(1);
+        if (existing.length > 0) insertedBrands.push(existing[0]);
+      }
+    }
+
+    // Seed models
+    const modelData = [
+      // Toyota models
+      { modelCode: 'CAMRY', modelName: 'Camry', brandId: insertedBrands.find(b => b.brandCode === 'TOYOTA')?.id },
+      { modelCode: 'COROLLA', modelName: 'Corolla', brandId: insertedBrands.find(b => b.brandCode === 'TOYOTA')?.id },
+      { modelCode: 'PRIUS', modelName: 'Prius', brandId: insertedBrands.find(b => b.brandCode === 'TOYOTA')?.id },
+      { modelCode: 'RAV4', modelName: 'RAV4', brandId: insertedBrands.find(b => b.brandCode === 'TOYOTA')?.id },
+
+      // Ford models
+      { modelCode: 'FOCUS', modelName: 'Focus', brandId: insertedBrands.find(b => b.brandCode === 'FORD')?.id },
+      { modelCode: 'FIESTA', modelName: 'Fiesta', brandId: insertedBrands.find(b => b.brandCode === 'FORD')?.id },
+      { modelCode: 'TRANSIT', modelName: 'Transit', brandId: insertedBrands.find(b => b.brandCode === 'FORD')?.id },
+      { modelCode: 'RANGER', modelName: 'Ranger', brandId: insertedBrands.find(b => b.brandCode === 'FORD')?.id },
+
+      // BMW models
+      { modelCode: '320I', modelName: '320i', brandId: insertedBrands.find(b => b.brandCode === 'BMW')?.id },
+      { modelCode: '520I', modelName: '520i', brandId: insertedBrands.find(b => b.brandCode === 'BMW')?.id },
+      { modelCode: 'X3', modelName: 'X3', brandId: insertedBrands.find(b => b.brandCode === 'BMW')?.id },
+      { modelCode: 'I4', modelName: 'i4', brandId: insertedBrands.find(b => b.brandCode === 'BMW')?.id },
+
+      // Mercedes models
+      { modelCode: 'C180', modelName: 'C-Class 180', brandId: insertedBrands.find(b => b.brandCode === 'MERCEDES')?.id },
+      { modelCode: 'E220', modelName: 'E-Class 220', brandId: insertedBrands.find(b => b.brandCode === 'MERCEDES')?.id },
+      { modelCode: 'SPRINTER', modelName: 'Sprinter', brandId: insertedBrands.find(b => b.brandCode === 'MERCEDES')?.id },
+
+      // Volvo models
+      { modelCode: 'XC60', modelName: 'XC60', brandId: insertedBrands.find(b => b.brandCode === 'VOLVO')?.id },
+      { modelCode: 'V90', modelName: 'V90', brandId: insertedBrands.find(b => b.brandCode === 'VOLVO')?.id },
+      { modelCode: 'FH16', modelName: 'FH16', brandId: insertedBrands.find(b => b.brandCode === 'VOLVO')?.id }
+    ];
+
+    for (const model of modelData) {
+      if (model.brandId) {
+        await db.insert(models).values(model).onConflictDoNothing();
+      }
     }
 
     // Seed cities

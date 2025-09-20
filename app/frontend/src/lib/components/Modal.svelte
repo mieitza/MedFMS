@@ -1,9 +1,9 @@
-<script lang="ts">
+<script>
 	import { createEventDispatcher } from 'svelte';
 
 	export let open = false;
 	export let title = '';
-	export let size: 'sm' | 'md' | 'lg' | 'xl' = 'md';
+	export let size = 'md';
 	export let showCloseButton = true;
 	export let closable = true;
 
@@ -23,13 +23,13 @@
 		}
 	}
 
-	function handleKeydown(event: KeyboardEvent) {
+	function handleKeydown(event) {
 		if (event.key === 'Escape' && closable) {
 			closeModal();
 		}
 	}
 
-	function handleBackdropClick(event: MouseEvent) {
+	function handleBackdropClick(event) {
 		if (event.target === event.currentTarget && closable) {
 			closeModal();
 		}

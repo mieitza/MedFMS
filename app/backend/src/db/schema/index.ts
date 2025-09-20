@@ -6,3 +6,4 @@ export * from './materials';
 export * from './tires';
 export * from './services';
 export * from './system';
+export * from './documents';

@@ -1,22 +1,15 @@
-<script lang="ts">
+<script>
 	import { createEventDispatcher } from 'svelte';
 
-	export let data: any[] = [];
-	export let columns: Array<{
-		key: string;
-		label: string;
-		sortable?: boolean;
-		searchable?: boolean;
-		width?: string;
-		render?: (value: any, row: any) => string;
-	}> = [];
+	export let data = [];
+	export let columns = [];
 	export let loading = false;
 	export let searchTerm = '';
 	export let currentPage = 1;
 	export let pageSize = 20;
 	export let totalItems = 0;
 	export let sortField = '';
-	export let sortDirection: 'asc' | 'desc' = 'asc';
+	export let sortDirection = 'asc';
 	export let showSearch = true;
 	export let showPagination = true;
 	export let showExport = true;
@@ -24,8 +17,8 @@
 
 	const dispatch = createEventDispatcher();
 
-	let filteredData: any[] = [];
-	let displayedData: any[] = [];
+	let filteredData = [];
+	let displayedData = [];
 
 	$: {
 		// Filter data based on search term
@@ -61,7 +54,7 @@
 		totalItems = filteredData.length;
 	}
 
-	function handleSort(columnKey: string) {
+	function handleSort(columnKey) {
 		if (sortField === columnKey) {
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 		} else {
@@ -71,23 +64,23 @@
 		dispatch('sort', { field: sortField, direction: sortDirection });
 	}
 
-	function handlePageChange(page: number) {
+	function handlePageChange(page) {
 		currentPage = page;
 		dispatch('pagechange', { page: currentPage });
 	}
 
-	function handleSearch(event: Event) {
-		const target = event.target as HTMLInputElement;
+	function handleSearch(event) {
+		const target = event.target;
 		searchTerm = target.value;
 		currentPage = 1; // Reset to first page
 		dispatch('search', { term: searchTerm });
 	}
 
-	function handleRowClick(row: any, index: number) {
+	function handleRowClick(row, index) {
 		dispatch('rowclick', { row, index });
 	}
 
-	function handleExport(format: string) {
+	function handleExport(format) {
 		dispatch('export', { format, data: filteredData });
 	}
 

@@ -226,13 +226,201 @@ export const api = {
     return response.json();
   },
 
-  async getDrivers(): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/drivers`, {
+  async getDrivers(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  } = {}): Promise<any> {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.search) queryParams.append('search', params.search);
+
+    const response = await fetch(`${API_BASE_URL}/drivers?${queryParams}`, {
       headers: this.getAuthHeaders(),
     });
 
     if (!response.ok) {
       throw new Error('Failed to fetch drivers');
+    }
+
+    return response.json();
+  },
+
+  async getDriverById(id: number): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/drivers/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch driver');
+    }
+
+    return response.json();
+  },
+
+  async createDriver(driverData: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/drivers`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify(driverData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create driver');
+    }
+
+    return response.json();
+  },
+
+  async updateDriver(id: number, driverData: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/drivers/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+      body: JSON.stringify(driverData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update driver');
+    }
+
+    return response.json();
+  },
+
+  async deleteDriver(id: number): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/drivers/${id}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete driver');
+    }
+
+    return response.json();
+  },
+
+  // Document Management APIs
+  async getDocumentCategories() {
+    const response = await fetch(`${API_BASE_URL}/documents/categories`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch document categories');
+    }
+
+    return response.json();
+  },
+
+  async getDocuments(entityType, entityId) {
+    const response = await fetch(`${API_BASE_URL}/documents/${entityType}/${entityId}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch documents');
+    }
+
+    return response.json();
+  },
+
+  async uploadDocument(file, data) {
+    const formData = new FormData();
+    formData.append('document', file);
+    Object.keys(data).forEach(key => {
+      formData.append(key, data[key]);
+    });
+
+    const response = await fetch(`${API_BASE_URL}/documents/upload`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload document');
+    }
+
+    return response.json();
+  },
+
+  async downloadDocument(id) {
+    const response = await fetch(`${API_BASE_URL}/documents/download/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to download document');
+    }
+
+    return response.blob();
+  },
+
+  async deleteDocument(id) {
+    const response = await fetch(`${API_BASE_URL}/documents/${id}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete document');
+    }
+
+    return response.json();
+  },
+
+  // Photo Management APIs
+  async getPhotos(entityType, entityId) {
+    const response = await fetch(`${API_BASE_URL}/documents/photos/${entityType}/${entityId}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch photos');
+    }
+
+    return response.json();
+  },
+
+  async uploadPhoto(file, data) {
+    const formData = new FormData();
+    formData.append('photo', file);
+    Object.keys(data).forEach(key => {
+      formData.append(key, data[key]);
+    });
+
+    const response = await fetch(`${API_BASE_URL}/documents/photos/upload`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload photo');
+    }
+
+    return response.json();
+  },
+
+  getPhotoUrl(id) {
+    return `${API_BASE_URL}/documents/photos/view/${id}`;
+  },
+
+  async deletePhoto(id) {
+    const response = await fetch(`${API_BASE_URL}/documents/photos/${id}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete photo');
     }
 
     return response.json();

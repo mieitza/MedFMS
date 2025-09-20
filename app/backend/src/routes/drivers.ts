@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { getDb } from '../db/index.js';
 import { drivers } from '../db/schema/drivers.js';
-import { eq, like, or } from 'drizzle-orm';
+import { eq, like, or, and } from 'drizzle-orm';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
 
@@ -39,19 +39,43 @@ router.get('/', async (req, res, next) => {
 
     const db = getDb();
 
-    let query = db.select().from(drivers);
+    let baseQuery = db.select().from(drivers).where(eq(drivers.active, true));
 
     if (search) {
-      query = query.where(
-        or(
-          like(drivers.driverCode, `%${search}%`),
-          like(drivers.fullName, `%${search}%`),
-          like(drivers.licenseNumber, `%${search}%`)
+      baseQuery = baseQuery.where(
+        and(
+          eq(drivers.active, true),
+          or(
+            like(drivers.driverCode, `%${search}%`),
+            like(drivers.fullName, `%${search}%`),
+            like(drivers.licenseNumber, `%${search}%`),
+            like(drivers.email, `%${search}%`)
+          )
         )
       );
     }
 
-    const results = await query.limit(limit).offset(offset);
+    const results = await baseQuery.limit(limit).offset(offset);
+
+    // Get total count for pagination
+    let totalQuery = db.select({ count: drivers.id }).from(drivers).where(eq(drivers.active, true));
+
+    if (search) {
+      totalQuery = totalQuery.where(
+        and(
+          eq(drivers.active, true),
+          or(
+            like(drivers.driverCode, `%${search}%`),
+            like(drivers.fullName, `%${search}%`),
+            like(drivers.licenseNumber, `%${search}%`),
+            like(drivers.email, `%${search}%`)
+          )
+        )
+      );
+    }
+
+    const totalResult = await totalQuery;
+    const total = totalResult.length;
 
     res.json({
       success: true,
@@ -59,7 +83,8 @@ router.get('/', async (req, res, next) => {
       pagination: {
         page,
         limit,
-        total: results.length
+        total,
+        pages: Math.ceil(total / limit)
       }
     });
   } catch (error) {

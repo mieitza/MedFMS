@@ -5,6 +5,7 @@ import driverRoutes from './drivers.js';
 import fuelRoutes from './fuel.js';
 import materialRoutes from './materials.js';
 import systemRoutes from './system.js';
+import documentRoutes from './documents.js';
 
 const router = Router();
 
@@ -14,6 +15,7 @@ router.use('/drivers', driverRoutes);
 router.use('/fuel', fuelRoutes);
 router.use('/materials', materialRoutes);
 router.use('/system', systemRoutes);
+router.use('/documents', documentRoutes);
 
 // API documentation endpoint
 router.get('/docs', (req, res) => {
@@ -25,7 +27,8 @@ router.get('/docs', (req, res) => {
       drivers: '/api/drivers',
       fuel: '/api/fuel',
       materials: '/api/materials',
-      system: '/api/system'
+      system: '/api/system',
+      documents: '/api/documents'
     }
   });
 });
