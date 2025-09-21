@@ -1011,4 +1011,85 @@ export const api = {
 
     return response.json();
   },
+
+  // Reports API
+  async getFleetOverviewReport(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/reports/fleet-overview?${queryParams}`, {
+      headers: api.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch fleet overview report');
+    }
+
+    return response.json();
+  },
+
+  async getMaintenanceAnalyticsReport(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/reports/maintenance-analytics?${queryParams}`, {
+      headers: api.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch maintenance analytics report');
+    }
+
+    return response.json();
+  },
+
+  async getCostAnalysisReport(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/reports/cost-analysis?${queryParams}`, {
+      headers: api.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch cost analysis report');
+    }
+
+    return response.json();
+  },
+
+  async getPerformanceMetricsReport(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/reports/performance-metrics?${queryParams}`, {
+      headers: api.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch performance metrics report');
+    }
+
+    return response.json();
+  },
+
+  async getExecutiveSummaryReport(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/reports/executive-summary?${queryParams}`, {
+      headers: api.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch executive summary report');
+    }
+
+    return response.json();
+  },
 };
