@@ -7,6 +7,7 @@ import maintenanceRoutes from './maintenance.js';
 import materialRoutes from './materials.js';
 import systemRoutes from './system.js';
 import documentRoutes from './documents.js';
+import reportRoutes from './reports.js';
 
 const router = Router();
 
@@ -18,6 +19,7 @@ router.use('/maintenance', maintenanceRoutes);
 router.use('/materials', materialRoutes);
 router.use('/system', systemRoutes);
 router.use('/documents', documentRoutes);
+router.use('/reports', reportRoutes);
 
 // API documentation endpoint
 router.get('/docs', (req, res) => {
@@ -31,7 +33,8 @@ router.get('/docs', (req, res) => {
       maintenance: '/api/maintenance',
       materials: '/api/materials',
       system: '/api/system',
-      documents: '/api/documents'
+      documents: '/api/documents',
+      reports: '/api/reports'
     }
   });
 });
