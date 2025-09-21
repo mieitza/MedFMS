@@ -10,6 +10,7 @@ import { authenticate, authorize } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
 
 const router = Router();
+
 router.use(authenticate);
 
 // Ensure uploads directory exists
@@ -20,7 +21,12 @@ fs.mkdir(uploadsDir, { recursive: true }).catch(console.error);
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
     const { entityType, entityId } = req.body;
-    const uploadPath = path.join(uploadsDir, entityType, entityId);
+
+    // Provide default values if undefined
+    const safeEntityType = entityType || 'general';
+    const safeEntityId = entityId || 'default';
+
+    const uploadPath = path.join(uploadsDir, safeEntityType, safeEntityId);
     await fs.mkdir(uploadPath, { recursive: true });
     cb(null, uploadPath);
   },
@@ -166,7 +172,7 @@ router.post('/upload', authorize('admin', 'manager', 'operator'), upload.single(
 });
 
 // Download document
-router.get('/download/:id', async (req, res, next) => {
+router.get('/download/:id', authenticate, async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
     const db = getDb();
@@ -194,6 +200,7 @@ router.get('/download/:id', async (req, res, next) => {
 
     res.setHeader('Content-Disposition', `attachment; filename="${document.originalFileName}"`);
     res.setHeader('Content-Type', document.mimeType);
+    res.setHeader('Content-Length', document.fileSize);
     res.sendFile(path.resolve(document.filePath));
   } catch (error) {
     next(error);
@@ -233,6 +240,37 @@ router.delete('/:id', authorize('admin', 'manager'), async (req, res, next) => {
 });
 
 // Photo endpoints
+
+// Download photo (must come before the general photo route)
+router.get('/photos/download/:id', authenticate, async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const db = getDb();
+
+    const [photo] = await db.select()
+      .from(photos)
+      .where(and(eq(photos.id, id), eq(photos.active, true)))
+      .limit(1);
+
+    if (!photo) {
+      throw new AppError('Photo not found', 404);
+    }
+
+    try {
+      await fs.access(photo.filePath);
+    } catch {
+      throw new AppError('Photo file not found', 404);
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${photo.originalFileName}"`);
+    res.setHeader('Content-Type', photo.mimeType);
+    res.setHeader('Content-Length', photo.fileSize);
+    res.sendFile(path.resolve(photo.filePath));
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get('/photos/:entityType/:entityId', async (req, res, next) => {
   try {
     const { entityType, entityId } = req.params;

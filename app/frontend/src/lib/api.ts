@@ -323,7 +323,7 @@ export const api = {
 
     const response = await fetch(`${API_BASE_URL}/documents/upload`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
+      headers: this.getAuthHeaders(false),
       body: formData,
     });
 
@@ -381,7 +381,7 @@ export const api = {
 
     const response = await fetch(`${API_BASE_URL}/documents/photos/upload`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
+      headers: this.getAuthHeaders(false),
       body: formData,
     });
 
@@ -394,6 +394,18 @@ export const api = {
 
   getPhotoUrl(id) {
     return `${API_BASE_URL}/documents/photos/view/${id}`;
+  },
+
+  async downloadPhoto(id) {
+    const response = await fetch(`${API_BASE_URL}/documents/photos/download/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to download photo');
+    }
+
+    return response.blob();
   },
 
   async deletePhoto(id) {
