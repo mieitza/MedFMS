@@ -50,37 +50,38 @@
       key: 'materialCode',
       label: 'Material Code',
       sortable: true,
-      render: (row) => row.materialCode
+      render: (row) => (row && row.materialCode) || 'N/A'
     },
     {
       key: 'materialName',
       label: 'Material Name',
       sortable: true,
-      render: (row) => row.materialName
+      render: (row) => (row && row.materialName) || 'N/A'
     },
     {
       key: 'currentStock',
       label: 'Current Stock',
       sortable: true,
-      render: (row) => parseFloat(row.currentStock || 0).toFixed(2)
+      render: (row) => parseFloat((row && row.currentStock) || 0).toFixed(2)
     },
     {
       key: 'criticalLevel',
       label: 'Critical Level',
       sortable: true,
-      render: (row) => parseFloat(row.criticalLevel || 0).toFixed(2)
+      render: (row) => parseFloat((row && row.criticalLevel) || 0).toFixed(2)
     },
     {
       key: 'standardPrice',
       label: 'Standard Price',
       sortable: true,
-      render: (row) => row.standardPrice ? `$${parseFloat(row.standardPrice).toFixed(2)}` : '-'
+      render: (row) => (row && row.standardPrice) ? `$${parseFloat(row.standardPrice).toFixed(2)}` : '-'
     },
     {
       key: 'stockStatus',
       label: 'Stock Status',
       sortable: false,
       render: (row) => {
+        if (!row) return '<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">N/A</span>';
         const stock = parseFloat(row.currentStock || 0);
         const critical = parseFloat(row.criticalLevel || 0);
         if (stock <= critical) {
@@ -96,7 +97,57 @@
       key: 'createdAt',
       label: 'Created',
       sortable: true,
-      render: (row) => new Date(row.createdAt).toLocaleDateString()
+      render: (row) => (row && row.createdAt) ? new Date(row.createdAt).toLocaleDateString() : 'N/A'
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      sortable: false,
+      render: (row) => `
+        <div class="flex gap-2">
+          <button onclick="viewMaterial(${(row && row.id) || 0})" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+            View Details
+          </button>
+        </div>
+      `
+    }
+  ];
+
+  // Warehouse table columns
+  const warehouseColumns = [
+    {
+      key: 'warehouseCode',
+      label: 'Code',
+      sortable: true
+    },
+    {
+      key: 'warehouseName',
+      label: 'Warehouse Name',
+      sortable: true
+    },
+    {
+      key: 'description',
+      label: 'Description',
+      sortable: false,
+      render: (row) => (row && row.description) || '-'
+    },
+    {
+      key: 'capacity',
+      label: 'Capacity',
+      sortable: true,
+      render: (row) => (row && row.capacity) || '-'
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      sortable: false,
+      render: (row) => `
+        <div class="flex gap-2">
+          <button onclick="viewWarehouse(${(row && row.id) || 0})" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+            View Details
+          </button>
+        </div>
+      `
     }
   ];
 
@@ -139,8 +190,29 @@
       warehouses = response.data || [];
     } catch (error) {
       console.error('Failed to load warehouses:', error);
+      if (error.message?.includes('Authentication required') || error.message?.includes('401')) {
+        // Authentication failed, redirect to login
+        localStorage.removeItem('token');
+        goto('/');
+        return;
+      }
       warehouses = [];
     }
+  }
+
+  // Navigation functions for action buttons
+  function viewMaterial(materialId) {
+    goto(`/materials/${materialId}`);
+  }
+
+  function viewWarehouse(warehouseId) {
+    goto(`/materials/warehouses/${warehouseId}`);
+  }
+
+  // Make functions globally available for inline onclick handlers (browser only)
+  if (typeof window !== 'undefined') {
+    window.viewMaterial = viewMaterial;
+    window.viewWarehouse = viewWarehouse;
   }
 
   function handleSearch(event) {
@@ -309,6 +381,22 @@
 
   <!-- Main Content -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Warehouses Section -->
+    <div class="mb-8">
+      <DataTable
+        data={warehouses}
+        columns={warehouseColumns}
+        loading={false}
+        currentPage={1}
+        pageSize={10}
+        totalItems={warehouses.length}
+        title="Warehouses"
+        showSearch={false}
+        showPagination={false}
+        showExport={false}
+      />
+    </div>
+
     <!-- Materials Table -->
     <DataTable
       data={materials}

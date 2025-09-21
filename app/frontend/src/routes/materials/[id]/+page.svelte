@@ -5,11 +5,14 @@
   import { api } from '$lib/api';
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
+  import WorkOrderFiles from '$lib/components/WorkOrderFiles.svelte';
 
   let material = null;
+  let warehouse = null;
   let transactions = [];
   let loading = false;
   let showTransactionModal = false;
+  let showEditModal = false;
   let isSaving = false;
   let searchTerm = '';
   let currentPage = 1;
@@ -113,12 +116,32 @@
     try {
       const response = await api.getMaterialById(id);
       material = response.data;
+
+      // Load warehouse information if material has a warehouseId
+      if (material.warehouseId) {
+        await loadWarehouse(material.warehouseId);
+      }
     } catch (error) {
       console.error('Failed to load material:', error);
       alert('Failed to load material details');
       goto('/materials');
     } finally {
       loading = false;
+    }
+  }
+
+  async function loadWarehouse(warehouseId) {
+    try {
+      const response = await api.getWarehouses();
+      warehouse = response.data.find(w => w.id === warehouseId);
+    } catch (error) {
+      console.error('Failed to load warehouse:', error);
+      if (error.message?.includes('authentication') || error.message?.includes('401')) {
+        // Authentication failed, redirect to login
+        localStorage.removeItem('token');
+        goto('/');
+        return;
+      }
     }
   }
 
@@ -212,6 +235,20 @@
       return 'In Stock';
     }
   }
+
+  function openEditModal() {
+    showEditModal = true;
+  }
+
+  function closeEditModal() {
+    showEditModal = false;
+  }
+
+  async function updateMaterial() {
+    // This would require implementing updateMaterial in the API
+    alert('Material edit functionality coming soon');
+    showEditModal = false;
+  }
 </script>
 
 <svelte:head>
@@ -244,6 +281,15 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
             Add Transaction
+          </button>
+          <button
+            on:click={openEditModal}
+            class="btn btn-secondary"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Edit Material
           </button>
           <a
             href="/materials"
@@ -305,12 +351,47 @@
           </div>
         </div>
 
+        {#if warehouse}
+          <div class="mt-6 pt-6 border-t border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Warehouse Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <h4 class="text-sm font-medium text-gray-500 mb-1">Warehouse</h4>
+                <p class="text-gray-900">
+                  <a href="/materials/warehouses/{warehouse.id}" class="text-blue-600 hover:text-blue-800 hover:underline">
+                    {warehouse.warehouseName}
+                  </a>
+                </p>
+                <p class="text-sm text-gray-500">Code: {warehouse.warehouseCode}</p>
+              </div>
+              {#if warehouse.address}
+                <div>
+                  <h4 class="text-sm font-medium text-gray-500 mb-1">Location</h4>
+                  <p class="text-gray-900 text-sm">{warehouse.address}</p>
+                </div>
+              {/if}
+              {#if warehouse.managerName}
+                <div>
+                  <h4 class="text-sm font-medium text-gray-500 mb-1">Manager</h4>
+                  <p class="text-gray-900">{warehouse.managerName}</p>
+                </div>
+              {/if}
+            </div>
+          </div>
+        {/if}
+
         {#if material.description}
           <div class="mt-4">
             <h3 class="text-sm font-medium text-gray-500 mb-1">Description</h3>
             <p class="text-gray-900">{material.description}</p>
           </div>
         {/if}
+      </div>
+
+      <!-- File Management -->
+      <div class="bg-white p-6 rounded-lg shadow border mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Files & Documents</h2>
+        <WorkOrderFiles entityType="material" entityId={parseInt($page.params.id)} />
       </div>
 
       <!-- Transactions Table -->
@@ -449,6 +530,31 @@
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
       >
         {isSaving ? 'Saving...' : 'Create Transaction'}
+      </button>
+    </div>
+  </form>
+</Modal>
+
+<!-- Edit Material Modal -->
+<Modal bind:open={showEditModal} title="Edit Material" on:close={closeEditModal}>
+  <form on:submit|preventDefault={updateMaterial} class="space-y-6">
+    <div class="text-center py-8">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">Edit Material</h3>
+      <p class="mt-1 text-sm text-gray-500">
+        Material editing functionality is coming soon. This will allow you to modify material details, pricing, and inventory settings.
+      </p>
+    </div>
+
+    <div class="flex justify-end gap-3 pt-4">
+      <button
+        type="button"
+        on:click={closeEditModal}
+        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+      >
+        Close
       </button>
     </div>
   </form>

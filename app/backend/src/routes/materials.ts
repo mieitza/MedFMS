@@ -59,6 +59,20 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+router.get('/warehouses', async (req, res, next) => {
+  try {
+    const db = getDb();
+    const results = await db.select().from(warehouses);
+
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get('/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
@@ -102,20 +116,6 @@ router.post('/', authorize('admin', 'manager', 'operator'), async (req, res, nex
     res.status(201).json({
       success: true,
       data: result[0]
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get('/warehouses', async (req, res, next) => {
-  try {
-    const db = getDb();
-    const results = await db.select().from(warehouses);
-
-    res.json({
-      success: true,
-      data: results
     });
   } catch (error) {
     next(error);

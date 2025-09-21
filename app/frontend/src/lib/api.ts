@@ -1004,7 +1004,10 @@ export const api = {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch warehouses');
+      if (response.status === 401) {
+        throw new Error('Authentication required');
+      }
+      throw new Error(`Failed to fetch warehouses: ${response.status} ${response.statusText}`);
     }
 
     return response.json();
