@@ -5,6 +5,7 @@
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import FileUpload from '$lib/components/FileUpload.svelte';
+  import WorkOrderFiles from '$lib/components/WorkOrderFiles.svelte';
 
   let workOrders = [];
   let vehicles = [];
@@ -734,14 +735,11 @@
 
       <!-- File Upload Section -->
       <div>
-        <FileUpload
-          entityType="maintenance_work_order"
-          entityId={createdWorkOrderId}
+        <WorkOrderFiles
+          workOrderId={createdWorkOrderId}
+          showUpload={true}
           title="Attach Photos and Documents"
-          description="Upload photos, documents, or other files related to this work order"
-          multiple={true}
-          maxFiles={10}
-          on:uploaded={handleFileUploaded}
+          on:fileUploaded={handleFileUploaded}
         />
       </div>
 
@@ -875,6 +873,23 @@
             placeholder="Additional notes"
           ></textarea>
         </div>
+      </div>
+
+      <!-- File Management Section -->
+      <div class="border-t pt-6">
+        <WorkOrderFiles
+          workOrderId={editingWorkOrder?.id}
+          showUpload={true}
+          title="Work Order Files"
+          on:fileUploaded={() => {
+            // File uploaded successfully
+            console.log('File uploaded to work order');
+          }}
+          on:fileDeleted={() => {
+            // File deleted successfully
+            console.log('File deleted from work order');
+          }}
+        />
       </div>
 
       <!-- Action Buttons -->

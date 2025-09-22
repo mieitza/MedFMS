@@ -4,6 +4,7 @@
   import { api } from '$lib/api';
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
+  import WorkOrderFiles from '$lib/components/WorkOrderFiles.svelte';
 
   let workOrders = [];
   let loading = false;
@@ -351,6 +352,15 @@
             </div>
           {/if}
         </div>
+      </div>
+
+      <!-- Files Section -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <WorkOrderFiles
+          workOrderId={selectedWorkOrder.workOrder?.id}
+          showUpload={false}
+          title="Work Order Files and Photos"
+        />
       </div>
 
       <!-- Notes Section -->

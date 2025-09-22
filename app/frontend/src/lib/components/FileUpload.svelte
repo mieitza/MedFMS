@@ -101,9 +101,19 @@
         const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension for name
 
         if (isImage) {
-          return await api.uploadPhoto(file, entityType, entityId, fileName);
+          return await api.uploadPhoto(file, {
+            photoName: fileName,
+            entityType,
+            entityId,
+            description: fileName
+          });
         } else {
-          return await api.uploadDocument(file, entityType, entityId, fileName);
+          return await api.uploadDocument(file, {
+            documentName: fileName,
+            entityType,
+            entityId,
+            description: fileName
+          });
         }
       });
 

@@ -4,6 +4,7 @@
   import { page } from '$app/stores';
   import { api } from '$lib/api';
   import Modal from '$lib/components/Modal.svelte';
+  import WorkOrderFiles from '$lib/components/WorkOrderFiles.svelte';
 
   let workOrder = null;
   let loading = false;
@@ -406,6 +407,17 @@
             <p class="text-gray-900">{workOrder.notes}</p>
           </div>
         {/if}
+      </div>
+
+      <!-- Files Section -->
+      <div class="bg-white p-6 rounded-lg shadow border mb-6">
+        <WorkOrderFiles
+          workOrderId={workOrder.id}
+          showUpload={true}
+          title="Work Order Files and Photos"
+          on:fileUploaded={() => console.log('File uploaded to work order')}
+          on:fileDeleted={() => console.log('File deleted from work order')}
+        />
       </div>
 
       <!-- Actions Section -->

@@ -1027,6 +1027,20 @@ export const api = {
     return response.json();
   },
 
+  async updateWarehouse(id, warehouseData) {
+    const response = await fetch(`${API_BASE_URL}/materials/warehouses/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(warehouseData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update warehouse');
+    }
+
+    return response.json();
+  },
+
   // Reports API
   async getFleetOverviewReport(params = {}) {
     const queryParams = new URLSearchParams();

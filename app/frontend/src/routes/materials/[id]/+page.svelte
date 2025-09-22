@@ -14,6 +14,8 @@
   let showTransactionModal = false;
   let showEditModal = false;
   let isSaving = false;
+  let units = [];
+  let warehouses = [];
   let searchTerm = '';
   let currentPage = 1;
   let pageSize = 20;
@@ -28,6 +30,20 @@
     transactionDate: new Date().toISOString().split('T')[0],
     description: '',
     invoiceNumber: '',
+  };
+
+  // Edit material form data
+  let materialForm = {
+    materialCode: '',
+    materialName: '',
+    description: '',
+    unitId: 0,
+    currentStock: 0,
+    criticalLevel: 0,
+    standardPrice: 0,
+    warehouseId: 0,
+    barcodeNumber: '',
+    shelfLocation: '',
   };
 
   // Data table columns for transactions
@@ -108,8 +124,28 @@
     if (materialId) {
       await loadMaterial(materialId);
       await loadTransactions(materialId);
+      await loadFormData();
     }
   });
+
+  async function loadFormData() {
+    try {
+      // Load warehouses
+      const warehousesResponse = await api.getWarehouses();
+      warehouses = warehousesResponse.data;
+
+      // For now, we'll use mock units data since there's no units endpoint yet
+      units = [
+        { id: 1, unitName: 'Pieces', unitCode: 'PCS' },
+        { id: 2, unitName: 'Liters', unitCode: 'L' },
+        { id: 3, unitName: 'Kilograms', unitCode: 'KG' },
+        { id: 4, unitName: 'Meters', unitCode: 'M' },
+        { id: 5, unitName: 'Boxes', unitCode: 'BOX' }
+      ];
+    } catch (error) {
+      console.error('Error loading form data:', error);
+    }
+  }
 
   async function loadMaterial(id) {
     loading = true;
@@ -237,17 +273,60 @@
   }
 
   function openEditModal() {
+    if (material) {
+      materialForm = {
+        materialCode: material.materialCode || '',
+        materialName: material.materialName || '',
+        description: material.description || '',
+        unitId: material.unitId || 0,
+        currentStock: material.currentStock || 0,
+        criticalLevel: material.criticalLevel || 0,
+        standardPrice: material.standardPrice || 0,
+        warehouseId: material.warehouseId || 0,
+        barcodeNumber: material.barcodeNumber || '',
+        shelfLocation: material.shelfLocation || '',
+      };
+    }
     showEditModal = true;
   }
 
   function closeEditModal() {
     showEditModal = false;
+    // Reset form data
+    if (material) {
+      materialForm = {
+        materialCode: material.materialCode || '',
+        materialName: material.materialName || '',
+        description: material.description || '',
+        unitId: material.unitId || 0,
+        currentStock: material.currentStock || 0,
+        criticalLevel: material.criticalLevel || 0,
+        standardPrice: material.standardPrice || 0,
+        warehouseId: material.warehouseId || 0,
+        barcodeNumber: material.barcodeNumber || '',
+        shelfLocation: material.shelfLocation || '',
+      };
+    }
   }
 
   async function updateMaterial() {
-    // This would require implementing updateMaterial in the API
-    alert('Material edit functionality coming soon');
-    showEditModal = false;
+    if (!material) return;
+
+    isSaving = true;
+    try {
+      await api.updateMaterial(material.id, materialForm);
+
+      // Update the local material object
+      material = { ...material, ...materialForm, updatedAt: new Date().toISOString() };
+
+      showEditModal = false;
+      alert('Material updated successfully');
+    } catch (error) {
+      console.error('Error updating material:', error);
+      alert('Failed to update material: ' + error.message);
+    } finally {
+      isSaving = false;
+    }
   }
 </script>
 
@@ -538,23 +617,162 @@
 <!-- Edit Material Modal -->
 <Modal bind:open={showEditModal} title="Edit Material" on:close={closeEditModal}>
   <form on:submit|preventDefault={updateMaterial} class="space-y-6">
-    <div class="text-center py-8">
-      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-      </svg>
-      <h3 class="mt-2 text-sm font-medium text-gray-900">Edit Material</h3>
-      <p class="mt-1 text-sm text-gray-500">
-        Material editing functionality is coming soon. This will allow you to modify material details, pricing, and inventory settings.
-      </p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Material Code -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Material Code <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          bind:value={materialForm.materialCode}
+          required
+          disabled={isSaving}
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter material code"
+        />
+      </div>
+
+      <!-- Material Name -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Material Name <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          bind:value={materialForm.materialName}
+          required
+          disabled={isSaving}
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter material name"
+        />
+      </div>
+
+      <!-- Unit -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Unit <span class="text-red-500">*</span>
+        </label>
+        <select
+          bind:value={materialForm.unitId}
+          required
+          disabled={isSaving}
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value={0}>Select a unit</option>
+          {#each units as unit}
+            <option value={unit.id}>{unit.unitName} ({unit.unitCode})</option>
+          {/each}
+        </select>
+      </div>
+
+      <!-- Warehouse -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Warehouse</label>
+        <select
+          bind:value={materialForm.warehouseId}
+          disabled={isSaving}
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value={0}>No warehouse assigned</option>
+          {#each warehouses as warehouse}
+            <option value={warehouse.id}>{warehouse.warehouseName} ({warehouse.warehouseCode})</option>
+          {/each}
+        </select>
+      </div>
+
+      <!-- Current Stock -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Current Stock</label>
+        <input
+          type="number"
+          step="0.01"
+          bind:value={materialForm.currentStock}
+          disabled={isSaving}
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter current stock"
+        />
+      </div>
+
+      <!-- Critical Level -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Critical Level</label>
+        <input
+          type="number"
+          step="0.01"
+          bind:value={materialForm.criticalLevel}
+          disabled={isSaving}
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter critical level"
+        />
+      </div>
+
+      <!-- Standard Price -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Standard Price</label>
+        <input
+          type="number"
+          step="0.01"
+          bind:value={materialForm.standardPrice}
+          disabled={isSaving}
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter standard price"
+        />
+      </div>
+
+      <!-- Barcode Number -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Barcode Number</label>
+        <input
+          type="text"
+          bind:value={materialForm.barcodeNumber}
+          disabled={isSaving}
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter barcode number"
+        />
+      </div>
+
+      <!-- Shelf Location -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Shelf Location</label>
+        <input
+          type="text"
+          bind:value={materialForm.shelfLocation}
+          disabled={isSaving}
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Enter shelf location"
+        />
+      </div>
     </div>
 
+    <!-- Description -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+      <textarea
+        bind:value={materialForm.description}
+        rows="3"
+        disabled={isSaving}
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+        placeholder="Enter material description"
+      ></textarea>
+    </div>
+
+    <!-- Action Buttons -->
     <div class="flex justify-end gap-3 pt-4">
       <button
         type="button"
         on:click={closeEditModal}
-        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+        disabled={isSaving}
       >
-        Close
+        Cancel
+      </button>
+      <button
+        type="submit"
+        disabled={isSaving}
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isSaving ? 'Saving...' : 'Save Changes'}
       </button>
     </div>
   </form>

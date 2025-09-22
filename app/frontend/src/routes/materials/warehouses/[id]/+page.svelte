@@ -23,9 +23,8 @@
     warehouseName: '',
     description: '',
     capacity: 0,
-    address: '',
-    contactNumber: '',
-    managerName: ''
+    locationId: 0,
+    responsiblePersonId: 0
   };
 
   // Data table columns for materials in warehouse
@@ -44,9 +43,10 @@
       key: 'currentStock',
       label: 'Current Stock',
       sortable: true,
-      render: (row) => {
-        const stockLevel = row.currentStock <= row.criticalLevel ? 'text-red-600 font-medium' : 'text-green-600';
-        return `<span class="${stockLevel}">${row.currentStock}</span>`;
+      render: (value, row) => {
+        if (!row) return '-';
+        const stockLevel = (row.currentStock || 0) <= (row.criticalLevel || 0) ? 'text-red-600 font-medium' : 'text-green-600';
+        return `<span class="${stockLevel}">${row.currentStock || 0}</span>`;
       }
     },
     {
@@ -58,25 +58,28 @@
       key: 'standardPrice',
       label: 'Standard Price',
       sortable: true,
-      render: (row) => `$${parseFloat(row.standardPrice || 0).toFixed(2)}`
+      render: (value, row) => `$${parseFloat(row?.standardPrice || 0).toFixed(2)}`
     },
     {
       key: 'unit',
       label: 'Unit',
       sortable: false,
-      render: (row) => row.unit?.unitName || 'N/A'
+      render: (value, row) => row?.unit?.unitName || 'N/A'
     },
     {
       key: 'actions',
       label: 'Actions',
       sortable: false,
-      render: (row) => `
+      render: (value, row) => {
+        if (!row || !row.id) return '<div class="text-gray-500 text-sm">No actions</div>';
+        return `
         <div class="flex gap-2">
           <button onclick="viewMaterial(${row.id})" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
             View Details
           </button>
         </div>
-      `
+        `;
+      }
     }
   ];
 
@@ -103,9 +106,8 @@
           warehouseName: warehouse.warehouseName || '',
           description: warehouse.description || '',
           capacity: warehouse.capacity || 0,
-          address: warehouse.address || '',
-          contactNumber: warehouse.contactNumber || '',
-          managerName: warehouse.managerName || ''
+          locationId: warehouse.locationId || 0,
+          responsiblePersonId: warehouse.responsiblePersonId || 0
         };
       }
     } catch (error) {
@@ -148,9 +150,7 @@
 
     isSaving = true;
     try {
-      // Note: This assumes there's an update warehouse endpoint in the API
-      // If not available, you may need to implement it in the backend
-      await api.updateWarehouse?.(warehouseId, warehouseForm);
+      await api.updateWarehouse(warehouseId, warehouseForm);
 
       warehouse = { ...warehouse, ...warehouseForm };
       showEditModal = false;
@@ -164,6 +164,18 @@
   }
 
   function openEditModal() {
+    console.log('openEditModal called', warehouse);
+    if (warehouse) {
+      warehouseForm = {
+        warehouseCode: warehouse.warehouseCode || '',
+        warehouseName: warehouse.warehouseName || '',
+        description: warehouse.description || '',
+        capacity: warehouse.capacity || 0,
+        locationId: warehouse.locationId || 0,
+        responsiblePersonId: warehouse.responsiblePersonId || 0
+      };
+    }
+    console.log('Setting showEditModal to true');
     showEditModal = true;
   }
 
@@ -176,9 +188,8 @@
         warehouseName: warehouse.warehouseName || '',
         description: warehouse.description || '',
         capacity: warehouse.capacity || 0,
-        address: warehouse.address || '',
-        contactNumber: warehouse.contactNumber || '',
-        managerName: warehouse.managerName || ''
+        locationId: warehouse.locationId || 0,
+        responsiblePersonId: warehouse.responsiblePersonId || 0
       };
     }
   }
@@ -339,7 +350,7 @@
 </div>
 
 <!-- Edit Warehouse Modal -->
-<Modal bind:show={showEditModal} title="Edit Warehouse">
+<Modal bind:open={showEditModal} title="Edit Warehouse">
   <form on:submit|preventDefault={updateWarehouse} class="space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
@@ -382,30 +393,25 @@
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Manager Name</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Location ID</label>
         <input
-          type="text"
-          bind:value={warehouseForm.managerName}
+          type="number"
+          bind:value={warehouseForm.locationId}
+          min="0"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Optional location reference"
         />
       </div>
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-      <textarea
-        bind:value={warehouseForm.address}
-        rows="2"
-        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-      ></textarea>
-    </div>
-
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Responsible Person ID</label>
       <input
-        type="text"
-        bind:value={warehouseForm.contactNumber}
+        type="number"
+        bind:value={warehouseForm.responsiblePersonId}
+        min="0"
         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+        placeholder="Optional responsible person reference"
       />
     </div>
 

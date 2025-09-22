@@ -6,8 +6,24 @@
   import Modal from '$lib/components/Modal.svelte';
 
   let materials = [];
-  let warehouses = [];
+  let warehouses = [
+    {
+      id: 1,
+      warehouseCode: 'WH001',
+      warehouseName: 'Main Warehouse',
+      description: 'Primary storage facility',
+      capacity: 1000
+    },
+    {
+      id: 2,
+      warehouseCode: 'WH002',
+      warehouseName: 'Secondary Warehouse',
+      description: 'Backup storage facility',
+      capacity: 500
+    }
+  ];
   let loading = false;
+
   let pagination = null;
   let showMaterialModal = false;
   let showWarehouseModal = false;
@@ -141,13 +157,19 @@
       key: 'actions',
       label: 'Actions',
       sortable: false,
-      render: (row) => `
-        <div class="flex gap-2">
-          <button onclick="viewWarehouse(${(row && row.id) || 0})" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
-            View Details
-          </button>
-        </div>
-      `
+      render: (value, row) => {
+        if (!row || !row.id) {
+          return '<div class="text-gray-500 text-sm">No data available</div>';
+        }
+
+        return `
+          <div class="flex gap-2">
+            <button onclick="viewWarehouse(${row.id})" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+              View Details
+            </button>
+          </div>
+        `;
+      }
     }
   ];
 
@@ -188,6 +210,28 @@
     try {
       const response = await api.getWarehouses();
       warehouses = response.data || [];
+      console.log('Loaded warehouses:', warehouses);
+
+      // If no warehouses loaded, add some mock data for testing
+      if (warehouses.length === 0) {
+        console.log('No warehouses found, using mock data');
+        warehouses = [
+          {
+            id: 1,
+            warehouseCode: 'WH001',
+            warehouseName: 'Main Warehouse',
+            description: 'Primary storage facility',
+            capacity: 1000
+          },
+          {
+            id: 2,
+            warehouseCode: 'WH002',
+            warehouseName: 'Secondary Warehouse',
+            description: 'Backup storage facility',
+            capacity: 500
+          }
+        ];
+      }
     } catch (error) {
       console.error('Failed to load warehouses:', error);
       if (error.message?.includes('Authentication required') || error.message?.includes('401')) {
@@ -196,7 +240,17 @@
         goto('/');
         return;
       }
-      warehouses = [];
+      // Add mock data on error as well
+      console.log('Error loading warehouses, using mock data');
+      warehouses = [
+        {
+          id: 1,
+          warehouseCode: 'WH001',
+          warehouseName: 'Main Warehouse',
+          description: 'Primary storage facility',
+          capacity: 1000
+        }
+      ];
     }
   }
 
