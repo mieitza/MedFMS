@@ -39,8 +39,21 @@ app.use(cors({
 
 // Request processing middleware
 app.use(compression());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Skip body parsing for upload routes entirely
+app.use((req, res, next) => {
+  if (req.url.includes('/api/documents/photos/upload') || req.url.includes('/api/documents/upload')) {
+    return next();
+  }
+  express.json({ limit: '10mb' })(req, res, next);
+});
+
+app.use((req, res, next) => {
+  if (req.url.includes('/api/documents/photos/upload') || req.url.includes('/api/documents/upload')) {
+    return next();
+  }
+  express.urlencoded({ extended: true, limit: '10mb' })(req, res, next);
+});
 
 // Logging
 app.use(requestLogger);

@@ -73,6 +73,24 @@ router.get('/warehouses', async (req, res, next) => {
   }
 });
 
+router.get('/low-stock', async (req, res, next) => {
+  try {
+    const db = getDb();
+
+    const results = await db.select()
+      .from(materials)
+      .where(sql`${materials.currentStock} <= ${materials.criticalLevel}`)
+      .orderBy(materials.currentStock);
+
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get('/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
@@ -266,24 +284,6 @@ router.post('/transactions', authorize('admin', 'manager', 'operator'), async (r
   }
 });
 
-router.get('/low-stock', async (req, res, next) => {
-  try {
-    const db = getDb();
-
-    const results = await db.select()
-      .from(materials)
-      .where(sql`${materials.currentStock} <= ${materials.criticalLevel}`)
-      .orderBy(materials.currentStock);
-
-    res.json({
-      success: true,
-      data: results
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
 router.post('/warehouses', authorize('admin', 'manager'), async (req, res, next) => {
   try {
     const schema = z.object({
@@ -310,6 +310,57 @@ router.post('/warehouses', authorize('admin', 'manager'), async (req, res, next)
     const result = await db.insert(warehouses).values(data).returning();
 
     res.status(201).json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/warehouses/:id', authorize('admin', 'manager'), async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const schema = z.object({
+      warehouseCode: z.string().min(1).max(50),
+      warehouseName: z.string().min(1).max(100),
+      description: z.string().optional(),
+      locationId: z.number().optional(),
+      capacity: z.number().optional(),
+      responsiblePersonId: z.number().optional(),
+    });
+
+    const data = schema.parse(req.body);
+
+    const db = getDb();
+
+    const [existing] = await db.select()
+      .from(warehouses)
+      .where(eq(warehouses.id, id))
+      .limit(1);
+
+    if (!existing) {
+      throw new AppError('Warehouse not found', 404);
+    }
+
+    // Check if warehouse code is being changed and if it conflicts with another warehouse
+    if (data.warehouseCode !== existing.warehouseCode) {
+      const [codeConflict] = await db.select()
+        .from(warehouses)
+        .where(eq(warehouses.warehouseCode, data.warehouseCode))
+        .limit(1);
+
+      if (codeConflict) {
+        throw new AppError('Warehouse code already exists', 409);
+      }
+    }
+
+    const result = await db.update(warehouses)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(warehouses.id, id))
+      .returning();
+
+    res.json({
       success: true,
       data: result[0]
     });
