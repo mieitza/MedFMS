@@ -41,11 +41,11 @@ const workOrderSchema = z.object({
   description: z.string().optional(),
   priority: z.number().min(1).max(5).default(3),
   scheduledDate: z.coerce.date().optional(),
-  assignedTechnicianId: z.number().optional(),
-  supplierId: z.number().optional(),
+  assignedTo: z.string().optional(),
+  vendor: z.string().optional(),
   estimatedCost: z.number().optional(),
-  odometerReadingStart: z.number().optional(),
-  engineHoursStart: z.number().optional(),
+  odometerReading: z.number().optional(),
+  engineHours: z.number().optional(),
   notes: z.string().optional(),
 });
 
@@ -105,7 +105,7 @@ router.get('/work-orders', authorize('admin', 'manager', 'operator'), async (req
       vehicleId,
       status,
       priority,
-      assignedTechnicianId,
+      assignedTo,
       startDate,
       endDate
     } = req.query;
@@ -113,9 +113,61 @@ router.get('/work-orders', authorize('admin', 'manager', 'operator'), async (req
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
 
     let query = db.select({
-      maintenance_work_orders: maintenanceWorkOrders,
-      vehicles: vehicles,
-      maintenance_types: maintenanceTypes
+      workOrder: {
+        id: maintenanceWorkOrders.id,
+        workOrderNumber: maintenanceWorkOrders.workOrderNumber,
+        vehicleId: maintenanceWorkOrders.vehicleId,
+        maintenanceTypeId: maintenanceWorkOrders.maintenanceTypeId,
+        scheduleId: maintenanceWorkOrders.scheduleId,
+        title: maintenanceWorkOrders.title,
+        description: maintenanceWorkOrders.description,
+        status: maintenanceWorkOrders.status,
+        priority: maintenanceWorkOrders.priority,
+        requestedDate: maintenanceWorkOrders.requestedDate,
+        scheduledDate: maintenanceWorkOrders.scheduledDate,
+        startedDate: maintenanceWorkOrders.startedDate,
+        completedDate: maintenanceWorkOrders.completedDate,
+        dueDate: maintenanceWorkOrders.dueDate,
+        assignedTo: maintenanceWorkOrders.assignedTo,
+        facility: maintenanceWorkOrders.facility,
+        odometerReading: maintenanceWorkOrders.odometerReading,
+        engineHours: maintenanceWorkOrders.engineHours,
+        workInstructions: maintenanceWorkOrders.workInstructions,
+        partsNeeded: maintenanceWorkOrders.partsNeeded,
+        laborHours: maintenanceWorkOrders.laborHours,
+        estimatedCost: maintenanceWorkOrders.estimatedCost,
+        actualCost: maintenanceWorkOrders.actualCost,
+        vendor: maintenanceWorkOrders.vendor,
+        vendorInvoice: maintenanceWorkOrders.vendorInvoice,
+        warrantyClaim: maintenanceWorkOrders.warrantyClaim,
+        insuranceClaim: maintenanceWorkOrders.insuranceClaim,
+        downtimeHours: maintenanceWorkOrders.downtimeHours,
+        approvalRequired: maintenanceWorkOrders.approvalRequired,
+        approvedBy: maintenanceWorkOrders.approvedBy,
+        approvalDate: maintenanceWorkOrders.approvalDate,
+        completionNotes: maintenanceWorkOrders.completionNotes,
+        qualityCheck: maintenanceWorkOrders.qualityCheck,
+        qualityCheckBy: maintenanceWorkOrders.qualityCheckBy,
+        qualityCheckDate: maintenanceWorkOrders.qualityCheckDate,
+        qualityCheckNotes: maintenanceWorkOrders.qualityCheckNotes,
+        followUpRequired: maintenanceWorkOrders.followUpRequired,
+        followUpDate: maintenanceWorkOrders.followUpDate,
+        followUpNotes: maintenanceWorkOrders.followUpNotes,
+        createdBy: maintenanceWorkOrders.createdBy,
+        createdAt: maintenanceWorkOrders.createdAt,
+        updatedAt: maintenanceWorkOrders.updatedAt
+      },
+      vehicle: {
+        id: vehicles.id,
+        vehicleCode: vehicles.vehicleCode,
+        licensePlate: vehicles.licensePlate
+      },
+      maintenanceType: {
+        id: maintenanceTypes.id,
+        typeCode: maintenanceTypes.typeCode,
+        typeName: maintenanceTypes.typeName,
+        category: maintenanceTypes.category
+      }
     })
     .from(maintenanceWorkOrders)
     .leftJoin(vehicles, eq(maintenanceWorkOrders.vehicleId, vehicles.id))
@@ -126,7 +178,7 @@ router.get('/work-orders', authorize('admin', 'manager', 'operator'), async (req
     if (vehicleId) conditions.push(eq(maintenanceWorkOrders.vehicleId, parseInt(vehicleId as string)));
     if (status) conditions.push(eq(maintenanceWorkOrders.status, status as string));
     if (priority) conditions.push(eq(maintenanceWorkOrders.priority, parseInt(priority as string)));
-    if (assignedTechnicianId) conditions.push(eq(maintenanceWorkOrders.assignedTechnicianId, parseInt(assignedTechnicianId as string)));
+    if (assignedTo) conditions.push(eq(maintenanceWorkOrders.assignedTo, assignedTo as string));
     if (startDate) conditions.push(gte(maintenanceWorkOrders.scheduledDate, new Date(startDate as string)));
     if (endDate) conditions.push(lte(maintenanceWorkOrders.scheduledDate, new Date(endDate as string)));
 
@@ -139,41 +191,6 @@ router.get('/work-orders', authorize('admin', 'manager', 'operator'), async (req
       .limit(parseInt(limit as string))
       .offset(offset);
 
-
-    // Transform the result to match expected structure
-    const transformedResults = results.map(row => ({
-      workOrder: row.maintenance_work_orders ? {
-        id: row.maintenance_work_orders.id,
-        workOrderNumber: row.maintenance_work_orders.workOrderNumber,
-        vehicleId: row.maintenance_work_orders.vehicleId,
-        maintenanceTypeId: row.maintenance_work_orders.maintenanceTypeId,
-        title: row.maintenance_work_orders.title,
-        description: row.maintenance_work_orders.description,
-        priority: row.maintenance_work_orders.priority,
-        status: row.maintenance_work_orders.status,
-        scheduledDate: row.maintenance_work_orders.scheduledDate,
-        assignedTechnicianId: row.maintenance_work_orders.assignedTechnicianId,
-        estimatedCost: row.maintenance_work_orders.estimatedCost,
-        actualCost: row.maintenance_work_orders.actualCost,
-        createdAt: row.maintenance_work_orders.createdAt,
-        updatedAt: row.maintenance_work_orders.updatedAt,
-        notes: row.maintenance_work_orders.notes
-      } : null,
-      vehicle: row.vehicles ? {
-        id: row.vehicles.id,
-        vehicleCode: row.vehicles.vehicleCode,
-        licensePlate: row.vehicles.licensePlate
-      } : null,
-      maintenanceType: row.maintenance_types ? {
-        id: row.maintenance_types.id,
-        typeName: row.maintenance_types.typeName,
-        category: row.maintenance_types.category
-      } : null
-    }));
-
-
-
-
     // Get total count
     let countQuery = db.select({ count: sql`count(*)`.as('count') }).from(maintenanceWorkOrders);
     if (conditions.length > 0) {
@@ -183,7 +200,7 @@ router.get('/work-orders', authorize('admin', 'manager', 'operator'), async (req
 
     res.json({
       success: true,
-      data: transformedResults,
+      data: results,
       pagination: {
         page: parseInt(page as string),
         limit: parseInt(limit as string),
@@ -242,9 +259,61 @@ router.get('/work-orders/pending-approval', authorize('admin', 'manager'), async
     const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
 
     const result = await db.select({
-      maintenance_work_orders: maintenanceWorkOrders,
-      vehicles: vehicles,
-      maintenance_types: maintenanceTypes
+      workOrder: {
+        id: maintenanceWorkOrders.id,
+        workOrderNumber: maintenanceWorkOrders.workOrderNumber,
+        vehicleId: maintenanceWorkOrders.vehicleId,
+        maintenanceTypeId: maintenanceWorkOrders.maintenanceTypeId,
+        scheduleId: maintenanceWorkOrders.scheduleId,
+        title: maintenanceWorkOrders.title,
+        description: maintenanceWorkOrders.description,
+        status: maintenanceWorkOrders.status,
+        priority: maintenanceWorkOrders.priority,
+        requestedDate: maintenanceWorkOrders.requestedDate,
+        scheduledDate: maintenanceWorkOrders.scheduledDate,
+        startedDate: maintenanceWorkOrders.startedDate,
+        completedDate: maintenanceWorkOrders.completedDate,
+        dueDate: maintenanceWorkOrders.dueDate,
+        assignedTo: maintenanceWorkOrders.assignedTo,
+        facility: maintenanceWorkOrders.facility,
+        odometerReading: maintenanceWorkOrders.odometerReading,
+        engineHours: maintenanceWorkOrders.engineHours,
+        workInstructions: maintenanceWorkOrders.workInstructions,
+        partsNeeded: maintenanceWorkOrders.partsNeeded,
+        laborHours: maintenanceWorkOrders.laborHours,
+        estimatedCost: maintenanceWorkOrders.estimatedCost,
+        actualCost: maintenanceWorkOrders.actualCost,
+        vendor: maintenanceWorkOrders.vendor,
+        vendorInvoice: maintenanceWorkOrders.vendorInvoice,
+        warrantyClaim: maintenanceWorkOrders.warrantyClaim,
+        insuranceClaim: maintenanceWorkOrders.insuranceClaim,
+        downtimeHours: maintenanceWorkOrders.downtimeHours,
+        approvalRequired: maintenanceWorkOrders.approvalRequired,
+        approvedBy: maintenanceWorkOrders.approvedBy,
+        approvalDate: maintenanceWorkOrders.approvalDate,
+        completionNotes: maintenanceWorkOrders.completionNotes,
+        qualityCheck: maintenanceWorkOrders.qualityCheck,
+        qualityCheckBy: maintenanceWorkOrders.qualityCheckBy,
+        qualityCheckDate: maintenanceWorkOrders.qualityCheckDate,
+        qualityCheckNotes: maintenanceWorkOrders.qualityCheckNotes,
+        followUpRequired: maintenanceWorkOrders.followUpRequired,
+        followUpDate: maintenanceWorkOrders.followUpDate,
+        followUpNotes: maintenanceWorkOrders.followUpNotes,
+        createdBy: maintenanceWorkOrders.createdBy,
+        createdAt: maintenanceWorkOrders.createdAt,
+        updatedAt: maintenanceWorkOrders.updatedAt
+      },
+      vehicle: {
+        id: vehicles.id,
+        vehicleCode: vehicles.vehicleCode,
+        licensePlate: vehicles.licensePlate
+      },
+      maintenanceType: {
+        id: maintenanceTypes.id,
+        typeCode: maintenanceTypes.typeCode,
+        typeName: maintenanceTypes.typeName,
+        category: maintenanceTypes.category
+      }
     })
       .from(maintenanceWorkOrders)
       .leftJoin(vehicles, eq(maintenanceWorkOrders.vehicleId, vehicles.id))
@@ -253,37 +322,6 @@ router.get('/work-orders/pending-approval', authorize('admin', 'manager'), async
       .orderBy(desc(maintenanceWorkOrders.createdAt))
       .limit(limit)
       .offset(offset);
-
-    // Transform the result to match expected structure
-    const transformedResult = result.map(row => ({
-      workOrder: row.maintenance_work_orders ? {
-        id: row.maintenance_work_orders.id,
-        workOrderNumber: row.maintenance_work_orders.workOrderNumber,
-        vehicleId: row.maintenance_work_orders.vehicleId,
-        maintenanceTypeId: row.maintenance_work_orders.maintenanceTypeId,
-        title: row.maintenance_work_orders.title,
-        description: row.maintenance_work_orders.description,
-        priority: row.maintenance_work_orders.priority,
-        status: row.maintenance_work_orders.status,
-        scheduledDate: row.maintenance_work_orders.scheduledDate,
-        assignedTechnicianId: row.maintenance_work_orders.assignedTechnicianId,
-        estimatedCost: row.maintenance_work_orders.estimatedCost,
-        actualCost: row.maintenance_work_orders.actualCost,
-        createdAt: row.maintenance_work_orders.createdAt,
-        updatedAt: row.maintenance_work_orders.updatedAt,
-        notes: row.maintenance_work_orders.notes
-      } : null,
-      vehicle: row.vehicles ? {
-        id: row.vehicles.id,
-        vehicleCode: row.vehicles.vehicleCode,
-        licensePlate: row.vehicles.licensePlate
-      } : null,
-      maintenanceType: row.maintenance_types ? {
-        id: row.maintenance_types.id,
-        typeName: row.maintenance_types.typeName,
-        category: row.maintenance_types.category
-      } : null
-    }));
 
     // Get total count
     const [{ count }] = await db.select({ count: sql`count(*)` })
@@ -294,7 +332,7 @@ router.get('/work-orders/pending-approval', authorize('admin', 'manager'), async
 
     res.json({
       success: true,
-      data: transformedResult,
+      data: result,
       pagination: {
         page,
         limit,
@@ -424,11 +462,11 @@ router.patch('/work-orders/:id/status', authorize('admin', 'manager', 'operator'
 
     if (status === 'approved') {
       updateData.approvedBy = req.user.id;
-      updateData.approvedAt = new Date();
+      updateData.approvalDate = new Date();
     } else if (status === 'in_progress') {
-      updateData.startDate = new Date();
+      updateData.startedDate = new Date();
     } else if (status === 'completed') {
-      updateData.completionDate = new Date();
+      updateData.completedDate = new Date();
     }
 
     if (notes) {
@@ -621,11 +659,11 @@ router.get('/dashboard', authorize('admin', 'manager', 'operator'), async (req, 
     firstDayOfMonth.setDate(1);
     firstDayOfMonth.setHours(0, 0, 0, 0);
 
-    const [monthlyMaintenanceCost] = await db.select({ total: sql`sum(${maintenanceWorkOrders.totalCost})`.as('total') })
+    const [monthlyMaintenanceCost] = await db.select({ total: sql`sum(${maintenanceWorkOrders.actualCost})`.as('total') })
       .from(maintenanceWorkOrders)
       .where(and(
         eq(maintenanceWorkOrders.status, 'completed'),
-        gte(maintenanceWorkOrders.completionDate, firstDayOfMonth)
+        gte(maintenanceWorkOrders.completedDate, firstDayOfMonth)
       ));
 
     res.json({

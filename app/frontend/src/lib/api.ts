@@ -580,6 +580,19 @@ export const api = {
     return response.json();
   },
 
+  async rejectFuelTransaction(id) {
+    const response = await fetch(`${API_BASE_URL}/fuel/transactions/${id}/reject`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to reject fuel transaction');
+    }
+
+    return response.json();
+  },
+
   async getFuelEfficiencyReport(params = {}) {
     const queryParams = new URLSearchParams();
     if (params.vehicleId) queryParams.append('vehicleId', params.vehicleId.toString());
@@ -1013,6 +1026,21 @@ export const api = {
     return response.json();
   },
 
+  async getWarehouse(id) {
+    const response = await fetch(`${API_BASE_URL}/materials/warehouses/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Authentication required');
+      }
+      throw new Error(`Failed to fetch warehouse: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  },
+
   async createWarehouse(warehouseData) {
     const response = await fetch(`${API_BASE_URL}/materials/warehouses`, {
       method: 'POST',
@@ -1120,5 +1148,96 @@ export const api = {
     }
 
     return response.json();
+  },
+
+  // Admin Settings API
+  async getReferenceDataTypes() {
+    const response = await fetch(`${API_BASE_URL}/admin/reference-data-types`, {
+      headers: api.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch reference data types');
+    }
+
+    return response.json();
+  },
+
+  async getReferenceData(dataType) {
+    const response = await fetch(`${API_BASE_URL}/admin/${dataType}`, {
+      headers: api.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${dataType}`);
+    }
+
+    return response.json();
+  },
+
+  async getReferenceDataItem(dataType, id) {
+    const response = await fetch(`${API_BASE_URL}/admin/${dataType}/${id}`, {
+      headers: api.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${dataType} item`);
+    }
+
+    return response.json();
+  },
+
+  async createReferenceData(dataType, data) {
+    const response = await fetch(`${API_BASE_URL}/admin/${dataType}`, {
+      method: 'POST',
+      headers: {
+        ...api.getAuthHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || `Failed to create ${dataType}`);
+    }
+
+    return response.json();
+  },
+
+  async updateReferenceData(dataType, id, data) {
+    const response = await fetch(`${API_BASE_URL}/admin/${dataType}/${id}`, {
+      method: 'PUT',
+      headers: {
+        ...api.getAuthHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || `Failed to update ${dataType}`);
+    }
+
+    return response.json();
+  },
+
+  async deleteReferenceData(dataType, id) {
+    const response = await fetch(`${API_BASE_URL}/admin/${dataType}/${id}`, {
+      method: 'DELETE',
+      headers: api.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || `Failed to delete ${dataType}`);
+    }
+
+    return response.json();
+  },
+
+  async getBrands() {
+    return this.getReferenceData('brands');
   },
 };

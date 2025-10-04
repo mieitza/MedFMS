@@ -55,7 +55,7 @@
 
 	function renderAmount(value, row) {
 		if (!value) return '-';
-		return `${value.toFixed(2)} ${row.transaction.currency || 'USD'}`;
+		return `$${value.toFixed(2)}`;
 	}
 
 	function renderQuantity(value) {
@@ -79,30 +79,49 @@
 	}
 
 	function renderApproval(value, row) {
-		const approved = row.transaction.approved;
+		const approved = row.approved;
+		const user = JSON.parse(localStorage.getItem('user') || '{}');
+		const canApprove = user.role === 'admin' || user.role === 'manager';
+
 		if (approved) {
+			if (canApprove) {
+				return `
+					<div class="flex items-center gap-2">
+						<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Approved</span>
+						<button onclick="rejectTransaction(${row.id})" class="text-xs text-red-600 hover:text-red-800 underline">Revoke</button>
+					</div>
+				`;
+			}
 			return '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Approved</span>';
 		} else {
+			if (canApprove) {
+				return `
+					<div class="flex items-center gap-2">
+						<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+						<button onclick="approveTransaction(${row.id})" class="text-xs text-green-600 hover:text-green-800 underline">Approve</button>
+					</div>
+				`;
+			}
 			return '<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Pending</span>';
 		}
 	}
 
 	const columns = [
 		{
-			key: 'transaction.transactionNumber',
-			label: 'Transaction #',
+			key: 'id',
+			label: 'ID',
 			sortable: true,
-			width: '130px'
+			width: '80px'
 		},
 		{
-			key: 'transaction.transactionType',
+			key: 'transactionType',
 			label: 'Type',
 			sortable: true,
 			width: '100px',
 			render: renderTransactionType
 		},
 		{
-			key: 'transaction.transactionDate',
+			key: 'transactionDate',
 			label: 'Date',
 			sortable: true,
 			width: '100px',
@@ -123,21 +142,21 @@
 			render: renderDriver
 		},
 		{
-			key: 'transaction.quantity',
+			key: 'quantity',
 			label: 'Quantity',
 			sortable: true,
 			width: '100px',
 			render: renderQuantity
 		},
 		{
-			key: 'transaction.totalAmount',
+			key: 'totalAmount',
 			label: 'Amount',
 			sortable: true,
 			width: '100px',
 			render: renderAmount
 		},
 		{
-			key: 'transaction.approved',
+			key: 'approved',
 			label: 'Status',
 			sortable: true,
 			width: '100px',
@@ -217,6 +236,42 @@
 		console.log('Transaction clicked:', transaction);
 	}
 
+	async function approveTransaction(id) {
+		if (!confirm('Are you sure you want to approve this transaction?')) return;
+
+		try {
+			const response = await api.approveFuelTransaction(id);
+			if (response.success) {
+				alert(response.message || 'Transaction approved successfully');
+				await loadTransactions();
+			}
+		} catch (error) {
+			console.error('Error approving transaction:', error);
+			alert('Failed to approve transaction');
+		}
+	}
+
+	async function rejectTransaction(id) {
+		if (!confirm('Are you sure you want to revoke approval for this transaction?')) return;
+
+		try {
+			const response = await api.rejectFuelTransaction(id);
+			if (response.success) {
+				alert(response.message || 'Transaction approval revoked');
+				await loadTransactions();
+			}
+		} catch (error) {
+			console.error('Error rejecting transaction:', error);
+			alert('Failed to revoke approval');
+		}
+	}
+
+	// Expose functions to window for onclick handlers
+	if (typeof window !== 'undefined') {
+		window.approveTransaction = approveTransaction;
+		window.rejectTransaction = rejectTransaction;
+	}
+
 	function handleAddTransaction() {
 		showAddModal = true;
 	}
@@ -229,11 +284,11 @@
 				vehicleId: parseInt(formData.vehicleId),
 				driverId: formData.driverId ? parseInt(formData.driverId) : undefined,
 				fuelTypeId: parseInt(formData.fuelTypeId),
-				fuelStationId: formData.fuelStationId ? parseInt(formData.fuelStationId) : undefined,
+				locationId: formData.fuelStationId ? parseInt(formData.fuelStationId) : undefined,
 				quantity: parseFloat(formData.quantity),
-				pricePerLiter: formData.pricePerLiter ? parseFloat(formData.pricePerLiter) : undefined,
+				pricePerUnit: formData.pricePerLiter ? parseFloat(formData.pricePerLiter) : undefined,
 				totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : undefined,
-				odometerReading: formData.odometerReading ? parseInt(formData.odometerReading) : undefined,
+				odometer: formData.odometerReading ? parseInt(formData.odometerReading) : undefined,
 				transactionDate: new Date(formData.transactionDate)
 			};
 

@@ -23,31 +23,28 @@ router.use(authenticate);
 
 // Validation schemas
 const fuelTransactionSchema = z.object({
-  transactionNumber: z.string().optional(),
   transactionType: z.enum(['purchase', 'consumption']),
   vehicleId: z.number().positive(),
   driverId: z.number().optional(),
   fuelTypeId: z.number().positive(),
-  fuelStationId: z.number().optional(),
+  locationId: z.number().optional(),
+  supplierId: z.number().optional(),
   transactionDate: z.coerce.date(),
   quantity: z.number().positive(),
-  pricePerLiter: z.number().positive().optional(),
-  totalAmount: z.number().positive().optional(),
-  currency: z.string().default('USD'),
-  odometerReading: z.number().optional(),
-  previousOdometerReading: z.number().optional(),
-  paymentMethod: z.string().optional(),
-  receiptNumber: z.string().optional(),
+  pricePerUnit: z.number().positive(),
+  totalAmount: z.number().positive(),
+  odometer: z.number().optional(),
   invoiceNumber: z.string().optional(),
-  vatAmount: z.number().optional(),
-  notes: z.string().optional(),
+  description: z.string().optional(),
 });
 
 const fuelStationSchema = z.object({
   stationCode: z.string().min(1).max(50),
   stationName: z.string().min(1).max(100),
   address: z.string().optional(),
-  cityId: z.number().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  postalCode: z.string().optional(),
   contactPerson: z.string().optional(),
   phoneNumber: z.string().optional(),
   email: z.string().email().optional(),
@@ -165,7 +162,24 @@ router.get('/transactions', authorize('admin', 'manager', 'operator'), async (re
     const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
 
     let query = db.select({
-      transaction: fuelTransactions,
+      id: fuelTransactions.id,
+      transactionType: fuelTransactions.transactionType,
+      vehicleId: fuelTransactions.vehicleId,
+      driverId: fuelTransactions.driverId,
+      fuelTypeId: fuelTransactions.fuelTypeId,
+      locationId: fuelTransactions.locationId,
+      supplierId: fuelTransactions.supplierId,
+      transactionDate: fuelTransactions.transactionDate,
+      quantity: fuelTransactions.quantity,
+      pricePerUnit: fuelTransactions.pricePerUnit,
+      totalAmount: fuelTransactions.totalAmount,
+      odometer: fuelTransactions.odometer,
+      invoiceNumber: fuelTransactions.invoiceNumber,
+      description: fuelTransactions.description,
+      approved: fuelTransactions.approved,
+      approvedBy: fuelTransactions.approvedBy,
+      approvalDate: fuelTransactions.approvalDate,
+      createdAt: fuelTransactions.createdAt,
       vehicle: {
         id: vehicles.id,
         vehicleCode: vehicles.vehicleCode,
@@ -184,13 +198,13 @@ router.get('/transactions', authorize('admin', 'manager', 'operator'), async (re
     .from(fuelTransactions)
     .leftJoin(vehicles, eq(fuelTransactions.vehicleId, vehicles.id))
     .leftJoin(drivers, eq(fuelTransactions.driverId, drivers.id))
-    .leftJoin(fuelStations, eq(fuelTransactions.fuelStationId, fuelStations.id));
+    .leftJoin(fuelStations, eq(fuelTransactions.locationId, fuelStations.id));
 
     // Apply filters
     const conditions = [];
     if (vehicleId) conditions.push(eq(fuelTransactions.vehicleId, parseInt(vehicleId as string)));
     if (driverId) conditions.push(eq(fuelTransactions.driverId, parseInt(driverId as string)));
-    if (stationId) conditions.push(eq(fuelTransactions.fuelStationId, parseInt(stationId as string)));
+    if (stationId) conditions.push(eq(fuelTransactions.locationId, parseInt(stationId as string)));
     if (transactionType) conditions.push(eq(fuelTransactions.transactionType, transactionType as string));
     if (approved !== undefined) conditions.push(eq(fuelTransactions.approved, approved === 'true'));
     if (startDate) conditions.push(gte(fuelTransactions.transactionDate, new Date(startDate as string)));
@@ -233,40 +247,80 @@ router.post('/transactions', authorize('admin', 'manager', 'operator'), async (r
     const data = fuelTransactionSchema.parse(req.body);
     const db = getDb();
 
-    // Auto-generate transaction number if not provided
-    if (!data.transactionNumber) {
-      const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      const count = await db.select({ count: sql`count(*)` }).from(fuelTransactions);
-      data.transactionNumber = `FT${date}${String(Number(count[0].count) + 1).padStart(4, '0')}`;
-    }
-
-    // Calculate fuel efficiency if both odometer readings are provided
-    if (data.odometerReading && data.previousOdometerReading && data.quantity) {
-      const distance = data.odometerReading - data.previousOdometerReading;
-      const distanceTraveled = distance;
-      let fuelEfficiency;
-      if (distance > 0 && data.quantity > 0) {
-        fuelEfficiency = distance / data.quantity;
-      }
-
-      const result = await db.insert(fuelTransactions).values({
-        ...data,
-        distanceTraveled,
-        fuelEfficiency,
-        createdBy: req.user.id
-      }).returning();
-
-      res.status(201).json({ success: true, data: result[0] });
-    } else {
-      const result = await db.insert(fuelTransactions).values({
-        ...data,
-        createdBy: req.user.id
-      }).returning();
-
-      res.status(201).json({ success: true, data: result[0] });
-    }
+    const result = await db.insert(fuelTransactions).values(data).returning();
+    res.status(201).json({ success: true, data: result[0] });
   } catch (error) {
     logger.error('Error creating fuel transaction:', error);
+    next(error);
+  }
+});
+
+// Approve fuel transaction
+router.post('/transactions/:id/approve', authorize('admin', 'manager'), async (req, res, next) => {
+  try {
+    const transactionId = parseInt(req.params.id);
+    const db = getDb();
+
+    // Check if transaction exists
+    const [existing] = await db.select()
+      .from(fuelTransactions)
+      .where(eq(fuelTransactions.id, transactionId))
+      .limit(1);
+
+    if (!existing) {
+      throw new AppError('Fuel transaction not found', 404);
+    }
+
+    if (existing.approved) {
+      throw new AppError('Transaction already approved', 400);
+    }
+
+    // Update transaction
+    const result = await db.update(fuelTransactions)
+      .set({
+        approved: true,
+        approvedBy: req.user?.id,
+        approvalDate: new Date()
+      })
+      .where(eq(fuelTransactions.id, transactionId))
+      .returning();
+
+    res.json({ success: true, data: result[0], message: 'Transaction approved successfully' });
+  } catch (error) {
+    logger.error('Error approving fuel transaction:', error);
+    next(error);
+  }
+});
+
+// Reject/Unapprove fuel transaction
+router.post('/transactions/:id/reject', authorize('admin', 'manager'), async (req, res, next) => {
+  try {
+    const transactionId = parseInt(req.params.id);
+    const db = getDb();
+
+    // Check if transaction exists
+    const [existing] = await db.select()
+      .from(fuelTransactions)
+      .where(eq(fuelTransactions.id, transactionId))
+      .limit(1);
+
+    if (!existing) {
+      throw new AppError('Fuel transaction not found', 404);
+    }
+
+    // Update transaction
+    const result = await db.update(fuelTransactions)
+      .set({
+        approved: false,
+        approvedBy: null,
+        approvalDate: null
+      })
+      .where(eq(fuelTransactions.id, transactionId))
+      .returning();
+
+    res.json({ success: true, data: result[0], message: 'Transaction approval revoked' });
+  } catch (error) {
+    logger.error('Error rejecting fuel transaction:', error);
     next(error);
   }
 });
@@ -288,9 +342,7 @@ router.get('/reports/efficiency', authorize('admin', 'manager', 'operator'), asy
         vehicleCode: vehicles.vehicleCode,
         licensePlate: vehicles.licensePlate
       },
-      totalDistance: sql`sum(${fuelTransactions.distanceTraveled})`.as('totalDistance'),
       totalFuel: sql`sum(${fuelTransactions.quantity})`.as('totalFuel'),
-      avgEfficiency: sql`avg(${fuelTransactions.fuelEfficiency})`.as('avgEfficiency'),
       totalCost: sql`sum(${fuelTransactions.totalAmount})`.as('totalCost'),
       transactionCount: sql`count(*)`.as('transactionCount')
     })
