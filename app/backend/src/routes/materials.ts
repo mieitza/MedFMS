@@ -73,6 +73,29 @@ router.get('/warehouses', async (req, res, next) => {
   }
 });
 
+router.get('/warehouses/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const db = getDb();
+
+    const [warehouse] = await db.select()
+      .from(warehouses)
+      .where(eq(warehouses.id, id))
+      .limit(1);
+
+    if (!warehouse) {
+      throw new AppError('Warehouse not found', 404);
+    }
+
+    res.json({
+      success: true,
+      data: warehouse
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.get('/low-stock', async (req, res, next) => {
   try {
     const db = getDb();

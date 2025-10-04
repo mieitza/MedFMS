@@ -1,13 +1,20 @@
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { logger } from '../utils/logger.js';
 import * as schema from './schema/index.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 let db: ReturnType<typeof drizzle>;
 
 export async function initDatabase() {
   try {
-    const databasePath = process.env.DATABASE_PATH || './data/medfms.db';
+    // Use absolute path to avoid path resolution issues
+    const databasePath = process.env.DATABASE_PATH || '/Users/mihai/dev/GitHub/MedFMS/app/backend/data/medfms.db';
+    logger.info(`Using database at: ${databasePath}`);
     const sqlite = new Database(databasePath);
 
     // Enable foreign keys

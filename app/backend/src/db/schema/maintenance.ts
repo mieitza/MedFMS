@@ -53,112 +53,106 @@ export const maintenanceWorkOrders = sqliteTable('maintenance_work_orders', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   workOrderNumber: text('work_order_number').notNull().unique(),
   vehicleId: integer('vehicle_id').notNull().references(() => vehicles.id),
-  maintenanceTypeId: integer('maintenance_type_id').notNull().references(() => maintenanceTypes.id),
-  maintenanceScheduleId: integer('maintenance_schedule_id').references(() => maintenanceSchedules.id),
+  maintenanceTypeId: integer('maintenance_type_id').references(() => maintenanceTypes.id),
+  scheduleId: integer('schedule_id').references(() => maintenanceSchedules.id),
 
   // Work order details
   title: text('title').notNull(),
   description: text('description'),
-  priority: integer('priority').notNull().default(3), // 1=urgent, 2=high, 3=normal, 4=low, 5=optional
-  status: text('status', { enum: ['pending', 'approved', 'in_progress', 'completed', 'cancelled', 'on_hold'] }).notNull().default('pending'),
+  status: text('status').notNull().default('pending'),
+  priority: integer('priority').default(3),
 
   // Scheduling
+  requestedDate: integer('requested_date', { mode: 'timestamp' }).notNull(),
   scheduledDate: integer('scheduled_date', { mode: 'timestamp' }),
-  startDate: integer('start_date', { mode: 'timestamp' }),
-  completionDate: integer('completion_date', { mode: 'timestamp' }),
-  estimatedDuration: integer('estimated_duration'), // in minutes
-  actualDuration: integer('actual_duration'), // in minutes
+  startedDate: integer('started_date', { mode: 'timestamp' }),
+  completedDate: integer('completed_date', { mode: 'timestamp' }),
+  dueDate: integer('due_date', { mode: 'timestamp' }),
 
-  // Assignment
-  assignedTechnicianId: integer('assigned_technician_id'),
-  supplierId: integer('supplier_id').references(() => suppliers.id),
+  // Assignment and location
+  assignedTo: text('assigned_to'),
+  facility: text('facility'),
 
   // Vehicle readings
-  odometerReadingStart: integer('odometer_reading_start'),
-  odometerReadingEnd: integer('odometer_reading_end'),
-  engineHoursStart: integer('engine_hours_start'),
-  engineHoursEnd: integer('engine_hours_end'),
+  odometerReading: integer('odometer_reading'),
+  engineHours: integer('engine_hours'),
+
+  // Work details
+  workInstructions: text('work_instructions'),
+  partsNeeded: text('parts_needed'),
+  laborHours: real('labor_hours'),
 
   // Cost tracking
   estimatedCost: real('estimated_cost'),
-  laborCost: real('labor_cost'),
-  partsCost: real('parts_cost'),
-  externalCost: real('external_cost'),
-  totalCost: real('total_cost'),
-  currency: text('currency').notNull().default('USD'),
+  actualCost: real('actual_cost'),
+  vendor: text('vendor'),
+  vendorInvoice: text('vendor_invoice'),
 
-  // Quality control
-  qualityCheckPassed: integer('quality_check_passed', { mode: 'boolean' }),
-  qualityCheckNotes: text('quality_check_notes'),
-  warrantyPeriod: integer('warranty_period'), // in days
-  warrantyExpiryDate: integer('warranty_expiry_date', { mode: 'timestamp' }),
+  // Claims
+  warrantyClaim: integer('warranty_claim', { mode: 'boolean' }).default(false),
+  insuranceClaim: integer('insurance_claim', { mode: 'boolean' }).default(false),
 
-  // Additional info
-  notes: text('notes'),
-  internalNotes: text('internal_notes'),
+  // Metrics
+  downtimeHours: real('downtime_hours'),
 
   // Approval workflow
-  requestedBy: integer('requested_by').notNull(),
-  approvedBy: integer('approved_by'),
-  approvedAt: integer('approved_at', { mode: 'timestamp' }),
+  approvalRequired: integer('approval_required', { mode: 'boolean' }).default(false),
+  approvedBy: text('approved_by'),
+  approvalDate: integer('approval_date', { mode: 'timestamp' }),
 
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  // Completion
+  completionNotes: text('completion_notes'),
+
+  // Quality control
+  qualityCheck: integer('quality_check', { mode: 'boolean' }).default(false),
+  qualityCheckBy: text('quality_check_by'),
+  qualityCheckDate: integer('quality_check_date', { mode: 'timestamp' }),
+  qualityCheckNotes: text('quality_check_notes'),
+
+  // Follow-up
+  followUpRequired: integer('follow_up_required', { mode: 'boolean' }).default(false),
+  followUpDate: integer('follow_up_date', { mode: 'timestamp' }),
+  followUpNotes: text('follow_up_notes'),
+
+  // Tracking
+  createdBy: text('created_by'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`strftime('%s', 'now')`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`strftime('%s', 'now')`),
 });
 
 // Parts and materials used in maintenance
 export const maintenanceParts = sqliteTable('maintenance_parts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   workOrderId: integer('work_order_id').notNull().references(() => maintenanceWorkOrders.id),
-  partNumber: text('part_number').notNull(),
+  partNumber: text('part_number'),
   partName: text('part_name').notNull(),
-  partCategory: text('part_category'),
-
-  // Quantity and cost
-  quantityUsed: real('quantity_used').notNull(),
-  unitOfMeasure: text('unit_of_measure').notNull().default('each'),
-  unitCost: real('unit_cost').notNull(),
-  totalCost: real('total_cost').notNull(),
-  currency: text('currency').notNull().default('USD'),
-
-  // Supplier info
-  supplierId: integer('supplier_id').references(() => suppliers.id),
-  supplierPartNumber: text('supplier_part_number'),
-
-  // Part details
-  manufacturer: text('manufacturer'),
-  warrantyPeriod: integer('warranty_period'), // in days
-  batchNumber: text('batch_number'),
-  serialNumber: text('serial_number'),
-
+  description: text('description'),
+  quantity: integer('quantity').notNull().default(1),
+  unitPrice: real('unit_price'),
+  totalPrice: real('total_price'),
+  supplier: text('supplier'),
+  warrantyMonths: integer('warranty_months'),
+  warrantyKm: integer('warranty_km'),
+  coreCharge: real('core_charge'),
+  coreReturned: integer('core_returned', { mode: 'boolean' }).default(false),
+  installationDate: integer('installation_date', { mode: 'timestamp' }),
   notes: text('notes'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`strftime('%s', 'now')`),
 });
 
 // Labor tracking for maintenance work
 export const maintenanceLabor = sqliteTable('maintenance_labor', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   workOrderId: integer('work_order_id').notNull().references(() => maintenanceWorkOrders.id),
-  technicianId: integer('technician_id'),
   technicianName: text('technician_name').notNull(),
-
-  // Time tracking
-  startTime: integer('start_time', { mode: 'timestamp' }).notNull(),
-  endTime: integer('end_time', { mode: 'timestamp' }),
-  breakDuration: integer('break_duration').notNull().default(0), // in minutes
-  totalHours: real('total_hours'),
-
-  // Cost
-  hourlyRate: real('hourly_rate').notNull(),
+  laborType: text('labor_type'),
+  hoursWorked: real('hours_worked').notNull(),
+  hourlyRate: real('hourly_rate'),
   totalCost: real('total_cost'),
-  currency: text('currency').notNull().default('USD'),
-
-  // Work description
-  workDescription: text('work_description'),
+  workPerformed: text('work_performed'),
+  date: integer('date', { mode: 'timestamp' }).notNull(),
   notes: text('notes'),
-
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`strftime('%s', 'now')`),
 });
 
 // Maintenance history and reports
@@ -211,7 +205,7 @@ export const maintenanceHistory = sqliteTable('maintenance_history', {
 export const maintenanceAlerts = sqliteTable('maintenance_alerts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   vehicleId: integer('vehicle_id').notNull().references(() => vehicles.id),
-  maintenanceScheduleId: integer('maintenance_schedule_id').references(() => maintenanceSchedules.id),
+  scheduleId: integer('schedule_id').references(() => maintenanceSchedules.id),
 
   // Alert details
   alertType: text('alert_type', { enum: ['due', 'overdue', 'upcoming', 'critical'] }).notNull(),

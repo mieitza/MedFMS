@@ -20,17 +20,21 @@ export const fuelTypes = sqliteTable('fuel_types', {
 // Fuel stations where fuel is purchased
 export const fuelStations = sqliteTable('fuel_stations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  stationCode: text('station_code').notNull().unique(),
   stationName: text('station_name').notNull(),
+  stationCode: text('station_code').notNull().unique(),
   address: text('address'),
-  cityId: integer('city_id'),
-  contactPerson: text('contact_person'),
-  phoneNumber: text('phone_number'),
+  city: text('city'),
+  state: text('state'),
+  postalCode: text('postal_code'),
+  country: text('country'),
+  latitude: real('latitude'),
+  longitude: real('longitude'),
+  phone: text('phone'),
   email: text('email'),
-  contractNumber: text('contract_number'),
-  discountRate: real('discount_rate'), // Percentage discount if applicable
-  paymentTerms: text('payment_terms'),
-  notes: text('notes'),
+  fuelTypes: text('fuel_types'), // JSON array
+  operatingHours: text('operating_hours'),
+  paymentMethods: text('payment_methods'), // JSON array
+  services: text('services'), // JSON array
   active: integer('active', { mode: 'boolean' }).notNull().default(true),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
@@ -38,41 +42,30 @@ export const fuelStations = sqliteTable('fuel_stations', {
 
 export const fuelTransactions = sqliteTable('fuel_transactions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  transactionNumber: text('transaction_number').notNull().unique(),
   transactionType: text('transaction_type', { enum: ['purchase', 'consumption'] }).notNull(),
   vehicleId: integer('vehicle_id').notNull().references(() => vehicles.id),
   driverId: integer('driver_id').references(() => drivers.id),
   fuelTypeId: integer('fuel_type_id').notNull().references(() => fuelTypes.id),
-  fuelStationId: integer('fuel_station_id').references(() => fuelStations.id),
+  locationId: integer('location_id').references(() => fuelStations.id),
+  supplierId: integer('supplier_id').references(() => suppliers.id),
 
   // Transaction details
   transactionDate: integer('transaction_date', { mode: 'timestamp' }).notNull(),
-  quantity: real('quantity').notNull(), // Liters
-  pricePerLiter: real('price_per_liter'),
-  totalAmount: real('total_amount'),
-  currency: text('currency').notNull().default('USD'),
+  quantity: real('quantity').notNull(),
+  pricePerUnit: real('price_per_unit').notNull(),
+  totalAmount: real('total_amount').notNull(),
 
-  // Vehicle readings
-  odometerReading: integer('odometer_reading'), // km at time of transaction
-  previousOdometerReading: integer('previous_odometer_reading'),
-  distanceTraveled: integer('distance_traveled'), // Calculated: current - previous
-  fuelEfficiency: real('fuel_efficiency'), // km/L calculated
-
-  // Payment details
-  paymentMethod: text('payment_method'), // cash, card, credit, voucher
-  receiptNumber: text('receipt_number'),
-  invoiceNumber: text('invoice_number'),
-  vatAmount: real('vat_amount'),
+  // Vehicle reading
+  odometer: integer('odometer'),
 
   // Additional info
-  notes: text('notes'),
+  invoiceNumber: text('invoice_number'),
+  description: text('description'),
   approved: integer('approved', { mode: 'boolean' }).notNull().default(false),
   approvedBy: integer('approved_by'),
-  approvedAt: integer('approved_at', { mode: 'timestamp' }),
+  approvalDate: integer('approval_date', { mode: 'timestamp' }),
 
-  createdBy: integer('created_by').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const fuelLimits = sqliteTable('fuel_limits', {

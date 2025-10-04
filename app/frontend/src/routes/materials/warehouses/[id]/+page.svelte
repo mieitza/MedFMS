@@ -96,9 +96,8 @@
   async function loadWarehouseDetails() {
     loading = true;
     try {
-      // For now, we'll fetch from the warehouses list since there might not be a specific warehouse detail endpoint
-      const warehousesResponse = await api.getWarehouses();
-      warehouse = warehousesResponse.data.find(w => w.id === warehouseId);
+      const warehouseResponse = await api.getWarehouse(warehouseId);
+      warehouse = warehouseResponse.data;
 
       if (warehouse) {
         warehouseForm = {

@@ -8,6 +8,7 @@ import materialRoutes from './materials.js';
 import systemRoutes from './system.js';
 import documentRoutes from './documents.js';
 import reportRoutes from './reports.js';
+import adminRoutes from './admin.js';
 
 const router = Router();
 
@@ -20,6 +21,7 @@ router.use('/materials', materialRoutes);
 router.use('/system', systemRoutes);
 router.use('/documents', documentRoutes);
 router.use('/reports', reportRoutes);
+router.use('/admin', adminRoutes);
 
 // API documentation endpoint
 router.get('/docs', (req, res) => {
@@ -34,7 +36,8 @@ router.get('/docs', (req, res) => {
       materials: '/api/materials',
       system: '/api/system',
       documents: '/api/documents',
-      reports: '/api/reports'
+      reports: '/api/reports',
+      admin: '/api/admin'
     }
   });
 });
