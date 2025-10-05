@@ -198,6 +198,19 @@
 
 		if (!canEdit) return '';
 
+		// Get current user ID safely (avoiding SSR issues)
+		let currentUserId = null;
+		if (typeof window !== 'undefined') {
+			try {
+				const storedUser = localStorage.getItem('user');
+				if (storedUser) {
+					currentUserId = JSON.parse(storedUser).id;
+				}
+			} catch (e) {
+				// Ignore errors
+			}
+		}
+
 		return `
 			<div class="flex gap-2">
 				<button onclick="editUser(${row.id})" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
@@ -206,7 +219,7 @@
 					: `<button onclick="toggleStatus(${row.id})" class="text-green-600 hover:text-green-800 text-sm">Activate</button>`
 				}
 				${isAdmin ? `<button onclick="resetPin(${row.id})" class="text-purple-600 hover:text-purple-800 text-sm">Reset PIN</button>` : ''}
-				${isAdmin && row.id !== ${$auth.user?.id} ? `<button onclick="deleteUser(${row.id})" class="text-red-600 hover:text-red-800 text-sm">Delete</button>` : ''}
+				${isAdmin && row.id !== currentUserId ? `<button onclick="deleteUser(${row.id})" class="text-red-600 hover:text-red-800 text-sm">Delete</button>` : ''}
 			</div>
 		`;
 	}

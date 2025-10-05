@@ -66,6 +66,7 @@ export const authenticate = async (
     if (error instanceof AppError) {
       return next(error);
     }
+    console.error('Authentication error:', error);
     next(new AppError('Invalid authentication token', 401));
   }
 };
