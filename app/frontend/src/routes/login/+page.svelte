@@ -26,7 +26,7 @@
 			} else {
 				error = 'Invalid credentials';
 			}
-		} catch (err: any) {
+		} catch (err) {
 			console.error('Login error:', err);
 			error = err.message || 'Login failed. Please check your credentials.';
 		} finally {
