@@ -8,6 +8,7 @@ import { users, sessions } from '../db/schema/users.js';
 import { eq } from 'drizzle-orm';
 import { AppError } from '../middleware/errorHandler.js';
 import { strictRateLimiter } from '../middleware/rateLimiter.js';
+import { createAuditLog } from '../middleware/audit.js';
 
 const router = Router();
 
@@ -68,6 +69,16 @@ router.post('/login', strictRateLimiter, async (req, res, next) => {
     await db.update(users)
       .set({ lastLogin: new Date() })
       .where(eq(users.id, user.id));
+
+    // Audit log
+    await createAuditLog(
+      { id: user.id, username: user.username },
+      'LOGIN',
+      'auth',
+      user.id,
+      { role: user.role },
+      req
+    );
 
     res.json({
       success: true,
@@ -138,7 +149,33 @@ router.post('/logout', async (req, res, next) => {
 
     if (token) {
       const db = getDb();
-      await db.delete(sessions).where(eq(sessions.token, token));
+
+      // Get session before deleting for audit log
+      const [session] = await db.select()
+        .from(sessions)
+        .where(eq(sessions.token, token))
+        .limit(1);
+
+      if (session) {
+        const [user] = await db.select()
+          .from(users)
+          .where(eq(users.id, session.userId))
+          .limit(1);
+
+        await db.delete(sessions).where(eq(sessions.token, token));
+
+        // Audit log
+        if (user) {
+          await createAuditLog(
+            { id: user.id, username: user.username },
+            'LOGOUT',
+            'auth',
+            user.id,
+            null,
+            req
+          );
+        }
+      }
     }
 
     res.json({ success: true, message: 'Logged out successfully' });

@@ -1240,4 +1240,165 @@ export const api = {
   async getBrands() {
     return this.getReferenceData('brands');
   },
+
+  // User Management
+  async getUsers(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.search) queryParams.append('search', params.search);
+    if (params.role) queryParams.append('role', params.role);
+    if (params.active !== undefined) queryParams.append('active', params.active.toString());
+
+    const response = await fetch(`${API_BASE_URL}/users?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch users');
+    }
+
+    return response.json();
+  },
+
+  async getUser(id) {
+    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user');
+    }
+
+    return response.json();
+  },
+
+  async getCurrentUser() {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch current user');
+    }
+
+    return response.json();
+  },
+
+  async createUser(userData) {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to create user');
+    }
+
+    return response.json();
+  },
+
+  async updateUser(id, userData) {
+    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update user');
+    }
+
+    return response.json();
+  },
+
+  async updateCurrentUser(userData) {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to update profile');
+    }
+
+    return response.json();
+  },
+
+  async deleteUser(id) {
+    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to delete user');
+    }
+
+    return response.json();
+  },
+
+  async activateUser(id) {
+    const response = await fetch(`${API_BASE_URL}/users/${id}/activate`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to activate user');
+    }
+
+    return response.json();
+  },
+
+  async deactivateUser(id) {
+    const response = await fetch(`${API_BASE_URL}/users/${id}/deactivate`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to deactivate user');
+    }
+
+    return response.json();
+  },
+
+  async resetUserPin(id, newPin) {
+    const response = await fetch(`${API_BASE_URL}/users/${id}/reset-pin`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ newPin }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to reset PIN');
+    }
+
+    return response.json();
+  },
+
+  async changePin(currentPin, newPin) {
+    const response = await fetch(`${API_BASE_URL}/users/me/change-pin`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ currentPin, newPin }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to change PIN');
+    }
+
+    return response.json();
+  },
 };
