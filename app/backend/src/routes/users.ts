@@ -117,6 +117,136 @@ router.get('/', authorize('admin', 'manager'), async (req: AuthRequest, res, nex
   }
 });
 
+// GET /api/users/me - Get current user profile
+router.get('/me', async (req: AuthRequest, res, next) => {
+  try {
+    const db = getDb();
+
+    if (!req.user?.id) {
+      throw new AppError('User not authenticated', 401);
+    }
+
+    const [user] = await db.select({
+      id: users.id,
+      username: users.username,
+      email: users.email,
+      fullName: users.fullName,
+      role: users.role,
+      departmentId: users.departmentId,
+      locationId: users.locationId,
+      phoneNumber: users.phoneNumber,
+      active: users.active,
+      lastLogin: users.lastLogin,
+      createdAt: users.createdAt
+    })
+      .from(users)
+      .where(eq(users.id, req.user.id))
+      .limit(1);
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    res.json({ success: true, data: user });
+  } catch (error) {
+    logger.error('Error fetching user profile:', error);
+    next(error);
+  }
+});
+
+// PUT /api/users/me - Update own profile
+router.put('/me', async (req: AuthRequest, res, next) => {
+  try {
+    const updateOwnProfileSchema = z.object({
+      email: z.string().email().optional(),
+      fullName: z.string().min(1).max(100).optional(),
+      phoneNumber: z.string().nullable().optional()
+    });
+
+    const data = updateOwnProfileSchema.parse(req.body);
+    const db = getDb();
+
+    if (!req.user?.id) {
+      throw new AppError('User not authenticated', 401);
+    }
+
+    // Check email uniqueness if changed
+    if (data.email) {
+      const [emailExists] = await db.select()
+        .from(users)
+        .where(eq(users.email, data.email))
+        .limit(1);
+
+      if (emailExists && emailExists.id !== req.user.id) {
+        throw new AppError('Email already exists', 409);
+      }
+    }
+
+    const result = await db.update(users)
+      .set({
+        ...data,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, req.user.id))
+      .returning();
+
+    logger.info(`Profile updated by user: ${req.user.username}`);
+
+    res.json({
+      success: true,
+      data: result[0],
+      message: 'Profile updated successfully'
+    });
+  } catch (error) {
+    logger.error('Error updating profile:', error);
+    next(error);
+  }
+});
+
+// PATCH /api/users/me/change-pin - Change own PIN
+router.patch('/me/change-pin', async (req: AuthRequest, res, next) => {
+  try {
+    const { currentPin, newPin } = changePinSchema.parse(req.body);
+    const db = getDb();
+
+    if (!req.user?.id) {
+      throw new AppError('User not authenticated', 401);
+    }
+
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.id, req.user.id))
+      .limit(1);
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Verify current PIN
+    const validPin = await bcrypt.compare(currentPin, user.pin);
+    if (!validPin) {
+      throw new AppError('Current PIN is incorrect', 400);
+    }
+
+    // Hash new PIN
+    const hashedPin = await bcrypt.hash(newPin, parseInt(process.env.PIN_SALT_ROUNDS || '10'));
+
+    await db.update(users)
+      .set({ pin: hashedPin, updatedAt: new Date() })
+      .where(eq(users.id, req.user.id));
+
+    logger.info(`PIN changed for user: ${user.username}`);
+
+    res.json({
+      success: true,
+      message: 'PIN changed successfully'
+    });
+  } catch (error) {
+    logger.error('Error changing PIN:', error);
+    next(error);
+  }
+});
+
 // GET /api/users/:id - Get user details
 router.get('/:id', authorize('admin', 'manager'), async (req: AuthRequest, res, next) => {
   try {
@@ -411,136 +541,6 @@ router.patch('/:id/reset-pin', authorize('admin'), async (req: AuthRequest, res,
     });
   } catch (error) {
     logger.error('Error resetting PIN:', error);
-    next(error);
-  }
-});
-
-// PATCH /api/users/me/change-pin - Change own PIN
-router.patch('/me/change-pin', async (req: AuthRequest, res, next) => {
-  try {
-    const { currentPin, newPin } = changePinSchema.parse(req.body);
-    const db = getDb();
-
-    if (!req.user?.id) {
-      throw new AppError('User not authenticated', 401);
-    }
-
-    const [user] = await db.select()
-      .from(users)
-      .where(eq(users.id, req.user.id))
-      .limit(1);
-
-    if (!user) {
-      throw new AppError('User not found', 404);
-    }
-
-    // Verify current PIN
-    const validPin = await bcrypt.compare(currentPin, user.pin);
-    if (!validPin) {
-      throw new AppError('Current PIN is incorrect', 400);
-    }
-
-    // Hash new PIN
-    const hashedPin = await bcrypt.hash(newPin, parseInt(process.env.PIN_SALT_ROUNDS || '10'));
-
-    await db.update(users)
-      .set({ pin: hashedPin, updatedAt: new Date() })
-      .where(eq(users.id, req.user.id));
-
-    logger.info(`PIN changed for user: ${user.username}`);
-
-    res.json({
-      success: true,
-      message: 'PIN changed successfully'
-    });
-  } catch (error) {
-    logger.error('Error changing PIN:', error);
-    next(error);
-  }
-});
-
-// GET /api/users/me - Get current user profile
-router.get('/me', async (req: AuthRequest, res, next) => {
-  try {
-    const db = getDb();
-
-    if (!req.user?.id) {
-      throw new AppError('User not authenticated', 401);
-    }
-
-    const [user] = await db.select({
-      id: users.id,
-      username: users.username,
-      email: users.email,
-      fullName: users.fullName,
-      role: users.role,
-      departmentId: users.departmentId,
-      locationId: users.locationId,
-      phoneNumber: users.phoneNumber,
-      active: users.active,
-      lastLogin: users.lastLogin,
-      createdAt: users.createdAt
-    })
-      .from(users)
-      .where(eq(users.id, req.user.id))
-      .limit(1);
-
-    if (!user) {
-      throw new AppError('User not found', 404);
-    }
-
-    res.json({ success: true, data: user });
-  } catch (error) {
-    logger.error('Error fetching user profile:', error);
-    next(error);
-  }
-});
-
-// PUT /api/users/me - Update own profile
-router.put('/me', async (req: AuthRequest, res, next) => {
-  try {
-    const updateOwnProfileSchema = z.object({
-      email: z.string().email().optional(),
-      fullName: z.string().min(1).max(100).optional(),
-      phoneNumber: z.string().nullable().optional()
-    });
-
-    const data = updateOwnProfileSchema.parse(req.body);
-    const db = getDb();
-
-    if (!req.user?.id) {
-      throw new AppError('User not authenticated', 401);
-    }
-
-    // Check email uniqueness if changed
-    if (data.email) {
-      const [emailExists] = await db.select()
-        .from(users)
-        .where(eq(users.email, data.email))
-        .limit(1);
-
-      if (emailExists && emailExists.id !== req.user.id) {
-        throw new AppError('Email already exists', 409);
-      }
-    }
-
-    const result = await db.update(users)
-      .set({
-        ...data,
-        updatedAt: new Date()
-      })
-      .where(eq(users.id, req.user.id))
-      .returning();
-
-    logger.info(`Profile updated by user: ${req.user.username}`);
-
-    res.json({
-      success: true,
-      data: result[0],
-      message: 'Profile updated successfully'
-    });
-  } catch (error) {
-    logger.error('Error updating profile:', error);
     next(error);
   }
 });
