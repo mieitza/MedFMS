@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth';
 	import api from '$lib/api';
+	import { _ } from '$lib/i18n';
 
 	let loading = false;
 	let saving = false;
@@ -42,7 +43,7 @@
 			}
 		} catch (err) {
 			console.error('Error loading profile:', err);
-			error = 'Failed to load profile';
+			error = $_('profile.messages.failedToLoad');
 		} finally {
 			loading = false;
 		}
@@ -55,7 +56,7 @@
 		try {
 			const response = await api.updateCurrentUser(profileData);
 			if (response.success) {
-				success = 'Profile updated successfully';
+				success = $_('profile.messages.profileUpdated');
 				// Update auth store with new user data
 				if (response.data) {
 					auth.updateUser({
@@ -67,7 +68,7 @@
 			}
 		} catch (err) {
 			console.error('Error updating profile:', err);
-			error = err.message || 'Failed to update profile';
+			error = err.message || $_('profile.messages.failedToUpdate');
 		} finally {
 			saving = false;
 		}
@@ -75,12 +76,12 @@
 
 	async function handleChangePin() {
 		if (pinData.newPin !== pinData.confirmPin) {
-			error = 'New PIN and confirmation do not match';
+			error = $_('profile.messages.pinMismatch');
 			return;
 		}
 
 		if (pinData.newPin.length < 4 || pinData.newPin.length > 8) {
-			error = 'PIN must be between 4 and 8 characters';
+			error = $_('profile.messages.pinLength');
 			return;
 		}
 
@@ -89,7 +90,7 @@
 		success = '';
 		try {
 			await api.changePin(pinData.currentPin, pinData.newPin);
-			success = 'PIN changed successfully';
+			success = $_('profile.messages.pinChanged');
 			pinData = {
 				currentPin: '',
 				newPin: '',
@@ -97,14 +98,14 @@
 			};
 		} catch (err) {
 			console.error('Error changing PIN:', err);
-			error = err.message || 'Failed to change PIN';
+			error = err.message || $_('profile.messages.failedToChangePin');
 		} finally {
 			changingPin = false;
 		}
 	}
 
 	function formatDate(date) {
-		if (!date) return 'Never';
+		if (!date) return $_('users.never');
 		return new Date(date).toLocaleString();
 	}
 
@@ -120,7 +121,7 @@
 </script>
 
 <svelte:head>
-	<title>My Profile - MedFMS</title>
+	<title>{$_('profile.title')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8 max-w-4xl">
@@ -133,11 +134,11 @@
 			<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 			</svg>
-			Back to Dashboard
+			{$_('profile.backToDashboard')}
 		</button>
 	</div>
 
-	<h1 class="text-3xl font-bold text-gray-900 mb-8">My Profile</h1>
+	<h1 class="text-3xl font-bold text-gray-900 mb-8">{$_('profile.title')}</h1>
 
 	{#if error}
 		<div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
@@ -154,7 +155,7 @@
 	{#if loading}
 		<div class="text-center py-12">
 			<div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-			<p class="mt-4 text-gray-600">Loading profile...</p>
+			<p class="mt-4 text-gray-600">{$_('common.loading')}</p>
 		</div>
 	{:else}
 		<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -168,17 +169,17 @@
 						<h2 class="text-xl font-semibold text-gray-900">{$auth.user?.fullName}</h2>
 						<p class="text-gray-600">@{$auth.user?.username}</p>
 						<span class={`inline-block mt-2 px-3 py-1 text-sm font-medium rounded-full ${getRoleBadgeColor($auth.user?.role)}`}>
-							{$auth.user?.role}
+							{$_(`users.roles.${$auth.user?.role}`) || $auth.user?.role}
 						</span>
 					</div>
 
 					<div class="mt-6 space-y-3 text-sm">
 						<div>
-							<span class="text-gray-600">User ID:</span>
+							<span class="text-gray-600">{$_('profile.userId')}:</span>
 							<span class="float-right font-medium">#{$auth.user?.id}</span>
 						</div>
 						<div>
-							<span class="text-gray-600">Last Login:</span>
+							<span class="text-gray-600">{$_('profile.lastLogin')}:</span>
 							<span class="float-right font-medium text-xs">{formatDate($auth.user?.lastLogin)}</span>
 						</div>
 					</div>
@@ -190,12 +191,12 @@
 				<!-- Edit Profile Card -->
 				<div class="bg-white rounded-lg shadow">
 					<div class="p-6 border-b border-gray-200">
-						<h3 class="text-lg font-semibold text-gray-900">Profile Information</h3>
+						<h3 class="text-lg font-semibold text-gray-900">{$_('profile.profileInformation')}</h3>
 					</div>
 					<form on:submit|preventDefault={handleUpdateProfile} class="p-6 space-y-4">
 						<div>
 							<label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">
-								Full Name
+								{$_('users.fullName')}
 							</label>
 							<input
 								id="fullName"
@@ -208,7 +209,7 @@
 
 						<div>
 							<label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-								Email
+								{$_('users.email')}
 							</label>
 							<input
 								id="email"
@@ -221,7 +222,7 @@
 
 						<div>
 							<label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-1">
-								Phone Number
+								{$_('users.phoneNumber')}
 							</label>
 							<input
 								id="phoneNumber"
@@ -237,7 +238,7 @@
 								disabled={saving}
 								class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-indigo-400 disabled:cursor-not-allowed"
 							>
-								{saving ? 'Saving...' : 'Update Profile'}
+								{saving ? $_('profile.saving') : $_('profile.updateProfile')}
 							</button>
 						</div>
 					</form>
@@ -246,13 +247,13 @@
 				<!-- Change PIN Card -->
 				<div class="bg-white rounded-lg shadow">
 					<div class="p-6 border-b border-gray-200">
-						<h3 class="text-lg font-semibold text-gray-900">Change PIN</h3>
-						<p class="text-sm text-gray-600 mt-1">Update your login PIN for security</p>
+						<h3 class="text-lg font-semibold text-gray-900">{$_('profile.changePin')}</h3>
+						<p class="text-sm text-gray-600 mt-1">{$_('profile.changePinDesc')}</p>
 					</div>
 					<form on:submit|preventDefault={handleChangePin} class="p-6 space-y-4">
 						<div>
 							<label for="currentPin" class="block text-sm font-medium text-gray-700 mb-1">
-								Current PIN
+								{$_('profile.currentPin')}
 							</label>
 							<input
 								id="currentPin"
@@ -267,7 +268,7 @@
 
 						<div>
 							<label for="newPin" class="block text-sm font-medium text-gray-700 mb-1">
-								New PIN (4-8 characters)
+								{$_('profile.newPin')}
 							</label>
 							<input
 								id="newPin"
@@ -282,7 +283,7 @@
 
 						<div>
 							<label for="confirmPin" class="block text-sm font-medium text-gray-700 mb-1">
-								Confirm New PIN
+								{$_('profile.confirmPin')}
 							</label>
 							<input
 								id="confirmPin"
@@ -301,7 +302,7 @@
 								disabled={changingPin}
 								class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:bg-purple-400 disabled:cursor-not-allowed"
 							>
-								{changingPin ? 'Changing PIN...' : 'Change PIN'}
+								{changingPin ? $_('profile.changingPin') : $_('profile.changePin')}
 							</button>
 						</div>
 					</form>

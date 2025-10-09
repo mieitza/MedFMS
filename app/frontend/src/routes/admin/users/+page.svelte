@@ -5,6 +5,7 @@
 	import api from '$lib/api';
 	import DataTable from '$lib/components/DataTable.svelte';
 	import Modal from '$lib/components/Modal.svelte';
+	import { _ } from '$lib/i18n';
 
 	let users = [];
 	let loading = false;
@@ -39,36 +40,48 @@
 		active: true
 	};
 
-	const roleOptions = [
-		{ value: 'admin', label: 'Admin' },
-		{ value: 'manager', label: 'Manager' },
-		{ value: 'operator', label: 'Operator' },
-		{ value: 'viewer', label: 'Viewer' }
-	];
+	// Reactive role options and columns that update when locale changes
+	let roleOptions = [];
+	let columns = [];
 
-	const columns = [
-		{ key: 'id', label: 'ID', sortable: true },
-		{ key: 'username', label: 'Username', sortable: true },
-		{ key: 'fullName', label: 'Full Name', sortable: true },
-		{ key: 'email', label: 'Email', sortable: true },
-		{ key: 'role', label: 'Role', sortable: true, render: (val) => {
-			const colors = {
-				admin: 'bg-purple-100 text-purple-800',
-				manager: 'bg-blue-100 text-blue-800',
-				operator: 'bg-green-100 text-green-800',
-				viewer: 'bg-gray-100 text-gray-800'
-			};
-			return `<span class="px-2 py-1 text-xs font-medium rounded-full ${colors[val] || colors.viewer}">${val}</span>`;
-		}},
-		{ key: 'active', label: 'Status', sortable: true, render: (val) =>
-			val ? '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Active</span>'
-			    : '<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Inactive</span>'
-		},
-		{ key: 'lastLogin', label: 'Last Login', sortable: true, render: (val) =>
-			val ? new Date(val).toLocaleString() : 'Never'
-		},
-		{ key: 'actions', label: 'Actions', sortable: false, render: (val, row) => renderActions(val, row) }
-	];
+	$: {
+		roleOptions = [
+			{ value: 'admin', label: $_('users.roles.admin') },
+			{ value: 'manager', label: $_('users.roles.manager') },
+			{ value: 'operator', label: $_('users.roles.operator') },
+			{ value: 'viewer', label: $_('users.roles.viewer') }
+		];
+
+		columns = [
+			{ key: 'id', label: 'ID', sortable: true },
+			{ key: 'username', label: $_('users.username'), sortable: true },
+			{ key: 'fullName', label: $_('users.fullName'), sortable: true },
+			{ key: 'email', label: $_('users.email'), sortable: true },
+			{ key: 'role', label: $_('users.role'), sortable: true, render: (val) => {
+				const colors = {
+					admin: 'bg-purple-100 text-purple-800',
+					manager: 'bg-blue-100 text-blue-800',
+					operator: 'bg-green-100 text-green-800',
+					viewer: 'bg-gray-100 text-gray-800'
+				};
+				const roleLabels = {
+					admin: $_('users.roles.admin'),
+					manager: $_('users.roles.manager'),
+					operator: $_('users.roles.operator'),
+					viewer: $_('users.roles.viewer')
+				};
+				return `<span class="px-2 py-1 text-xs font-medium rounded-full ${colors[val] || colors.viewer}">${roleLabels[val] || val}</span>`;
+			}},
+			{ key: 'active', label: $_('common.status'), sortable: true, render: (val) =>
+				val ? `<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">${$_('common.active')}</span>`
+				    : `<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">${$_('common.inactive')}</span>`
+			},
+			{ key: 'lastLogin', label: $_('users.lastLogin'), sortable: true, render: (val) =>
+				val ? new Date(val).toLocaleString() : $_('users.never')
+			},
+			{ key: 'actions', label: $_('common.actions'), sortable: false, render: (val, row) => renderActions(val, row) }
+		];
+	}
 
 	onMount(async () => {
 		// Ensure auth state is loaded
@@ -93,7 +106,7 @@
 			users = response.data || [];
 		} catch (err) {
 			console.error('Error loading users:', err);
-			error = 'Failed to load users';
+			error = $_('users.messages.failedToLoad');
 		} finally {
 			loading = false;
 		}
@@ -155,29 +168,31 @@
 		try {
 			if (modalMode === 'create') {
 				await api.createUser(formData);
+				alert($_('users.messages.createSuccess'));
 			} else {
 				const updateData = { ...formData };
 				delete updateData.username; // Can't change username
 				if (!updateData.pin) delete updateData.pin; // Only update PIN if provided
 				await api.updateUser(selectedUser.id, updateData);
+				alert($_('users.messages.updateSuccess'));
 			}
 			showModal = false;
 			await loadUsers();
 		} catch (err) {
 			console.error('Error saving user:', err);
-			alert(err.message || 'Failed to save user');
+			alert(err.message || $_('users.messages.failedToSave'));
 		}
 	}
 
 	async function handleDelete(user) {
-		if (!confirm(`Are you sure you want to delete user "${user.username}"?`)) return;
+		if (!confirm($_('users.messages.deleteConfirm', { values: { username: user.username } }))) return;
 
 		try {
 			await api.deleteUser(user.id);
 			await loadUsers();
 		} catch (err) {
 			console.error('Error deleting user:', err);
-			alert(err.message || 'Failed to delete user');
+			alert(err.message || $_('users.messages.failedToDelete'));
 		}
 	}
 
@@ -191,7 +206,7 @@
 			await loadUsers();
 		} catch (err) {
 			console.error('Error toggling user status:', err);
-			alert(err.message || 'Failed to update user status');
+			alert(err.message || $_('users.messages.failedToUpdateStatus'));
 		}
 	}
 
@@ -209,7 +224,7 @@
 			alert('PIN reset successfully');
 		} catch (err) {
 			console.error('Error resetting PIN:', err);
-			alert(err.message || 'Failed to reset PIN');
+			alert('Failed to reset PIN');
 		}
 	}
 
@@ -236,15 +251,22 @@
 
 		if (!canEditUser) return '';
 
+		// Get translated labels
+		const editLabel = $_('users.actions.edit');
+		const deactivateLabel = $_('users.actions.deactivate');
+		const activateLabel = $_('users.actions.activate');
+		const resetPinLabel = $_('users.actions.resetPin');
+		const deleteLabel = $_('users.actions.delete');
+
 		return `
 			<div class="flex gap-2">
-				<button onclick="editUser(${row.id})" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
+				<button onclick="editUser(${row.id})" class="text-blue-600 hover:text-blue-800 text-sm">${editLabel}</button>
 				${row.active
-					? `<button onclick="toggleStatus(${row.id})" class="text-orange-600 hover:text-orange-800 text-sm">Deactivate</button>`
-					: `<button onclick="toggleStatus(${row.id})" class="text-green-600 hover:text-green-800 text-sm">Activate</button>`
+					? `<button onclick="toggleStatus(${row.id})" class="text-orange-600 hover:text-orange-800 text-sm">${deactivateLabel}</button>`
+					: `<button onclick="toggleStatus(${row.id})" class="text-green-600 hover:text-green-800 text-sm">${activateLabel}</button>`
 				}
-				${isAdminUser ? `<button onclick="resetPin(${row.id})" class="text-purple-600 hover:text-purple-800 text-sm">Reset PIN</button>` : ''}
-				${isAdminUser && row.id !== currentUserId ? `<button onclick="deleteUser(${row.id})" class="text-red-600 hover:text-red-800 text-sm">Delete</button>` : ''}
+				${isAdminUser ? `<button onclick="resetPin(${row.id})" class="text-purple-600 hover:text-purple-800 text-sm">${resetPinLabel}</button>` : ''}
+				${isAdminUser && row.id !== currentUserId ? `<button onclick="deleteUser(${row.id})" class="text-red-600 hover:text-red-800 text-sm">${deleteLabel}</button>` : ''}
 			</div>
 		`;
 	}
@@ -271,7 +293,7 @@
 </script>
 
 <svelte:head>
-	<title>User Management - MedFMS</title>
+	<title>{$_('users.title')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
@@ -284,18 +306,18 @@
 			<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 			</svg>
-			Back to Admin Settings
+			{$_('users.backToAdmin')}
 		</button>
 	</div>
 
 	<div class="flex justify-between items-center mb-6">
-		<h1 class="text-3xl font-bold text-gray-900">User Management</h1>
+		<h1 class="text-3xl font-bold text-gray-900">{$_('users.title')}</h1>
 		{#if isAdmin}
 			<button
 				on:click={openCreateModal}
 				class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
 			>
-				+ Add User
+				{$_('users.addUser')}
 			</button>
 		{/if}
 	</div>
@@ -316,11 +338,11 @@
 </div>
 
 {#if showModal}
-	<Modal open={true} on:close={() => showModal = false} title={modalMode === 'create' ? 'Create User' : 'Edit User'}>
+	<Modal open={true} on:close={() => showModal = false} title={modalMode === 'create' ? $_('users.createUser') : $_('users.editUser')}>
 		<form on:submit|preventDefault={handleSubmit} class="space-y-4">
 			<div>
 				<label for="username" class="block text-sm font-medium text-gray-700 mb-1">
-					Username {modalMode === 'create' ? '*' : '(cannot be changed)'}
+					{$_('users.username')} {modalMode === 'create' ? '*' : `(${$_('users.cannotChange')})`}
 				</label>
 				<input
 					id="username"
@@ -334,7 +356,7 @@
 
 			<div>
 				<label for="fullName" class="block text-sm font-medium text-gray-700 mb-1">
-					Full Name *
+					{$_('users.fullName')} *
 				</label>
 				<input
 					id="fullName"
@@ -347,7 +369,7 @@
 
 			<div>
 				<label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-					Email *
+					{$_('users.email')} *
 				</label>
 				<input
 					id="email"
@@ -360,7 +382,7 @@
 
 			<div>
 				<label for="pin" class="block text-sm font-medium text-gray-700 mb-1">
-					PIN {modalMode === 'create' ? '*' : '(leave blank to keep current)'}
+					{$_('users.pin')} {modalMode === 'create' ? '*' : `(${$_('users.leaveBlank')})`}
 				</label>
 				<input
 					id="pin"
@@ -370,13 +392,13 @@
 					minlength="4"
 					maxlength="8"
 					class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-					placeholder={modalMode === 'edit' ? 'Leave blank to keep current PIN' : ''}
+					placeholder={modalMode === 'edit' ? $_('users.leaveBlank') : ''}
 				/>
 			</div>
 
 			<div>
 				<label for="role" class="block text-sm font-medium text-gray-700 mb-1">
-					Role *
+					{$_('users.role')} *
 				</label>
 				<select
 					id="role"
@@ -392,7 +414,7 @@
 
 			<div>
 				<label for="department" class="block text-sm font-medium text-gray-700 mb-1">
-					Department
+					{$_('users.department')}
 				</label>
 				<select
 					id="department"
@@ -408,7 +430,7 @@
 
 			<div>
 				<label for="location" class="block text-sm font-medium text-gray-700 mb-1">
-					Location
+					{$_('users.location')}
 				</label>
 				<select
 					id="location"
@@ -424,7 +446,7 @@
 
 			<div>
 				<label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
-					Phone Number
+					{$_('users.phoneNumber')}
 				</label>
 				<input
 					id="phone"
@@ -442,7 +464,7 @@
 					class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
 				/>
 				<label for="active" class="ml-2 text-sm text-gray-700">
-					Active
+					{$_('common.active')}
 				</label>
 			</div>
 
@@ -452,13 +474,13 @@
 					on:click={() => showModal = false}
 					class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
 				>
-					Cancel
+					{$_('common.cancel')}
 				</button>
 				<button
 					type="submit"
 					class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
 				>
-					{modalMode === 'create' ? 'Create' : 'Update'}
+					{modalMode === 'create' ? $_('common.create') : $_('common.update')}
 				</button>
 			</div>
 		</form>

@@ -2,6 +2,8 @@
 	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth';
 	import api from '$lib/api';
+	import { _ } from '$lib/i18n';
+	import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
 
 	let username = '';
 	let pin = '';
@@ -10,7 +12,7 @@
 
 	async function handleLogin() {
 		if (!username || !pin) {
-			error = 'Please enter username and PIN';
+			error = $_('auth.pleaseEnterCredentials');
 			return;
 		}
 
@@ -24,11 +26,11 @@
 				auth.login(response.data.user, response.data.token);
 				goto('/dashboard');
 			} else {
-				error = 'Invalid credentials';
+				error = $_('auth.invalidCredentials');
 			}
 		} catch (err) {
 			console.error('Login error:', err);
-			error = err.message || 'Login failed. Please check your credentials.';
+			error = err.message || $_('auth.loginFailed');
 		} finally {
 			loading = false;
 		}
@@ -42,11 +44,16 @@
 </script>
 
 <svelte:head>
-	<title>Login - MedFMS</title>
+	<title>{$_('auth.signIn')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
 	<div class="max-w-md w-full">
+		<!-- Language Switcher -->
+		<div class="flex justify-end mb-4">
+			<LanguageSwitcher />
+		</div>
+
 		<!-- Logo/Header -->
 		<div class="text-center mb-8">
 			<div class="inline-block p-4 bg-indigo-600 rounded-full mb-4">
@@ -54,13 +61,13 @@
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
 				</svg>
 			</div>
-			<h1 class="text-3xl font-bold text-gray-900 mb-2">MedFMS</h1>
-			<p class="text-gray-600">Medical Fleet Management System</p>
+			<h1 class="text-3xl font-bold text-gray-900 mb-2">{$_('common.appName')}</h1>
+			<p class="text-gray-600">{$_('common.appFullName')}</p>
 		</div>
 
 		<!-- Login Card -->
 		<div class="bg-white rounded-lg shadow-xl p-8">
-			<h2 class="text-2xl font-semibold text-gray-900 mb-6">Sign In</h2>
+			<h2 class="text-2xl font-semibold text-gray-900 mb-6">{$_('auth.signIn')}</h2>
 
 			{#if error}
 				<div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -76,7 +83,7 @@
 			<form on:submit|preventDefault={handleLogin}>
 				<div class="mb-4">
 					<label for="username" class="block text-sm font-medium text-gray-700 mb-2">
-						Username
+						{$_('auth.username')}
 					</label>
 					<input
 						id="username"
@@ -85,14 +92,14 @@
 						on:keypress={handleKeyPress}
 						disabled={loading}
 						class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
-						placeholder="Enter your username"
+						placeholder={$_('auth.enterUsername')}
 						autocomplete="username"
 					/>
 				</div>
 
 				<div class="mb-6">
 					<label for="pin" class="block text-sm font-medium text-gray-700 mb-2">
-						PIN
+						{$_('auth.pin')}
 					</label>
 					<input
 						id="pin"
@@ -101,7 +108,7 @@
 						on:keypress={handleKeyPress}
 						disabled={loading}
 						class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
-						placeholder="Enter your PIN"
+						placeholder={$_('auth.enterPin')}
 						autocomplete="current-password"
 						inputmode="numeric"
 						maxlength="8"
@@ -118,9 +125,9 @@
 							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 						</svg>
-						Signing in...
+						{$_('auth.signingIn')}
 					{:else}
-						Sign In
+						{$_('auth.signIn')}
 					{/if}
 				</button>
 			</form>
@@ -128,7 +135,7 @@
 
 		<!-- Footer -->
 		<div class="mt-6 text-center text-sm text-gray-600">
-			<p>© 2024 MedFMS. All rights reserved.</p>
+			<p>{$_('auth.copyright')}</p>
 		</div>
 	</div>
 </div>
