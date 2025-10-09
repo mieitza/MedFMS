@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { auth } from '$lib/stores/auth';
 	import api from '$lib/api';
 
@@ -123,6 +124,19 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8 max-w-4xl">
+	<!-- Back Button -->
+	<div class="mb-4">
+		<button
+			on:click={() => goto('/dashboard')}
+			class="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+		>
+			<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+			</svg>
+			Back to Dashboard
+		</button>
+	</div>
+
 	<h1 class="text-3xl font-bold text-gray-900 mb-8">My Profile</h1>
 
 	{#if error}

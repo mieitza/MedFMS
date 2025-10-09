@@ -24,13 +24,15 @@
 			user = JSON.parse(userData);
 		}
 
-		// Load dashboard data
+		// Load dashboard data from API
 		try {
-			// Simulate API calls for now
-			vehicleCount = 156;
-			fuelTransactions = 234;
-			materialItems = 89;
-			activeDrivers = 45;
+			const response = await api.getDashboardStats();
+			if (response.success) {
+				vehicleCount = response.data.vehicleCount;
+				fuelTransactions = response.data.fuelTransactions;
+				materialItems = response.data.materialItems;
+				activeDrivers = response.data.activeDrivers;
+			}
 		} catch (error) {
 			console.error('Failed to load dashboard data:', error);
 		} finally {

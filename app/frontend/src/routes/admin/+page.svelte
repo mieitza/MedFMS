@@ -461,7 +461,36 @@
       </button>
     </div>
 
-    <nav class="p-4">
+    <!-- System Management Links -->
+    <div class="p-4 border-b">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">System</p>
+      <div class="space-y-1">
+        <button
+          on:click={() => goto('/admin/users')}
+          class="w-full flex items-center px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          User Management
+        </button>
+        <button
+          on:click={() => goto('/profile')}
+          class="w-full flex items-center px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          My Profile
+        </button>
+      </div>
+    </div>
+
+    <!-- Reference Data Navigation -->
+    <div class="px-4 pt-4 pb-2">
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Reference Data</p>
+    </div>
+    <nav class="p-4 pt-2">
       <ul class="space-y-1">
         {#each Object.entries(DATA_TYPES) as [key, type]}
           <li>

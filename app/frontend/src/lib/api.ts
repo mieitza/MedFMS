@@ -52,6 +52,19 @@ export const api = {
     localStorage.removeItem('user');
   },
 
+  // Dashboard API
+  async getDashboardStats(): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/dashboard/stats`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch dashboard statistics');
+    }
+
+    return response.json();
+  },
+
   getAuthHeaders(includeContentType = true): Record<string, string> {
     const token = localStorage.getItem('token');
     const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};

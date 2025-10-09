@@ -10,6 +10,7 @@ import systemRoutes from './system.js';
 import documentRoutes from './documents.js';
 import reportRoutes from './reports.js';
 import adminRoutes from './admin.js';
+import dashboardRoutes from './dashboard.js';
 
 const router = Router();
 
@@ -24,6 +25,7 @@ router.use('/system', systemRoutes);
 router.use('/documents', documentRoutes);
 router.use('/reports', reportRoutes);
 router.use('/admin', adminRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 // API documentation endpoint
 router.get('/docs', (req, res) => {
@@ -40,7 +42,8 @@ router.get('/docs', (req, res) => {
       system: '/api/system',
       documents: '/api/documents',
       reports: '/api/reports',
-      admin: '/api/admin'
+      admin: '/api/admin',
+      dashboard: '/api/dashboard'
     }
   });
 });

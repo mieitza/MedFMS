@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { auth, hasRole } from '$lib/stores/auth';
 	import api from '$lib/api';
 	import DataTable from '$lib/components/DataTable.svelte';
@@ -13,6 +14,17 @@
 	let selectedUser = null;
 	let departments = [];
 	let locations = [];
+
+	// Reactive role check
+	let isAdmin = false;
+	let canEdit = false;
+
+	$: {
+		if ($auth.user) {
+			isAdmin = $auth.user.role === 'admin';
+			canEdit = $auth.user.role === 'admin' || $auth.user.role === 'manager';
+		}
+	}
 
 	// Form data
 	let formData = {
@@ -55,10 +67,19 @@
 		{ key: 'lastLogin', label: 'Last Login', sortable: true, render: (val) =>
 			val ? new Date(val).toLocaleString() : 'Never'
 		},
-		{ key: 'actions', label: 'Actions', sortable: false }
+		{ key: 'actions', label: 'Actions', sortable: false, render: (val, row) => renderActions(val, row) }
 	];
 
 	onMount(async () => {
+		// Ensure auth state is loaded
+		auth.checkAuth();
+
+		// Update role checks immediately
+		if ($auth.user) {
+			isAdmin = $auth.user.role === 'admin';
+			canEdit = $auth.user.role === 'admin' || $auth.user.role === 'manager';
+		}
+
 		await loadUsers();
 		await loadDepartments();
 		await loadLocations();
@@ -193,23 +214,27 @@
 	}
 
 	function renderActions(value, row) {
-		const canEdit = hasRole(['admin', 'manager']);
-		const isAdmin = hasRole('admin');
-
-		if (!canEdit) return '';
-
-		// Get current user ID safely (avoiding SSR issues)
+		// Get current auth state
+		let userRole = null;
 		let currentUserId = null;
+
 		if (typeof window !== 'undefined') {
 			try {
 				const storedUser = localStorage.getItem('user');
 				if (storedUser) {
-					currentUserId = JSON.parse(storedUser).id;
+					const user = JSON.parse(storedUser);
+					userRole = user.role;
+					currentUserId = user.id;
 				}
 			} catch (e) {
 				// Ignore errors
 			}
 		}
+
+		const canEditUser = userRole === 'admin' || userRole === 'manager';
+		const isAdminUser = userRole === 'admin';
+
+		if (!canEditUser) return '';
 
 		return `
 			<div class="flex gap-2">
@@ -218,8 +243,8 @@
 					? `<button onclick="toggleStatus(${row.id})" class="text-orange-600 hover:text-orange-800 text-sm">Deactivate</button>`
 					: `<button onclick="toggleStatus(${row.id})" class="text-green-600 hover:text-green-800 text-sm">Activate</button>`
 				}
-				${isAdmin ? `<button onclick="resetPin(${row.id})" class="text-purple-600 hover:text-purple-800 text-sm">Reset PIN</button>` : ''}
-				${isAdmin && row.id !== currentUserId ? `<button onclick="deleteUser(${row.id})" class="text-red-600 hover:text-red-800 text-sm">Delete</button>` : ''}
+				${isAdminUser ? `<button onclick="resetPin(${row.id})" class="text-purple-600 hover:text-purple-800 text-sm">Reset PIN</button>` : ''}
+				${isAdminUser && row.id !== currentUserId ? `<button onclick="deleteUser(${row.id})" class="text-red-600 hover:text-red-800 text-sm">Delete</button>` : ''}
 			</div>
 		`;
 	}
@@ -250,9 +275,22 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
+	<!-- Back Button -->
+	<div class="mb-4">
+		<button
+			on:click={() => goto('/admin')}
+			class="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+		>
+			<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+			</svg>
+			Back to Admin Settings
+		</button>
+	</div>
+
 	<div class="flex justify-between items-center mb-6">
 		<h1 class="text-3xl font-bold text-gray-900">User Management</h1>
-		{#if hasRole(['admin'])}
+		{#if isAdmin}
 			<button
 				on:click={openCreateModal}
 				class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
@@ -273,13 +311,12 @@
 			data={users}
 			{columns}
 			{loading}
-			renderCustomColumn={(key, value, row) => key === 'actions' ? renderActions(value, row) : null}
 		/>
 	</div>
 </div>
 
 {#if showModal}
-	<Modal on:close={() => showModal = false} title={modalMode === 'create' ? 'Create User' : 'Edit User'}>
+	<Modal open={true} on:close={() => showModal = false} title={modalMode === 'create' ? 'Create User' : 'Edit User'}>
 		<form on:submit|preventDefault={handleSubmit} class="space-y-4">
 			<div>
 				<label for="username" class="block text-sm font-medium text-gray-700 mb-1">
