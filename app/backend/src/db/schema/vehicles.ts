@@ -7,7 +7,7 @@ export const vehicles = sqliteTable('vehicles', {
   licensePlate: text('license_plate').notNull().unique(),
   brandId: integer('brand_id').notNull(),
   modelId: integer('model_id').notNull(),
-  year: integer('year').notNull(),
+  year: integer('year'),
   fuelTypeId: integer('fuel_type_id').notNull(),
   vehicleTypeId: integer('vehicle_type_id').notNull(),
   statusId: integer('status_id').notNull(),
