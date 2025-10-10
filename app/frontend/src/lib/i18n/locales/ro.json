@@ -617,6 +617,110 @@
       "enterNotes": "Introduceți notițe pentru schimbarea statusului la \"{status}\":",
       "creating": "Se creează...",
       "updating": "Se actualizează..."
+    },
+    "workOrders": {
+      "title": "Comenzi Lucru Întreținere",
+      "pageTitle": "Comenzi Lucru Întreținere - MedFMS",
+      "workOrdersFor": "Comenzi Lucru pentru {licensePlate}",
+      "workOrdersForTitle": "Comenzi Lucru pentru {licensePlate} - MedFMS",
+      "backToVehicle": "Înapoi la Vehicul",
+      "table": {
+        "workOrderNumber": "Nr. Comandă Lucru",
+        "vehicle": "Vehicul",
+        "type": "Tip",
+        "title": "Titlu",
+        "status": "Status",
+        "priority": "Prioritate",
+        "scheduledDate": "Data Programată"
+      },
+      "notScheduled": "Neprogramat",
+      "unknown": "Necunoscut",
+      "messages": {
+        "loadFailed": "Încărcarea comenzilor de lucru a eșuat"
+      }
+    },
+    "workOrderDetail": {
+      "title": "Detalii Comandă Lucru",
+      "pageTitle": "Comandă Lucru #{workOrderNumber} - MedFMS",
+      "pageTitleLoading": "Detalii Comandă Lucru - MedFMS",
+      "workOrderHash": "Comandă Lucru #{workOrderNumber}",
+      "loading": "Se încarcă detaliile comenzii de lucru...",
+      "error": "Eroare",
+      "notFound": "Comanda de lucru nu a fost găsită",
+      "backToMaintenance": "Înapoi la Întreținere",
+      "fields": {
+        "vehicle": "Vehicul",
+        "maintenanceType": "Tip Întreținere",
+        "scheduledDate": "Data Programată",
+        "estimatedCost": "Cost Estimat",
+        "actualCost": "Cost Real",
+        "created": "Creat",
+        "description": "Descriere",
+        "notes": "Notițe",
+        "priority": "Prioritate",
+        "priorityLabel": "Prioritate: {priority}"
+      },
+      "filesTitle": "Fișiere și Fotografii Comandă Lucru",
+      "actionsTitle": "Acțiuni",
+      "buttons": {
+        "approveWorkOrder": "Aprobă Comandă Lucru",
+        "rejectWorkOrder": "Respinge Comandă Lucru",
+        "startWorkOrder": "Începe Comandă Lucru",
+        "completeWorkOrder": "Finalizează Comandă Lucru",
+        "cancelWorkOrder": "Anulează Comandă Lucru",
+        "editWorkOrder": "Editează Comandă Lucru",
+        "deleteWorkOrder": "Șterge Comandă Lucru"
+      },
+      "prompts": {
+        "approvalNotes": "Introduceți notițe de aprobare (opțional):",
+        "rejectionReason": "Introduceți motivul respingerii:",
+        "rejectionRequired": "Motivul respingerii este obligatoriu",
+        "startNotes": "Introduceți notițe pentru începerea lucrului (opțional):",
+        "actualCost": "Introduceți costul real (opțional):",
+        "completionNotes": "Introduceți notițe de finalizare (opțional):",
+        "actualCostLabel": "Cost real: ${cost}",
+        "cancellationReason": "Introduceți motivul anulării:",
+        "cancellationRequired": "Motivul anulării este obligatoriu",
+        "deleteConfirm": "Sigur doriți să ștergeți comanda de lucru #{workOrderNumber}? Această acțiune nu poate fi anulată."
+      },
+      "messages": {
+        "loadFailed": "Încărcarea detaliilor comenzii de lucru a eșuat",
+        "approveSuccess": "Comandă de lucru aprobată cu succes",
+        "approveFailed": "Aprobarea comenzii de lucru a eșuat",
+        "rejectSuccess": "Comandă de lucru respinsă cu succes",
+        "rejectFailed": "Respingerea comenzii de lucru a eșuat",
+        "startSuccess": "Comandă de lucru începută cu succes",
+        "startFailed": "Începerea comenzii de lucru a eșuat",
+        "completeSuccess": "Comandă de lucru finalizată cu succes",
+        "completeFailed": "Finalizarea comenzii de lucru a eșuat",
+        "cancelSuccess": "Comandă de lucru anulată cu succes",
+        "cancelFailed": "Anularea comenzii de lucru a eșuat",
+        "updateSuccess": "Comandă de lucru actualizată cu succes",
+        "updateFailed": "Actualizarea comenzii de lucru a eșuat",
+        "deleteSuccess": "Comandă de lucru ștersă cu succes",
+        "deleteFailed": "Ștergerea comenzii de lucru a eșuat",
+        "loadSupportFailed": "Încărcarea datelor de suport a eșuat",
+        "updating": "Se actualizează..."
+      },
+      "editModal": {
+        "title": "Editează Comandă Lucru",
+        "vehicleLabel": "Vehicul *",
+        "selectVehicle": "Selectați Vehicul",
+        "maintenanceTypeLabel": "Tip Întreținere *",
+        "selectType": "Selectați Tip",
+        "titleLabel": "Titlu *",
+        "titlePlaceholder": "Descriere scurtă a lucrării de întreținere",
+        "descriptionLabel": "Descriere",
+        "descriptionPlaceholder": "Descriere detaliată a lucrării ce trebuie efectuată",
+        "priorityLabel": "Prioritate",
+        "scheduledDateLabel": "Data Programată",
+        "estimatedCostLabel": "Cost Estimat",
+        "estimatedCostPlaceholder": "0.00",
+        "notesLabel": "Notițe",
+        "notesPlaceholder": "Notițe adiționale sau instrucțiuni speciale",
+        "cancelButton": "Anulează",
+        "updateButton": "Actualizează Comandă Lucru"
+      }
     }
   }
 }

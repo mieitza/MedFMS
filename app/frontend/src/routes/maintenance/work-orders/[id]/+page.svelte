@@ -5,6 +5,7 @@
   import { api } from '$lib/api';
   import Modal from '$lib/components/Modal.svelte';
   import WorkOrderFiles from '$lib/components/WorkOrderFiles.svelte';
+  import { _ } from '$lib/i18n';
 
   let workOrder = null;
   let loading = false;
@@ -74,13 +75,13 @@
 
   function getPriorityLabel(priority) {
     const labels = {
-      1: 'Urgent',
-      2: 'High',
-      3: 'Normal',
-      4: 'Low',
-      5: 'Optional'
+      1: $_('maintenance.priority.urgent'),
+      2: $_('maintenance.priority.high'),
+      3: $_('maintenance.priority.normal'),
+      4: $_('maintenance.priority.low'),
+      5: $_('maintenance.priority.optional')
     };
-    return labels[priority] || 'Normal';
+    return labels[priority] || $_('maintenance.priority.normal');
   }
 
   function getPriorityClass(priority) {
@@ -108,26 +109,26 @@
   }
 
   async function handleApprove() {
-    const notes = prompt('Enter approval notes (optional):');
+    const notes = prompt($_('maintenance.workOrderDetail.prompts.approvalNotes'));
     if (notes === null) return; // User cancelled
 
     try {
       actionLoading = true;
       await api.approveWorkOrder(workOrder.id, notes);
       await loadWorkOrder(workOrder.id);
-      alert('Work order approved successfully');
+      alert($_('maintenance.workOrderDetail.messages.approveSuccess'));
     } catch (err) {
       console.error('Failed to approve work order:', err);
-      alert('Failed to approve work order: ' + err.message);
+      alert($_('maintenance.workOrderDetail.messages.approveFailed') + ': ' + err.message);
     } finally {
       actionLoading = false;
     }
   }
 
   async function handleReject() {
-    const notes = prompt('Enter rejection reason:');
+    const notes = prompt($_('maintenance.workOrderDetail.prompts.rejectionReason'));
     if (!notes) {
-      alert('Rejection reason is required');
+      alert($_('maintenance.workOrderDetail.prompts.rejectionRequired'));
       return;
     }
 
@@ -135,40 +136,40 @@
       actionLoading = true;
       await api.rejectWorkOrder(workOrder.id, notes);
       await loadWorkOrder(workOrder.id);
-      alert('Work order rejected successfully');
+      alert($_('maintenance.workOrderDetail.messages.rejectSuccess'));
     } catch (err) {
       console.error('Failed to reject work order:', err);
-      alert('Failed to reject work order: ' + err.message);
+      alert($_('maintenance.workOrderDetail.messages.rejectFailed') + ': ' + err.message);
     } finally {
       actionLoading = false;
     }
   }
 
   async function handleStart() {
-    const notes = prompt('Enter notes for starting work (optional):');
+    const notes = prompt($_('maintenance.workOrderDetail.prompts.startNotes'));
     if (notes === null) return; // User cancelled
 
     try {
       actionLoading = true;
       await api.updateMaintenanceWorkOrderStatus(workOrder.id, 'in_progress', notes);
       await loadWorkOrder(workOrder.id);
-      alert('Work order started successfully');
+      alert($_('maintenance.workOrderDetail.messages.startSuccess'));
     } catch (err) {
       console.error('Failed to start work order:', err);
-      alert('Failed to start work order: ' + err.message);
+      alert($_('maintenance.workOrderDetail.messages.startFailed') + ': ' + err.message);
     } finally {
       actionLoading = false;
     }
   }
 
   async function handleComplete() {
-    const actualCost = prompt('Enter actual cost (optional):');
-    let notes = prompt('Enter completion notes (optional):');
+    const actualCost = prompt($_('maintenance.workOrderDetail.prompts.actualCost'));
+    let notes = prompt($_('maintenance.workOrderDetail.prompts.completionNotes'));
 
     if (actualCost && notes) {
-      notes = `Actual cost: $${actualCost}\n${notes}`;
+      notes = `${$_('maintenance.workOrderDetail.prompts.actualCostLabel', { values: { cost: actualCost } })}\n${notes}`;
     } else if (actualCost) {
-      notes = `Actual cost: $${actualCost}`;
+      notes = $_('maintenance.workOrderDetail.prompts.actualCostLabel', { values: { cost: actualCost } });
     }
 
     try {
@@ -178,19 +179,19 @@
         await api.updateWorkOrder(workOrder.id, { actualCost: parseFloat(actualCost) });
       }
       await loadWorkOrder(workOrder.id);
-      alert('Work order completed successfully');
+      alert($_('maintenance.workOrderDetail.messages.completeSuccess'));
     } catch (err) {
       console.error('Failed to complete work order:', err);
-      alert('Failed to complete work order: ' + err.message);
+      alert($_('maintenance.workOrderDetail.messages.completeFailed') + ': ' + err.message);
     } finally {
       actionLoading = false;
     }
   }
 
   async function handleCancel() {
-    const notes = prompt('Enter cancellation reason:');
+    const notes = prompt($_('maintenance.workOrderDetail.prompts.cancellationReason'));
     if (!notes) {
-      alert('Cancellation reason is required');
+      alert($_('maintenance.workOrderDetail.prompts.cancellationRequired'));
       return;
     }
 
@@ -198,10 +199,10 @@
       actionLoading = true;
       await api.updateMaintenanceWorkOrderStatus(workOrder.id, 'cancelled', notes);
       await loadWorkOrder(workOrder.id);
-      alert('Work order cancelled successfully');
+      alert($_('maintenance.workOrderDetail.messages.cancelSuccess'));
     } catch (err) {
       console.error('Failed to cancel work order:', err);
-      alert('Failed to cancel work order: ' + err.message);
+      alert($_('maintenance.workOrderDetail.messages.cancelFailed') + ': ' + err.message);
     } finally {
       actionLoading = false;
     }
@@ -239,35 +240,35 @@
       await api.updateWorkOrder(workOrder.id, updateData);
       await loadWorkOrder(workOrder.id);
       showEditModal = false;
-      alert('Work order updated successfully');
+      alert($_('maintenance.workOrderDetail.messages.updateSuccess'));
     } catch (err) {
       console.error('Failed to update work order:', err);
-      alert('Failed to update work order: ' + err.message);
+      alert($_('maintenance.workOrderDetail.messages.updateFailed') + ': ' + err.message);
     } finally {
       actionLoading = false;
     }
   }
 
   async function handleDelete() {
-    if (!confirm(`Are you sure you want to delete work order #${workOrder.workOrderNumber}? This action cannot be undone.`)) {
+    if (!confirm($_('maintenance.workOrderDetail.prompts.deleteConfirm', { values: { workOrderNumber: workOrder.workOrderNumber } }))) {
       return;
     }
 
     try {
       actionLoading = true;
       await api.deleteWorkOrder(workOrder.id);
-      alert('Work order deleted successfully');
+      alert($_('maintenance.workOrderDetail.messages.deleteSuccess'));
       goto('/maintenance');
     } catch (err) {
       console.error('Failed to delete work order:', err);
-      alert('Failed to delete work order: ' + err.message);
+      alert($_('maintenance.workOrderDetail.messages.deleteFailed') + ': ' + err.message);
       actionLoading = false;
     }
   }
 </script>
 
 <svelte:head>
-  <title>{workOrder ? `Work Order #${workOrder.workOrderNumber}` : 'Work Order Details'} - MedFMS</title>
+  <title>{workOrder ? $_('maintenance.workOrderDetail.pageTitle', { values: { workOrderNumber: workOrder.workOrderNumber } }) : $_('maintenance.workOrderDetail.pageTitleLoading')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -279,12 +280,12 @@
           <a href="/dashboard" class="text-2xl font-bold text-primary-900">MedFMS</a>
           <nav class="ml-8">
             <ol class="flex items-center space-x-2 text-sm">
-              <li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+              <li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
               <li class="text-gray-500">/</li>
-              <li><a href="/maintenance" class="text-gray-500 hover:text-gray-700">Maintenance</a></li>
+              <li><a href="/maintenance" class="text-gray-500 hover:text-gray-700">{$_('dashboard.maintenance')}</a></li>
               <li class="text-gray-500">/</li>
               <li class="text-gray-900 font-medium">
-                {workOrder ? `Work Order #${workOrder.workOrderNumber}` : 'Loading...'}
+                {workOrder ? $_('maintenance.workOrderDetail.workOrderHash', { values: { workOrderNumber: workOrder.workOrderNumber } }) : $_('common.loading')}
               </li>
             </ol>
           </nav>
@@ -297,7 +298,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
-            Back to Maintenance
+            {$_('maintenance.workOrderDetail.backToMaintenance')}
           </a>
         </div>
       </div>
@@ -309,12 +310,12 @@
     {#if loading}
       <div class="text-center py-8">
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p class="mt-2 text-gray-600">Loading work order details...</p>
+        <p class="mt-2 text-gray-600">{$_('maintenance.workOrderDetail.loading')}</p>
       </div>
     {:else if error}
       <div class="text-center py-8">
         <div class="bg-red-50 border border-red-200 rounded-md p-4">
-          <h3 class="text-lg font-medium text-red-800">Error</h3>
+          <h3 class="text-lg font-medium text-red-800">{$_('maintenance.workOrderDetail.error')}</h3>
           <p class="text-red-600">{error}</p>
         </div>
       </div>
@@ -323,15 +324,15 @@
       <div class="bg-white p-6 rounded-lg shadow border mb-6">
         <div class="flex justify-between items-start mb-6">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Work Order #{workOrder.workOrderNumber}</h1>
+            <h1 class="text-2xl font-bold text-gray-900">{$_('maintenance.workOrderDetail.workOrderHash', { values: { workOrderNumber: workOrder.workOrderNumber } })}</h1>
             <p class="text-lg text-gray-600 mt-1">{workOrder.title}</p>
           </div>
           <div class="flex items-center space-x-3">
             <span class="px-3 py-1 text-sm font-medium rounded-full {getPriorityClass(workOrder.priority)}">
-              Priority: {getPriorityLabel(workOrder.priority)}
+              {$_('maintenance.workOrderDetail.fields.priorityLabel', { values: { priority: getPriorityLabel(workOrder.priority) } })}
             </span>
             <span class="px-3 py-1 text-sm font-medium rounded-full {getStatusClass(workOrder.status)}">
-              {workOrder.status?.replace('_', ' ').toUpperCase()}
+              {$_(`maintenance.status.${workOrder.status === 'in_progress' ? 'inProgress' : workOrder.status === 'on_hold' ? 'onHold' : workOrder.status}`)}
             </span>
           </div>
         </div>
@@ -339,7 +340,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <!-- Vehicle Information -->
           <div>
-            <h3 class="text-sm font-medium text-gray-500 mb-2">Vehicle</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-2">{$_('maintenance.workOrderDetail.fields.vehicle')}</h3>
             <p class="text-lg font-semibold text-gray-900">
               {workOrder.vehicle?.vehicleCode || 'N/A'}
             </p>
@@ -350,7 +351,7 @@
 
           <!-- Maintenance Type -->
           <div>
-            <h3 class="text-sm font-medium text-gray-500 mb-2">Maintenance Type</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-2">{$_('maintenance.workOrderDetail.fields.maintenanceType')}</h3>
             <p class="text-lg font-semibold text-gray-900">
               {workOrder.maintenanceType?.typeName || 'N/A'}
             </p>
@@ -361,7 +362,7 @@
 
           <!-- Scheduled Date -->
           <div>
-            <h3 class="text-sm font-medium text-gray-500 mb-2">Scheduled Date</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-2">{$_('maintenance.workOrderDetail.fields.scheduledDate')}</h3>
             <p class="text-lg font-semibold text-gray-900">
               {workOrder.scheduledDate ? new Date(workOrder.scheduledDate).toLocaleDateString() : 'Not scheduled'}
             </p>
@@ -369,7 +370,7 @@
 
           <!-- Estimated Cost -->
           <div>
-            <h3 class="text-sm font-medium text-gray-500 mb-2">Estimated Cost</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-2">{$_('maintenance.workOrderDetail.fields.estimatedCost')}</h3>
             <p class="text-lg font-semibold text-gray-900">
               {workOrder.estimatedCost ? `$${parseFloat(workOrder.estimatedCost).toFixed(2)}` : 'N/A'}
             </p>
@@ -377,7 +378,7 @@
 
           <!-- Actual Cost -->
           <div>
-            <h3 class="text-sm font-medium text-gray-500 mb-2">Actual Cost</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-2">{$_('maintenance.workOrderDetail.fields.actualCost')}</h3>
             <p class="text-lg font-semibold text-gray-900">
               {workOrder.actualCost ? `$${parseFloat(workOrder.actualCost).toFixed(2)}` : 'N/A'}
             </p>
@@ -385,7 +386,7 @@
 
           <!-- Created Date -->
           <div>
-            <h3 class="text-sm font-medium text-gray-500 mb-2">Created</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-2">{$_('maintenance.workOrderDetail.fields.created')}</h3>
             <p class="text-lg font-semibold text-gray-900">
               {new Date(workOrder.createdAt).toLocaleDateString()}
             </p>
@@ -395,7 +396,7 @@
         <!-- Description -->
         {#if workOrder.description}
           <div class="mt-6">
-            <h3 class="text-sm font-medium text-gray-500 mb-2">Description</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-2">{$_('maintenance.workOrderDetail.fields.description')}</h3>
             <p class="text-gray-900">{workOrder.description}</p>
           </div>
         {/if}
@@ -403,7 +404,7 @@
         <!-- Notes -->
         {#if workOrder.notes}
           <div class="mt-6">
-            <h3 class="text-sm font-medium text-gray-500 mb-2">Notes</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-2">{$_('maintenance.workOrderDetail.fields.notes')}</h3>
             <p class="text-gray-900">{workOrder.notes}</p>
           </div>
         {/if}
@@ -414,7 +415,7 @@
         <WorkOrderFiles
           workOrderId={workOrder.id}
           showUpload={true}
-          title="Work Order Files and Photos"
+          title={$_('maintenance.workOrderDetail.filesTitle')}
           on:fileUploaded={() => console.log('File uploaded to work order')}
           on:fileDeleted={() => console.log('File deleted from work order')}
         />
@@ -422,7 +423,7 @@
 
       <!-- Actions Section -->
       <div class="bg-white p-6 rounded-lg shadow border">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">{$_('maintenance.workOrderDetail.actionsTitle')}</h2>
         <div class="flex flex-wrap gap-3">
           {#if workOrder.status === 'pending'}
             <button
@@ -436,7 +437,7 @@
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               {/if}
-              Approve Work Order
+              {$_('maintenance.workOrderDetail.buttons.approveWorkOrder')}
             </button>
             <button
               class="btn bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
@@ -449,7 +450,7 @@
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               {/if}
-              Reject Work Order
+              {$_('maintenance.workOrderDetail.buttons.rejectWorkOrder')}
             </button>
           {/if}
 
@@ -465,7 +466,7 @@
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               {/if}
-              Start Work Order
+              {$_('maintenance.workOrderDetail.buttons.startWorkOrder')}
             </button>
           {/if}
 
@@ -481,7 +482,7 @@
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               {/if}
-              Complete Work Order
+              {$_('maintenance.workOrderDetail.buttons.completeWorkOrder')}
             </button>
           {/if}
 
@@ -497,7 +498,7 @@
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               {/if}
-              Cancel Work Order
+              {$_('maintenance.workOrderDetail.buttons.cancelWorkOrder')}
             </button>
             <button
               class="btn bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
@@ -510,7 +511,7 @@
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               {/if}
-              Edit Work Order
+              {$_('maintenance.workOrderDetail.buttons.editWorkOrder')}
             </button>
           {/if}
 
@@ -526,32 +527,32 @@
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               {/if}
-              Delete Work Order
+              {$_('maintenance.workOrderDetail.buttons.deleteWorkOrder')}
             </button>
           {/if}
         </div>
       </div>
     {:else}
       <div class="text-center py-8">
-        <p class="text-gray-600">Work order not found</p>
+        <p class="text-gray-600">{$_('maintenance.workOrderDetail.notFound')}</p>
       </div>
     {/if}
   </main>
 </div>
 
 <!-- Edit Work Order Modal -->
-<Modal bind:open={showEditModal} title="Edit Work Order" size="lg" on:close={() => showEditModal = false}>
+<Modal bind:open={showEditModal} title={$_('maintenance.workOrderDetail.editModal.title')} size="lg" on:close={() => showEditModal = false}>
   <form on:submit|preventDefault={handleEditSubmit} class="space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Vehicle *</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.workOrderDetail.editModal.vehicleLabel')}</label>
         <select
           bind:value={editFormData.vehicleId}
           required
           disabled={actionLoading}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">Select Vehicle</option>
+          <option value="">{$_('maintenance.workOrderDetail.editModal.selectVehicle')}</option>
           {#each vehicles as vehicle}
             <option value={vehicle.id}>{vehicle.vehicleCode} ({vehicle.licensePlate})</option>
           {/each}
@@ -559,14 +560,14 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Maintenance Type *</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.workOrderDetail.editModal.maintenanceTypeLabel')}</label>
         <select
           bind:value={editFormData.maintenanceTypeId}
           required
           disabled={actionLoading}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">Select Type</option>
+          <option value="">{$_('maintenance.workOrderDetail.editModal.selectType')}</option>
           {#each maintenanceTypes as type}
             <option value={type.id}>{type.typeName} ({type.category})</option>
           {/each}
@@ -575,46 +576,46 @@
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.workOrderDetail.editModal.titleLabel')}</label>
       <input
         type="text"
         bind:value={editFormData.title}
         required
         disabled={actionLoading}
         class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="Brief description of the maintenance work"
+        placeholder={$_('maintenance.workOrderDetail.editModal.titlePlaceholder')}
       />
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.workOrderDetail.editModal.descriptionLabel')}</label>
       <textarea
         bind:value={editFormData.description}
         rows="3"
         disabled={actionLoading}
         class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="Detailed description of the work to be performed"
+        placeholder={$_('maintenance.workOrderDetail.editModal.descriptionPlaceholder')}
       ></textarea>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.workOrderDetail.editModal.priorityLabel')}</label>
         <select
           bind:value={editFormData.priority}
           disabled={actionLoading}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value={1}>1 - Urgent</option>
-          <option value={2}>2 - High</option>
-          <option value={3}>3 - Normal</option>
-          <option value={4}>4 - Low</option>
-          <option value={5}>5 - Optional</option>
+          <option value={1}>{$_('maintenance.priority.label1')}</option>
+          <option value={2}>{$_('maintenance.priority.label2')}</option>
+          <option value={3}>{$_('maintenance.priority.label3')}</option>
+          <option value={4}>{$_('maintenance.priority.label4')}</option>
+          <option value={5}>{$_('maintenance.priority.label5')}</option>
         </select>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Scheduled Date</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.workOrderDetail.editModal.scheduledDateLabel')}</label>
         <input
           type="date"
           bind:value={editFormData.scheduledDate}
@@ -624,26 +625,26 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Estimated Cost</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.workOrderDetail.editModal.estimatedCostLabel')}</label>
         <input
           type="number"
           step="0.01"
           bind:value={editFormData.estimatedCost}
           disabled={actionLoading}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="0.00"
+          placeholder={$_('maintenance.workOrderDetail.editModal.estimatedCostPlaceholder')}
         />
       </div>
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.workOrderDetail.editModal.notesLabel')}</label>
       <textarea
         bind:value={editFormData.notes}
         rows="2"
         disabled={actionLoading}
         class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="Additional notes or special instructions"
+        placeholder={$_('maintenance.workOrderDetail.editModal.notesPlaceholder')}
       ></textarea>
     </div>
 
@@ -654,7 +655,7 @@
         disabled={actionLoading}
         class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 transition-colors"
       >
-        Cancel
+        {$_('maintenance.workOrderDetail.editModal.cancelButton')}
       </button>
       <button
         type="submit"
@@ -666,9 +667,9 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          Updating...
+          {$_('maintenance.workOrderDetail.messages.updating')}
         {:else}
-          Update Work Order
+          {$_('maintenance.workOrderDetail.editModal.updateButton')}
         {/if}
       </button>
     </div>

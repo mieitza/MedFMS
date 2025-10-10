@@ -617,6 +617,110 @@
       "enterNotes": "Enter notes for status change to \"{status}\":",
       "creating": "Creating...",
       "updating": "Updating..."
+    },
+    "workOrders": {
+      "title": "Maintenance Work Orders",
+      "pageTitle": "Maintenance Work Orders - MedFMS",
+      "workOrdersFor": "Work Orders for {licensePlate}",
+      "workOrdersForTitle": "Work Orders for {licensePlate} - MedFMS",
+      "backToVehicle": "Back to Vehicle",
+      "table": {
+        "workOrderNumber": "Work Order #",
+        "vehicle": "Vehicle",
+        "type": "Type",
+        "title": "Title",
+        "status": "Status",
+        "priority": "Priority",
+        "scheduledDate": "Scheduled Date"
+      },
+      "notScheduled": "Not scheduled",
+      "unknown": "Unknown",
+      "messages": {
+        "loadFailed": "Failed to load work orders"
+      }
+    },
+    "workOrderDetail": {
+      "title": "Work Order Details",
+      "pageTitle": "Work Order #{workOrderNumber} - MedFMS",
+      "pageTitleLoading": "Work Order Details - MedFMS",
+      "workOrderHash": "Work Order #{workOrderNumber}",
+      "loading": "Loading work order details...",
+      "error": "Error",
+      "notFound": "Work order not found",
+      "backToMaintenance": "Back to Maintenance",
+      "fields": {
+        "vehicle": "Vehicle",
+        "maintenanceType": "Maintenance Type",
+        "scheduledDate": "Scheduled Date",
+        "estimatedCost": "Estimated Cost",
+        "actualCost": "Actual Cost",
+        "created": "Created",
+        "description": "Description",
+        "notes": "Notes",
+        "priority": "Priority",
+        "priorityLabel": "Priority: {priority}"
+      },
+      "filesTitle": "Work Order Files and Photos",
+      "actionsTitle": "Actions",
+      "buttons": {
+        "approveWorkOrder": "Approve Work Order",
+        "rejectWorkOrder": "Reject Work Order",
+        "startWorkOrder": "Start Work Order",
+        "completeWorkOrder": "Complete Work Order",
+        "cancelWorkOrder": "Cancel Work Order",
+        "editWorkOrder": "Edit Work Order",
+        "deleteWorkOrder": "Delete Work Order"
+      },
+      "prompts": {
+        "approvalNotes": "Enter approval notes (optional):",
+        "rejectionReason": "Enter rejection reason:",
+        "rejectionRequired": "Rejection reason is required",
+        "startNotes": "Enter notes for starting work (optional):",
+        "actualCost": "Enter actual cost (optional):",
+        "completionNotes": "Enter completion notes (optional):",
+        "actualCostLabel": "Actual cost: ${cost}",
+        "cancellationReason": "Enter cancellation reason:",
+        "cancellationRequired": "Cancellation reason is required",
+        "deleteConfirm": "Are you sure you want to delete work order #{workOrderNumber}? This action cannot be undone."
+      },
+      "messages": {
+        "loadFailed": "Failed to load work order details",
+        "approveSuccess": "Work order approved successfully",
+        "approveFailed": "Failed to approve work order",
+        "rejectSuccess": "Work order rejected successfully",
+        "rejectFailed": "Failed to reject work order",
+        "startSuccess": "Work order started successfully",
+        "startFailed": "Failed to start work order",
+        "completeSuccess": "Work order completed successfully",
+        "completeFailed": "Failed to complete work order",
+        "cancelSuccess": "Work order cancelled successfully",
+        "cancelFailed": "Failed to cancel work order",
+        "updateSuccess": "Work order updated successfully",
+        "updateFailed": "Failed to update work order",
+        "deleteSuccess": "Work order deleted successfully",
+        "deleteFailed": "Failed to delete work order",
+        "loadSupportFailed": "Failed to load support data",
+        "updating": "Updating..."
+      },
+      "editModal": {
+        "title": "Edit Work Order",
+        "vehicleLabel": "Vehicle *",
+        "selectVehicle": "Select Vehicle",
+        "maintenanceTypeLabel": "Maintenance Type *",
+        "selectType": "Select Type",
+        "titleLabel": "Title *",
+        "titlePlaceholder": "Brief description of the maintenance work",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Detailed description of the work to be performed",
+        "priorityLabel": "Priority",
+        "scheduledDateLabel": "Scheduled Date",
+        "estimatedCostLabel": "Estimated Cost",
+        "estimatedCostPlaceholder": "0.00",
+        "notesLabel": "Notes",
+        "notesPlaceholder": "Additional notes or special instructions",
+        "cancelButton": "Cancel",
+        "updateButton": "Update Work Order"
+      }
     }
   }
 }
