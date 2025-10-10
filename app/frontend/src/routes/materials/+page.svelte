@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { api } from '$lib/api';
+  import { _ } from '$lib/i18n';
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
 
@@ -64,65 +65,65 @@
   const columns = [
     {
       key: 'materialCode',
-      label: 'Material Code',
+      label: $_('materials.materialCode'),
       sortable: true,
       render: (row) => (row && row.materialCode) || 'N/A'
     },
     {
       key: 'materialName',
-      label: 'Material Name',
+      label: $_('materials.materialName'),
       sortable: true,
       render: (row) => (row && row.materialName) || 'N/A'
     },
     {
       key: 'currentStock',
-      label: 'Current Stock',
+      label: $_('materials.currentStock'),
       sortable: true,
       render: (row) => parseFloat((row && row.currentStock) || 0).toFixed(2)
     },
     {
       key: 'criticalLevel',
-      label: 'Critical Level',
+      label: $_('materials.criticalLevel'),
       sortable: true,
       render: (row) => parseFloat((row && row.criticalLevel) || 0).toFixed(2)
     },
     {
       key: 'standardPrice',
-      label: 'Standard Price',
+      label: $_('materials.standardPrice'),
       sortable: true,
       render: (row) => (row && row.standardPrice) ? `$${parseFloat(row.standardPrice).toFixed(2)}` : '-'
     },
     {
       key: 'stockStatus',
-      label: 'Stock Status',
+      label: $_('materials.stockStatus'),
       sortable: false,
       render: (row) => {
         if (!row) return '<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">N/A</span>';
         const stock = parseFloat(row.currentStock || 0);
         const critical = parseFloat(row.criticalLevel || 0);
         if (stock <= critical) {
-          return '<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Low Stock</span>';
+          return `<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">${$_('materials.stockStatuses.lowStock')}</span>`;
         } else if (stock <= critical * 1.5) {
-          return '<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Warning</span>';
+          return `<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">${$_('materials.stockStatuses.warning')}</span>`;
         } else {
-          return '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">In Stock</span>';
+          return `<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">${$_('materials.stockStatuses.inStock')}</span>`;
         }
       }
     },
     {
       key: 'createdAt',
-      label: 'Created',
+      label: $_('materials.created'),
       sortable: true,
       render: (row) => (row && row.createdAt) ? new Date(row.createdAt).toLocaleDateString() : 'N/A'
     },
     {
       key: 'actions',
-      label: 'Actions',
+      label: $_('materials.actions'),
       sortable: false,
       render: (row) => `
         <div class="flex gap-2">
           <button onclick="viewMaterial(${(row && row.id) || 0})" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
-            View Details
+            ${$_('materials.viewDetails')}
           </button>
         </div>
       `
@@ -133,29 +134,29 @@
   const warehouseColumns = [
     {
       key: 'warehouseCode',
-      label: 'Code',
+      label: $_('materials.warehouseCode'),
       sortable: true
     },
     {
       key: 'warehouseName',
-      label: 'Warehouse Name',
+      label: $_('materials.warehouseName'),
       sortable: true
     },
     {
       key: 'description',
-      label: 'Description',
+      label: $_('materials.description'),
       sortable: false,
       render: (row) => (row && row.description) || '-'
     },
     {
       key: 'capacity',
-      label: 'Capacity',
+      label: $_('materials.capacity'),
       sortable: true,
       render: (row) => (row && row.capacity) || '-'
     },
     {
       key: 'actions',
-      label: 'Actions',
+      label: $_('materials.actions'),
       sortable: false,
       render: (value, row) => {
         if (!row || !row.id) {
@@ -165,7 +166,7 @@
         return `
           <div class="flex gap-2">
             <button onclick="viewWarehouse(${row.id})" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
-              View Details
+              ${$_('materials.viewDetails')}
             </button>
           </div>
         `;
@@ -343,17 +344,17 @@
 
       if (isEditing) {
         await api.updateMaterial(selectedMaterial.id, materialForm);
-        alert('Material updated successfully');
+        alert($_('materials.messages.updateSuccess'));
       } else {
         await api.createMaterial(materialForm);
-        alert('Material created successfully');
+        alert($_('materials.messages.createSuccess'));
       }
 
       showMaterialModal = false;
       await loadMaterials();
     } catch (error) {
       console.error('Error saving material:', error);
-      alert('Failed to save material: ' + error.message);
+      alert($_('materials.messages.createFailed') + ': ' + error.message);
     } finally {
       isSaving = false;
     }
@@ -365,33 +366,33 @@
       await api.createWarehouse(warehouseForm);
       showWarehouseModal = false;
       await loadWarehouses();
-      alert('Warehouse created successfully');
+      alert($_('materials.messages.warehouseCreateSuccess'));
     } catch (error) {
       console.error('Error saving warehouse:', error);
-      alert('Failed to save warehouse: ' + error.message);
+      alert($_('materials.messages.warehouseCreateFailed') + ': ' + error.message);
     } finally {
       isSaving = false;
     }
   }
 
   async function deleteMaterial(id) {
-    if (!confirm('Are you sure you want to delete this material?')) {
+    if (!confirm($_('materials.messages.deleteConfirm'))) {
       return;
     }
 
     try {
       await api.deleteMaterial(id);
       await loadMaterials();
-      alert('Material deleted successfully');
+      alert($_('materials.messages.deleteSuccess'));
     } catch (error) {
       console.error('Error deleting material:', error);
-      alert('Failed to delete material: ' + error.message);
+      alert($_('materials.messages.deleteFailed') + ': ' + error.message);
     }
   }
 </script>
 
 <svelte:head>
-  <title>Materials & Inventory - MedFMS</title>
+  <title>{$_('materials.pageTitle')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -400,12 +401,12 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
-          <a href="/dashboard" class="text-2xl font-bold text-primary-900">MedFMS</a>
+          <a href="/dashboard" class="text-2xl font-bold text-primary-900">{$_('common.appName')}</a>
           <nav class="ml-8">
             <ol class="flex items-center space-x-2 text-sm">
-              <li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+              <li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
               <li class="text-gray-500">/</li>
-              <li class="text-gray-900 font-medium">Materials & Inventory</li>
+              <li class="text-gray-900 font-medium">{$_('materials.title')}</li>
             </ol>
           </nav>
         </div>
@@ -417,7 +418,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
             </svg>
-            Add Warehouse
+            {$_('materials.addWarehouse')}
           </button>
           <button
             on:click={() => openMaterialModal()}
@@ -426,7 +427,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
-            Add Material
+            {$_('materials.addMaterial')}
           </button>
         </div>
       </div>
@@ -444,7 +445,7 @@
         currentPage={1}
         pageSize={10}
         totalItems={warehouses.length}
-        title="Warehouses"
+        title={$_('materials.warehouses')}
         showSearch={false}
         showPagination={false}
         showExport={false}
@@ -460,7 +461,7 @@
       {currentPage}
       {pageSize}
       {totalItems}
-      title="Materials & Inventory"
+      title={$_('materials.title')}
       showSearch={true}
       showPagination={true}
       showExport={true}
@@ -477,12 +478,12 @@
 </div>
 
 <!-- Material Modal -->
-<Modal bind:open={showMaterialModal} title={isEditing ? 'Edit Material' : 'Add New Material'} on:close={() => showMaterialModal = false}>
+<Modal bind:open={showMaterialModal} title={isEditing ? $_('materials.editMaterial') : $_('materials.addNewMaterial')} on:close={() => showMaterialModal = false}>
   <form on:submit|preventDefault={saveMaterial} class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          Material Code <span class="text-red-500">*</span>
+          {$_('materials.materialCode')} <span class="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -490,13 +491,13 @@
           required
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter material code"
+          placeholder={$_('materials.placeholders.materialCode')}
         />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          Material Name <span class="text-red-500">*</span>
+          {$_('materials.materialName')} <span class="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -504,23 +505,23 @@
           required
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter material name"
+          placeholder={$_('materials.placeholders.materialName')}
         />
       </div>
 
       <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.description')}</label>
         <textarea
           bind:value={materialForm.description}
           rows="3"
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter description"
+          placeholder={$_('materials.placeholders.description')}
         ></textarea>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Current Stock</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.currentStock')}</label>
         <input
           type="number"
           step="0.01"
@@ -531,7 +532,7 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Critical Level</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.criticalLevel')}</label>
         <input
           type="number"
           step="0.01"
@@ -542,7 +543,7 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Standard Price</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.standardPrice')}</label>
         <input
           type="number"
           step="0.01"
@@ -553,13 +554,13 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Warehouse</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.warehouse')}</label>
         <select
           bind:value={materialForm.warehouseId}
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value={null}>Select Warehouse</option>
+          <option value={null}>{$_('materials.placeholders.selectWarehouse')}</option>
           {#each warehouses as warehouse}
             <option value={warehouse.id}>{warehouse.warehouseName}</option>
           {/each}
@@ -575,26 +576,26 @@
         class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
         disabled={isSaving}
       >
-        Cancel
+        {$_('common.cancel')}
       </button>
       <button
         type="submit"
         disabled={isSaving}
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
       >
-        {isSaving ? 'Saving...' : (isEditing ? 'Update Material' : 'Create Material')}
+        {isSaving ? $_('materials.messages.saving') : (isEditing ? $_('materials.updateMaterial') : $_('materials.createMaterial'))}
       </button>
     </div>
   </form>
 </Modal>
 
 <!-- Warehouse Modal -->
-<Modal bind:open={showWarehouseModal} title="Add New Warehouse" on:close={() => showWarehouseModal = false}>
+<Modal bind:open={showWarehouseModal} title={$_('materials.addNewWarehouse')} on:close={() => showWarehouseModal = false}>
   <form on:submit|preventDefault={saveWarehouse} class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          Warehouse Code <span class="text-red-500">*</span>
+          {$_('materials.warehouseCode')} <span class="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -602,13 +603,13 @@
           required
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter warehouse code"
+          placeholder={$_('materials.placeholders.warehouseCode')}
         />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          Warehouse Name <span class="text-red-500">*</span>
+          {$_('materials.warehouseName')} <span class="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -616,23 +617,23 @@
           required
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter warehouse name"
+          placeholder={$_('materials.placeholders.warehouseName')}
         />
       </div>
 
       <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.description')}</label>
         <textarea
           bind:value={warehouseForm.description}
           rows="3"
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter description"
+          placeholder={$_('materials.placeholders.description')}
         ></textarea>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.capacity')}</label>
         <input
           type="number"
           step="0.01"
@@ -651,14 +652,14 @@
         class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
         disabled={isSaving}
       >
-        Cancel
+        {$_('common.cancel')}
       </button>
       <button
         type="submit"
         disabled={isSaving}
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
       >
-        {isSaving ? 'Saving...' : 'Create Warehouse'}
+        {isSaving ? $_('materials.messages.saving') : $_('materials.createWarehouse')}
       </button>
     </div>
   </form>

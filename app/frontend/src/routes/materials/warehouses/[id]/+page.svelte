@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { api } from '$lib/api';
+  import { _ } from '$lib/i18n';
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
 
@@ -31,17 +32,17 @@
   const materialColumns = [
     {
       key: 'materialCode',
-      label: 'Code',
+      label: $_('materials.warehouseDetail.code'),
       sortable: true
     },
     {
       key: 'materialName',
-      label: 'Material Name',
+      label: $_('materials.materialName'),
       sortable: true
     },
     {
       key: 'currentStock',
-      label: 'Current Stock',
+      label: $_('materials.currentStock'),
       sortable: true,
       render: (value, row) => {
         if (!row) return '-';
@@ -51,31 +52,31 @@
     },
     {
       key: 'criticalLevel',
-      label: 'Critical Level',
+      label: $_('materials.criticalLevel'),
       sortable: true
     },
     {
       key: 'standardPrice',
-      label: 'Standard Price',
+      label: $_('materials.standardPrice'),
       sortable: true,
       render: (value, row) => `$${parseFloat(row?.standardPrice || 0).toFixed(2)}`
     },
     {
       key: 'unit',
-      label: 'Unit',
+      label: $_('materials.edit.unit'),
       sortable: false,
       render: (value, row) => row?.unit?.unitName || 'N/A'
     },
     {
       key: 'actions',
-      label: 'Actions',
+      label: $_('materials.actions'),
       sortable: false,
       render: (value, row) => {
         if (!row || !row.id) return '<div class="text-gray-500 text-sm">No actions</div>';
         return `
         <div class="flex gap-2">
           <button onclick="viewMaterial(${row.id})" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
-            View Details
+            ${$_('materials.viewDetails')}
           </button>
         </div>
         `;
@@ -117,7 +118,7 @@
         goto('/');
         return;
       }
-      alert('Failed to load warehouse details: ' + error.message);
+      alert($_('materials.messages.loadFailed') + ': ' + error.message);
     } finally {
       loading = false;
     }
@@ -153,10 +154,10 @@
 
       warehouse = { ...warehouse, ...warehouseForm };
       showEditModal = false;
-      alert('Warehouse updated successfully');
+      alert($_('materials.messages.warehouseCreateSuccess'));
     } catch (error) {
       console.error('Error updating warehouse:', error);
-      alert('Failed to update warehouse: ' + error.message);
+      alert($_('materials.messages.warehouseCreateFailed') + ': ' + error.message);
     } finally {
       isSaving = false;
     }
@@ -202,7 +203,7 @@
 </script>
 
 <svelte:head>
-  <title>Warehouse Details - MedFMS</title>
+  <title>{warehouse ? `${warehouse.warehouseName} - ${$_('materials.warehouses')}` : $_('materials.warehouseDetail.title')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
@@ -215,14 +216,14 @@
       <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
-      Back to Materials
+      {$_('materials.warehouseDetail.backToMaterials')}
     </button>
   </div>
 
   {#if loading}
     <div class="flex items-center justify-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      <span class="ml-4 text-gray-600">Loading warehouse details...</span>
+      <span class="ml-4 text-gray-600">{$_('materials.warehouseDetail.loadingDetails')}</span>
     </div>
   {:else if warehouse}
     <!-- Warehouse Header -->
@@ -230,7 +231,7 @@
       <div class="flex justify-between items-start">
         <div>
           <h1 class="text-3xl font-bold text-gray-900 mb-2">{warehouse.warehouseName}</h1>
-          <p class="text-lg text-gray-600 mb-4">Code: {warehouse.warehouseCode}</p>
+          <p class="text-lg text-gray-600 mb-4">{$_('materials.warehouseDetail.code')}: {warehouse.warehouseCode}</p>
           {#if warehouse.description}
             <p class="text-gray-700 mb-4">{warehouse.description}</p>
           {/if}
@@ -242,39 +243,39 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
-          Edit Warehouse
+          {$_('materials.warehouseDetail.editWarehouse')}
         </button>
       </div>
 
       <!-- Warehouse Details Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
         <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Capacity</h3>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">{$_('materials.capacity')}</h3>
           <p class="text-2xl font-bold text-gray-900 mt-1">{warehouse.capacity || 'N/A'}</p>
         </div>
         <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Materials</h3>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">{$_('materials.warehouseDetail.totalMaterials')}</h3>
           <p class="text-2xl font-bold text-gray-900 mt-1">{materials.length}</p>
         </div>
         <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Low Stock Items</h3>
+          <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">{$_('materials.warehouseDetail.lowStockItems')}</h3>
           <p class="text-2xl font-bold text-red-600 mt-1">{lowStockMaterials.length}</p>
         </div>
         {#if warehouse.address}
           <div class="bg-gray-50 p-4 rounded-lg">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Address</h3>
+            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">{$_('materials.warehouseDetail.address')}</h3>
             <p class="text-gray-900 mt-1">{warehouse.address}</p>
           </div>
         {/if}
         {#if warehouse.contactNumber}
           <div class="bg-gray-50 p-4 rounded-lg">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Contact</h3>
+            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">{$_('materials.warehouseDetail.contact')}</h3>
             <p class="text-gray-900 mt-1">{warehouse.contactNumber}</p>
           </div>
         {/if}
         {#if warehouse.managerName}
           <div class="bg-gray-50 p-4 rounded-lg">
-            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Manager</h3>
+            <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">{$_('materials.warehouseDetail.manager')}</h3>
             <p class="text-gray-900 mt-1">{warehouse.managerName}</p>
           </div>
         {/if}
@@ -289,9 +290,15 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
           <div>
-            <h3 class="text-red-800 font-medium">Low Stock Alert</h3>
+            <h3 class="text-red-800 font-medium">{$_('materials.warehouseDetail.lowStockAlert')}</h3>
             <p class="text-red-700 text-sm mt-1">
-              {lowStockMaterials.length} material{lowStockMaterials.length !== 1 ? 's' : ''} in this warehouse {lowStockMaterials.length !== 1 ? 'are' : 'is'} below critical level.
+              {$_('materials.warehouseDetail.lowStockMessage', {
+                values: {
+                  count: lowStockMaterials.length,
+                  plural: lowStockMaterials.length !== 1 ? 's' : '',
+                  verb: lowStockMaterials.length !== 1 ? 'are' : 'is'
+                }
+              })}
             </p>
           </div>
         </div>
@@ -301,7 +308,7 @@
     <!-- Materials in Warehouse -->
     <div class="bg-white rounded-lg shadow-md">
       <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-900">Materials in Warehouse</h2>
+        <h2 class="text-xl font-semibold text-gray-900">{$_('materials.warehouseDetail.materialsInWarehouse')}</h2>
       </div>
 
       <div class="p-6">
@@ -309,7 +316,7 @@
         <div class="mb-4">
           <input
             type="text"
-            placeholder="Search materials..."
+            placeholder={$_('materials.warehouseDetail.searchMaterials')}
             bind:value={searchTerm}
             on:input={loadWarehouseMaterials}
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
@@ -336,24 +343,24 @@
     </div>
   {:else}
     <div class="text-center py-12">
-      <h2 class="text-2xl font-bold text-gray-900 mb-4">Warehouse Not Found</h2>
-      <p class="text-gray-600 mb-6">The warehouse you're looking for doesn't exist or has been removed.</p>
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">{$_('materials.warehouseDetail.warehouseNotFound')}</h2>
+      <p class="text-gray-600 mb-6">{$_('materials.warehouseDetail.warehouseNotFoundDesc')}</p>
       <button
         on:click={() => goto('/materials')}
         class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
       >
-        Return to Materials
+        {$_('materials.warehouseDetail.returnToMaterials')}
       </button>
     </div>
   {/if}
 </div>
 
 <!-- Edit Warehouse Modal -->
-<Modal bind:open={showEditModal} title="Edit Warehouse">
+<Modal bind:open={showEditModal} title={$_('materials.warehouseDetail.editWarehouse')}>
   <form on:submit|preventDefault={updateWarehouse} class="space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Warehouse Code</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.warehouseCode')}</label>
         <input
           type="text"
           bind:value={warehouseForm.warehouseCode}
@@ -362,7 +369,7 @@
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Warehouse Name</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.warehouseName')}</label>
         <input
           type="text"
           bind:value={warehouseForm.warehouseName}
@@ -373,7 +380,7 @@
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.description')}</label>
       <textarea
         bind:value={warehouseForm.description}
         rows="3"
@@ -383,7 +390,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Capacity</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.capacity')}</label>
         <input
           type="number"
           bind:value={warehouseForm.capacity}
@@ -392,25 +399,25 @@
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Location ID</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.warehouseDetail.locationId')}</label>
         <input
           type="number"
           bind:value={warehouseForm.locationId}
           min="0"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Optional location reference"
+          placeholder={$_('materials.warehouseDetail.optionalLocationReference')}
         />
       </div>
     </div>
 
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Responsible Person ID</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.warehouseDetail.responsiblePersonId')}</label>
       <input
         type="number"
         bind:value={warehouseForm.responsiblePersonId}
         min="0"
         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-        placeholder="Optional responsible person reference"
+        placeholder={$_('materials.warehouseDetail.optionalResponsiblePerson')}
       />
     </div>
 
@@ -420,14 +427,14 @@
         on:click={closeEditModal}
         class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
       >
-        Cancel
+        {$_('common.cancel')}
       </button>
       <button
         type="submit"
         disabled={isSaving}
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isSaving ? 'Saving...' : 'Save Changes'}
+        {isSaving ? $_('materials.messages.saving') : $_('materials.transactions.saveChanges')}
       </button>
     </div>
   </form>

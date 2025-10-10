@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { api } from '$lib/api';
+  import { _ } from '$lib/i18n';
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import WorkOrderFiles from '$lib/components/WorkOrderFiles.svelte';
@@ -50,20 +51,20 @@
   const transactionColumns = [
     {
       key: 'transactionType',
-      label: 'Type',
+      label: $_('materials.transactions.type'),
       sortable: true,
       render: (row) => {
         const typeMap = {
-          entry: '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Entry</span>',
-          exit: '<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Exit</span>',
-          transfer: '<span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">Transfer</span>'
+          entry: `<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">${$_('materials.transactions.types.entry')}</span>`,
+          exit: `<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">${$_('materials.transactions.types.exit')}</span>`,
+          transfer: `<span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">${$_('materials.transactions.types.transfer')}</span>`
         };
         return typeMap[row.transactionType] || row.transactionType;
       }
     },
     {
       key: 'quantity',
-      label: 'Quantity',
+      label: $_('materials.transactions.quantity'),
       sortable: true,
       render: (row) => {
         const sign = row.transactionType === 'exit' ? '-' : '+';
@@ -72,42 +73,42 @@
     },
     {
       key: 'unitPrice',
-      label: 'Unit Price',
+      label: $_('materials.transactions.unitPrice'),
       sortable: true,
       render: (row) => row.unitPrice ? `$${parseFloat(row.unitPrice).toFixed(2)}` : '-'
     },
     {
       key: 'totalAmount',
-      label: 'Total Amount',
+      label: $_('materials.transactions.totalAmount'),
       sortable: true,
       render: (row) => row.totalAmount ? `$${parseFloat(row.totalAmount).toFixed(2)}` : '-'
     },
     {
       key: 'transactionDate',
-      label: 'Date',
+      label: $_('materials.transactions.date'),
       sortable: true,
       render: (row) => new Date(row.transactionDate).toLocaleDateString()
     },
     {
       key: 'invoiceNumber',
-      label: 'Invoice #',
+      label: $_('materials.transactions.invoiceNumber'),
       sortable: true,
       render: (row) => row.invoiceNumber || '-'
     },
     {
       key: 'description',
-      label: 'Description',
+      label: $_('materials.transactions.description'),
       sortable: false,
       render: (row) => row.description || '-'
     },
     {
       key: 'approved',
-      label: 'Status',
+      label: $_('materials.transactions.status'),
       sortable: true,
       render: (row) => {
         return row.approved
-          ? '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Approved</span>'
-          : '<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Pending</span>';
+          ? `<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">${$_('materials.transactions.approved')}</span>`
+          : `<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">${$_('materials.transactions.pending')}</span>`;
       }
     }
   ];
@@ -159,7 +160,7 @@
       }
     } catch (error) {
       console.error('Failed to load material:', error);
-      alert('Failed to load material details');
+      alert($_('materials.messages.loadFailed'));
       goto('/materials');
     } finally {
       loading = false;
@@ -231,10 +232,10 @@
       showTransactionModal = false;
       await loadTransactions($page.params.id);
       await loadMaterial($page.params.id); // Refresh material to update stock
-      alert('Transaction created successfully');
+      alert($_('materials.messages.transactionCreated'));
     } catch (error) {
       console.error('Error saving transaction:', error);
-      alert('Failed to save transaction: ' + error.message);
+      alert($_('materials.messages.transactionFailed') + ': ' + error.message);
     } finally {
       isSaving = false;
     }
@@ -264,11 +265,11 @@
     const critical = parseFloat(material.criticalLevel || 0);
 
     if (stock <= critical) {
-      return 'Low Stock';
+      return $_('materials.stockStatuses.lowStock');
     } else if (stock <= critical * 1.5) {
-      return 'Warning';
+      return $_('materials.stockStatuses.warning');
     } else {
-      return 'In Stock';
+      return $_('materials.stockStatuses.inStock');
     }
   }
 
@@ -320,10 +321,10 @@
       material = { ...material, ...materialForm, updatedAt: new Date().toISOString() };
 
       showEditModal = false;
-      alert('Material updated successfully');
+      alert($_('materials.messages.updateSuccess'));
     } catch (error) {
       console.error('Error updating material:', error);
-      alert('Failed to update material: ' + error.message);
+      alert($_('materials.messages.updateFailed') + ': ' + error.message);
     } finally {
       isSaving = false;
     }
@@ -331,7 +332,7 @@
 </script>
 
 <svelte:head>
-  <title>{material ? `${material.materialName} - Materials` : 'Material Details'} - MedFMS</title>
+  <title>{material ? `${material.materialName} - ${$_('materials.title')}` : $_('materials.detail.materialDetails')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -340,14 +341,14 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
-          <a href="/dashboard" class="text-2xl font-bold text-primary-900">MedFMS</a>
+          <a href="/dashboard" class="text-2xl font-bold text-primary-900">{$_('common.appName')}</a>
           <nav class="ml-8">
             <ol class="flex items-center space-x-2 text-sm">
-              <li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+              <li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
               <li class="text-gray-500">/</li>
-              <li><a href="/materials" class="text-gray-500 hover:text-gray-700">Materials</a></li>
+              <li><a href="/materials" class="text-gray-500 hover:text-gray-700">{$_('materials.title')}</a></li>
               <li class="text-gray-500">/</li>
-              <li class="text-gray-900 font-medium">{material?.materialName || 'Loading...'}</li>
+              <li class="text-gray-900 font-medium">{material?.materialName || $_('common.loading')}</li>
             </ol>
           </nav>
         </div>
@@ -359,7 +360,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
-            Add Transaction
+            {$_('materials.detail.addTransaction')}
           </button>
           <button
             on:click={openEditModal}
@@ -368,7 +369,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
             </svg>
-            Edit Material
+            {$_('materials.detail.editMaterial')}
           </button>
           <a
             href="/materials"
@@ -377,7 +378,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
-            Back to Materials
+            {$_('materials.detail.backToMaterials')}
           </a>
         </div>
       </div>
@@ -389,7 +390,7 @@
     {#if loading && !material}
       <div class="text-center py-8">
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <p class="mt-2 text-gray-600">Loading material details...</p>
+        <p class="mt-2 text-gray-600">{$_('materials.detail.loadingDetails')}</p>
       </div>
     {:else if material}
       <!-- Material Details Card -->
@@ -397,7 +398,7 @@
         <div class="flex justify-between items-start mb-4">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">{material.materialName}</h1>
-            <p class="text-gray-600">Code: {material.materialCode}</p>
+            <p class="text-gray-600">{$_('materials.detail.code')}: {material.materialCode}</p>
           </div>
           <span class="px-3 py-1 text-sm font-medium rounded-full {getStockStatusClass(material)}">
             {getStockStatusText(material)}
@@ -406,24 +407,24 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div>
-            <h3 class="text-sm font-medium text-gray-500 mb-1">Current Stock</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-1">{$_('materials.currentStock')}</h3>
             <p class="text-2xl font-bold text-gray-900">{parseFloat(material.currentStock || 0).toFixed(2)}</p>
           </div>
 
           <div>
-            <h3 class="text-sm font-medium text-gray-500 mb-1">Critical Level</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-1">{$_('materials.criticalLevel')}</h3>
             <p class="text-2xl font-bold text-gray-900">{parseFloat(material.criticalLevel || 0).toFixed(2)}</p>
           </div>
 
           <div>
-            <h3 class="text-sm font-medium text-gray-500 mb-1">Standard Price</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-1">{$_('materials.standardPrice')}</h3>
             <p class="text-2xl font-bold text-gray-900">
               {material.standardPrice ? `$${parseFloat(material.standardPrice).toFixed(2)}` : 'N/A'}
             </p>
           </div>
 
           <div>
-            <h3 class="text-sm font-medium text-gray-500 mb-1">Last Updated</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-1">{$_('materials.detail.lastUpdated')}</h3>
             <p class="text-lg font-semibold text-gray-900">
               {new Date(material.updatedAt).toLocaleDateString()}
             </p>
@@ -432,26 +433,26 @@
 
         {#if warehouse}
           <div class="mt-6 pt-6 border-t border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Warehouse Information</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">{$_('materials.detail.warehouseInformation')}</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <h4 class="text-sm font-medium text-gray-500 mb-1">Warehouse</h4>
+                <h4 class="text-sm font-medium text-gray-500 mb-1">{$_('materials.warehouse')}</h4>
                 <p class="text-gray-900">
                   <a href="/materials/warehouses/{warehouse.id}" class="text-blue-600 hover:text-blue-800 hover:underline">
                     {warehouse.warehouseName}
                   </a>
                 </p>
-                <p class="text-sm text-gray-500">Code: {warehouse.warehouseCode}</p>
+                <p class="text-sm text-gray-500">{$_('materials.detail.code')}: {warehouse.warehouseCode}</p>
               </div>
               {#if warehouse.address}
                 <div>
-                  <h4 class="text-sm font-medium text-gray-500 mb-1">Location</h4>
+                  <h4 class="text-sm font-medium text-gray-500 mb-1">{$_('materials.detail.location')}</h4>
                   <p class="text-gray-900 text-sm">{warehouse.address}</p>
                 </div>
               {/if}
               {#if warehouse.managerName}
                 <div>
-                  <h4 class="text-sm font-medium text-gray-500 mb-1">Manager</h4>
+                  <h4 class="text-sm font-medium text-gray-500 mb-1">{$_('materials.detail.manager')}</h4>
                   <p class="text-gray-900">{warehouse.managerName}</p>
                 </div>
               {/if}
@@ -461,7 +462,7 @@
 
         {#if material.description}
           <div class="mt-4">
-            <h3 class="text-sm font-medium text-gray-500 mb-1">Description</h3>
+            <h3 class="text-sm font-medium text-gray-500 mb-1">{$_('materials.description')}</h3>
             <p class="text-gray-900">{material.description}</p>
           </div>
         {/if}
@@ -469,7 +470,7 @@
 
       <!-- File Management -->
       <div class="bg-white p-6 rounded-lg shadow border mb-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Files & Documents</h2>
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">{$_('materials.detail.filesDocuments')}</h2>
         <WorkOrderFiles entityType="material" entityId={parseInt($page.params.id)} />
       </div>
 
@@ -482,7 +483,7 @@
         {currentPage}
         {pageSize}
         {totalItems}
-        title="Material Transactions"
+        title={$_('materials.detail.materialTransactions')}
         showSearch={false}
         showPagination={true}
         showExport={true}
@@ -490,19 +491,19 @@
       />
     {:else}
       <div class="text-center py-8">
-        <p class="text-gray-600">Material not found</p>
+        <p class="text-gray-600">{$_('materials.detail.materialNotFound')}</p>
       </div>
     {/if}
   </main>
 </div>
 
 <!-- Transaction Modal -->
-<Modal bind:open={showTransactionModal} title="Add Material Transaction" on:close={() => showTransactionModal = false}>
+<Modal bind:open={showTransactionModal} title={$_('materials.transactions.addTitle')} on:close={() => showTransactionModal = false}>
   <form on:submit|preventDefault={saveTransaction} class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          Transaction Type <span class="text-red-500">*</span>
+          {$_('materials.transactions.transactionType')} <span class="text-red-500">*</span>
         </label>
         <select
           bind:value={transactionForm.transactionType}
@@ -510,15 +511,15 @@
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="entry">Stock Entry</option>
-          <option value="exit">Stock Exit</option>
-          <option value="transfer">Transfer</option>
+          <option value="entry">{$_('materials.transactions.stockEntry')}</option>
+          <option value="exit">{$_('materials.transactions.stockExit')}</option>
+          <option value="transfer">{$_('materials.transactions.transfer')}</option>
         </select>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          Quantity <span class="text-red-500">*</span>
+          {$_('materials.transactions.quantity')} <span class="text-red-500">*</span>
         </label>
         <input
           type="number"
@@ -528,12 +529,12 @@
           required
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter quantity"
+          placeholder={$_('materials.transactions.enterQuantity')}
         />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Unit Price</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.transactions.unitPrice')}</label>
         <input
           type="number"
           step="0.01"
@@ -541,25 +542,25 @@
           on:input={updateTotalAmount}
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter unit price"
+          placeholder={$_('materials.transactions.enterUnitPrice')}
         />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Total Amount</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.transactions.totalAmount')}</label>
         <input
           type="number"
           step="0.01"
           bind:value={transactionForm.totalAmount}
           disabled={true}
           class="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-600"
-          placeholder="Calculated automatically"
+          placeholder={$_('materials.transactions.totalAmountCalculated')}
         />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          Transaction Date <span class="text-red-500">*</span>
+          {$_('materials.transactions.transactionDate')} <span class="text-red-500">*</span>
         </label>
         <input
           type="date"
@@ -571,24 +572,24 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Invoice Number</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.transactions.invoiceNumber')}</label>
         <input
           type="text"
           bind:value={transactionForm.invoiceNumber}
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter invoice number"
+          placeholder={$_('materials.transactions.enterInvoiceNumber')}
         />
       </div>
 
       <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.transactions.description')}</label>
         <textarea
           bind:value={transactionForm.description}
           rows="3"
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter transaction description"
+          placeholder={$_('materials.transactions.enterDescription')}
         ></textarea>
       </div>
     </div>
@@ -601,27 +602,27 @@
         class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
         disabled={isSaving}
       >
-        Cancel
+        {$_('common.cancel')}
       </button>
       <button
         type="submit"
         disabled={isSaving}
         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
       >
-        {isSaving ? 'Saving...' : 'Create Transaction'}
+        {isSaving ? $_('materials.messages.saving') : $_('materials.transactions.createTransaction')}
       </button>
     </div>
   </form>
 </Modal>
 
 <!-- Edit Material Modal -->
-<Modal bind:open={showEditModal} title="Edit Material" on:close={closeEditModal}>
+<Modal bind:open={showEditModal} title={$_('materials.edit.title')} on:close={closeEditModal}>
   <form on:submit|preventDefault={updateMaterial} class="space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- Material Code -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          Material Code <span class="text-red-500">*</span>
+          {$_('materials.materialCode')} <span class="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -629,14 +630,14 @@
           required
           disabled={isSaving}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Enter material code"
+          placeholder={$_('materials.edit.enterMaterialCode')}
         />
       </div>
 
       <!-- Material Name -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          Material Name <span class="text-red-500">*</span>
+          {$_('materials.materialName')} <span class="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -644,14 +645,14 @@
           required
           disabled={isSaving}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Enter material name"
+          placeholder={$_('materials.edit.enterMaterialName')}
         />
       </div>
 
       <!-- Unit -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          Unit <span class="text-red-500">*</span>
+          {$_('materials.edit.unit')} <span class="text-red-500">*</span>
         </label>
         <select
           bind:value={materialForm.unitId}
@@ -659,7 +660,7 @@
           disabled={isSaving}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value={0}>Select a unit</option>
+          <option value={0}>{$_('materials.edit.selectUnit')}</option>
           {#each units as unit}
             <option value={unit.id}>{unit.unitName} ({unit.unitCode})</option>
           {/each}
@@ -668,13 +669,13 @@
 
       <!-- Warehouse -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Warehouse</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.warehouse')}</label>
         <select
           bind:value={materialForm.warehouseId}
           disabled={isSaving}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value={0}>No warehouse assigned</option>
+          <option value={0}>{$_('materials.edit.noWarehouse')}</option>
           {#each warehouses as warehouse}
             <option value={warehouse.id}>{warehouse.warehouseName} ({warehouse.warehouseCode})</option>
           {/each}
@@ -683,77 +684,77 @@
 
       <!-- Current Stock -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Current Stock</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.currentStock')}</label>
         <input
           type="number"
           step="0.01"
           bind:value={materialForm.currentStock}
           disabled={isSaving}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Enter current stock"
+          placeholder={$_('materials.edit.enterCurrentStock')}
         />
       </div>
 
       <!-- Critical Level -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Critical Level</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.criticalLevel')}</label>
         <input
           type="number"
           step="0.01"
           bind:value={materialForm.criticalLevel}
           disabled={isSaving}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Enter critical level"
+          placeholder={$_('materials.edit.enterCriticalLevel')}
         />
       </div>
 
       <!-- Standard Price -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Standard Price</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.standardPrice')}</label>
         <input
           type="number"
           step="0.01"
           bind:value={materialForm.standardPrice}
           disabled={isSaving}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Enter standard price"
+          placeholder={$_('materials.edit.enterStandardPrice')}
         />
       </div>
 
       <!-- Barcode Number -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Barcode Number</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.edit.barcodeNumber')}</label>
         <input
           type="text"
           bind:value={materialForm.barcodeNumber}
           disabled={isSaving}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Enter barcode number"
+          placeholder={$_('materials.edit.enterBarcodeNumber')}
         />
       </div>
 
       <!-- Shelf Location -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Shelf Location</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.edit.shelfLocation')}</label>
         <input
           type="text"
           bind:value={materialForm.shelfLocation}
           disabled={isSaving}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Enter shelf location"
+          placeholder={$_('materials.edit.enterShelfLocation')}
         />
       </div>
     </div>
 
     <!-- Description -->
     <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+      <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.description')}</label>
       <textarea
         bind:value={materialForm.description}
         rows="3"
         disabled={isSaving}
         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-        placeholder="Enter material description"
+        placeholder={$_('materials.edit.enterMaterialDescription')}
       ></textarea>
     </div>
 
@@ -765,14 +766,14 @@
         class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
         disabled={isSaving}
       >
-        Cancel
+        {$_('common.cancel')}
       </button>
       <button
         type="submit"
         disabled={isSaving}
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isSaving ? 'Saving...' : 'Save Changes'}
+        {isSaving ? $_('materials.messages.saving') : $_('materials.transactions.saveChanges')}
       </button>
     </div>
   </form>

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api';
+	import { _ } from '$lib/i18n';
 	import DataTable from '$lib/components/DataTable.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 
@@ -47,8 +48,8 @@
 
 	function renderTransactionType(value) {
 		const types = {
-			'purchase': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Purchase</span>',
-			'consumption': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">Consumption</span>'
+			'purchase': `<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">${$_('fuel.types.purchase')}</span>`,
+			'consumption': `<span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">${$_('fuel.types.consumption')}</span>`
 		};
 		return types[value] || value;
 	}
@@ -87,22 +88,22 @@
 			if (canApprove) {
 				return `
 					<div class="flex items-center gap-2">
-						<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Approved</span>
-						<button onclick="rejectTransaction(${row.id})" class="text-xs text-red-600 hover:text-red-800 underline">Revoke</button>
+						<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">${$_('fuel.approved')}</span>
+						<button onclick="rejectTransaction(${row.id})" class="text-xs text-red-600 hover:text-red-800 underline">${$_('fuel.revoke')}</button>
 					</div>
 				`;
 			}
-			return '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Approved</span>';
+			return `<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">${$_('fuel.approved')}</span>`;
 		} else {
 			if (canApprove) {
 				return `
 					<div class="flex items-center gap-2">
-						<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Pending</span>
-						<button onclick="approveTransaction(${row.id})" class="text-xs text-green-600 hover:text-green-800 underline">Approve</button>
+						<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">${$_('fuel.pending')}</span>
+						<button onclick="approveTransaction(${row.id})" class="text-xs text-green-600 hover:text-green-800 underline">${$_('fuel.approve')}</button>
 					</div>
 				`;
 			}
-			return '<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Pending</span>';
+			return `<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">${$_('fuel.pending')}</span>`;
 		}
 	}
 
@@ -115,49 +116,49 @@
 		},
 		{
 			key: 'transactionType',
-			label: 'Type',
+			label: $_('fuel.type'),
 			sortable: true,
 			width: '100px',
 			render: renderTransactionType
 		},
 		{
 			key: 'transactionDate',
-			label: 'Date',
+			label: $_('fuel.date'),
 			sortable: true,
 			width: '100px',
 			render: renderDate
 		},
 		{
 			key: 'vehicle',
-			label: 'Vehicle',
+			label: $_('fuel.vehicle'),
 			sortable: true,
 			width: '150px',
 			render: renderVehicle
 		},
 		{
 			key: 'driver',
-			label: 'Driver',
+			label: $_('fuel.driver'),
 			sortable: true,
 			width: '150px',
 			render: renderDriver
 		},
 		{
 			key: 'quantity',
-			label: 'Quantity',
+			label: $_('fuel.quantity'),
 			sortable: true,
 			width: '100px',
 			render: renderQuantity
 		},
 		{
 			key: 'totalAmount',
-			label: 'Amount',
+			label: $_('fuel.amount'),
 			sortable: true,
 			width: '100px',
 			render: renderAmount
 		},
 		{
 			key: 'approved',
-			label: 'Status',
+			label: $_('common.status'),
 			sortable: true,
 			width: '100px',
 			render: renderApproval
@@ -237,32 +238,32 @@
 	}
 
 	async function approveTransaction(id) {
-		if (!confirm('Are you sure you want to approve this transaction?')) return;
+		if (!confirm($_('fuel.messages.approveConfirm'))) return;
 
 		try {
 			const response = await api.approveFuelTransaction(id);
 			if (response.success) {
-				alert(response.message || 'Transaction approved successfully');
+				alert(response.message || $_('fuel.messages.approveSuccess'));
 				await loadTransactions();
 			}
 		} catch (error) {
 			console.error('Error approving transaction:', error);
-			alert('Failed to approve transaction');
+			alert($_('fuel.messages.approveFailed'));
 		}
 	}
 
 	async function rejectTransaction(id) {
-		if (!confirm('Are you sure you want to revoke approval for this transaction?')) return;
+		if (!confirm($_('fuel.messages.revokeConfirm'))) return;
 
 		try {
 			const response = await api.rejectFuelTransaction(id);
 			if (response.success) {
-				alert(response.message || 'Transaction approval revoked');
+				alert(response.message || $_('fuel.messages.revokeSuccess'));
 				await loadTransactions();
 			}
 		} catch (error) {
 			console.error('Error rejecting transaction:', error);
-			alert('Failed to revoke approval');
+			alert($_('fuel.messages.revokeFailed'));
 		}
 	}
 
@@ -298,7 +299,7 @@
 			await loadTransactions();
 		} catch (error) {
 			console.error('Failed to create fuel transaction:', error);
-			alert('Failed to create fuel transaction. Please try again.');
+			alert($_('fuel.messages.createFailed'));
 		}
 	}
 
@@ -333,7 +334,7 @@
 </script>
 
 <svelte:head>
-	<title>Fuel Management - MedFMS</title>
+	<title>{$_('fuel.pageTitle')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -342,12 +343,12 @@
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="flex justify-between items-center h-16">
 				<div class="flex items-center">
-					<a href="/dashboard" class="text-2xl font-bold text-primary-900">MedFMS</a>
+					<a href="/dashboard" class="text-2xl font-bold text-primary-900">{$_('common.appName')}</a>
 					<nav class="ml-8">
 						<ol class="flex items-center space-x-2 text-sm">
-							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li class="text-gray-900 font-medium">Fuel Management</li>
+							<li class="text-gray-900 font-medium">{$_('fuel.title')}</li>
 						</ol>
 					</nav>
 				</div>
@@ -359,7 +360,7 @@
 						<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
 						</svg>
-						Add Transaction
+						{$_('fuel.addTransaction')}
 					</button>
 				</div>
 			</div>
@@ -370,49 +371,49 @@
 	<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 		<!-- Filters -->
 		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-			<h3 class="text-lg font-medium text-gray-900 mb-4">Filters</h3>
+			<h3 class="text-lg font-medium text-gray-900 mb-4">{$_('fuel.filters')}</h3>
 			<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-2">Vehicle</label>
+					<label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.vehicle')}</label>
 					<select bind:value={selectedVehicle} on:change={handleSearch} class="form-select">
-						<option value="">All Vehicles</option>
+						<option value="">{$_('fuel.allVehicles')}</option>
 						{#each vehicles as vehicle}
 							<option value={vehicle.id}>{vehicle.vehicleCode} - {vehicle.licensePlate}</option>
 						{/each}
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-2">Driver</label>
+					<label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.driver')}</label>
 					<select bind:value={selectedDriver} on:change={handleSearch} class="form-select">
-						<option value="">All Drivers</option>
+						<option value="">{$_('fuel.allDrivers')}</option>
 						{#each drivers as driver}
 							<option value={driver.id}>{driver.fullName}</option>
 						{/each}
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-2">Station</label>
+					<label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.station')}</label>
 					<select bind:value={selectedStation} on:change={handleSearch} class="form-select">
-						<option value="">All Stations</option>
+						<option value="">{$_('fuel.allStations')}</option>
 						{#each stations as station}
 							<option value={station.id}>{station.stationName}</option>
 						{/each}
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+					<label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.type')}</label>
 					<select bind:value={selectedType} on:change={handleSearch} class="form-select">
-						<option value="">All Types</option>
-						<option value="purchase">Purchase</option>
-						<option value="consumption">Consumption</option>
+						<option value="">{$_('fuel.allTypes')}</option>
+						<option value="purchase">{$_('fuel.types.purchase')}</option>
+						<option value="consumption">{$_('fuel.types.consumption')}</option>
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+					<label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.startDate')}</label>
 					<input type="date" bind:value={startDate} on:change={handleSearch} class="form-input">
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+					<label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.endDate')}</label>
 					<input type="date" bind:value={endDate} on:change={handleSearch} class="form-input">
 				</div>
 			</div>
@@ -426,7 +427,7 @@
 			{currentPage}
 			{pageSize}
 			{totalItems}
-			title="Fuel Transactions"
+			title={$_('fuel.fuelTransactions')}
 			showSearch={false}
 			showPagination={true}
 			showExport={true}
@@ -439,7 +440,7 @@
 <!-- Add Transaction Modal -->
 <Modal
 	open={showAddModal}
-	title="Add Fuel Transaction"
+	title={$_('fuel.addTransaction')}
 	size="xl"
 	on:close={handleCancel}
 >
@@ -448,12 +449,12 @@
 			<!-- Basic Information -->
 			<div class="space-y-4">
 				<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-					Basic Information
+					{$_('fuel.sections.basicInfo')}
 				</h3>
 
 				<div>
 					<label for="transactionType" class="block text-sm font-medium text-gray-700 mb-2">
-						Transaction Type *
+						{$_('fuel.transactionType')} *
 					</label>
 					<select
 						id="transactionType"
@@ -461,14 +462,14 @@
 						class="form-select"
 						required
 					>
-						<option value="purchase">Purchase</option>
-						<option value="consumption">Consumption</option>
+						<option value="purchase">{$_('fuel.types.purchase')}</option>
+						<option value="consumption">{$_('fuel.types.consumption')}</option>
 					</select>
 				</div>
 
 				<div>
 					<label for="vehicleId" class="block text-sm font-medium text-gray-700 mb-2">
-						Vehicle *
+						{$_('fuel.vehicle')} *
 					</label>
 					<select
 						id="vehicleId"
@@ -476,7 +477,7 @@
 						class="form-select"
 						required
 					>
-						<option value="">Select vehicle</option>
+						<option value="">{$_('fuel.placeholders.selectVehicle')}</option>
 						{#each vehicles as vehicle}
 							<option value={vehicle.id}>{vehicle.vehicleCode} - {vehicle.licensePlate}</option>
 						{/each}
@@ -485,14 +486,14 @@
 
 				<div>
 					<label for="driverId" class="block text-sm font-medium text-gray-700 mb-2">
-						Driver
+						{$_('fuel.driver')}
 					</label>
 					<select
 						id="driverId"
 						bind:value={formData.driverId}
 						class="form-select"
 					>
-						<option value="">Select driver</option>
+						<option value="">{$_('fuel.placeholders.selectDriver')}</option>
 						{#each drivers as driver}
 							<option value={driver.id}>{driver.fullName}</option>
 						{/each}
@@ -501,7 +502,7 @@
 
 				<div>
 					<label for="fuelTypeId" class="block text-sm font-medium text-gray-700 mb-2">
-						Fuel Type *
+						{$_('fuel.fuelType')} *
 					</label>
 					<select
 						id="fuelTypeId"
@@ -509,7 +510,7 @@
 						class="form-select"
 						required
 					>
-						<option value="">Select fuel type</option>
+						<option value="">{$_('fuel.placeholders.selectFuelType')}</option>
 						{#each fuelTypes as fuelType}
 							<option value={fuelType.id}>{fuelType.fuelName}</option>
 						{/each}
@@ -518,14 +519,14 @@
 
 				<div>
 					<label for="fuelStationId" class="block text-sm font-medium text-gray-700 mb-2">
-						Fuel Station
+						{$_('fuel.fuelStation')}
 					</label>
 					<select
 						id="fuelStationId"
 						bind:value={formData.fuelStationId}
 						class="form-select"
 					>
-						<option value="">Select station</option>
+						<option value="">{$_('fuel.placeholders.selectStation')}</option>
 						{#each stations as station}
 							<option value={station.id}>{station.stationName}</option>
 						{/each}
@@ -534,7 +535,7 @@
 
 				<div>
 					<label for="transactionDate" class="block text-sm font-medium text-gray-700 mb-2">
-						Transaction Date *
+						{$_('fuel.transactionDate')} *
 					</label>
 					<input
 						id="transactionDate"
@@ -549,12 +550,12 @@
 			<!-- Transaction Details -->
 			<div class="space-y-4">
 				<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-					Transaction Details
+					{$_('fuel.sections.transactionDetails')}
 				</h3>
 
 				<div>
 					<label for="quantity" class="block text-sm font-medium text-gray-700 mb-2">
-						Quantity (Liters) *
+						{$_('fuel.quantityLiters')} *
 					</label>
 					<input
 						id="quantity"
@@ -563,14 +564,14 @@
 						min="0"
 						bind:value={formData.quantity}
 						class="form-input"
-						placeholder="0.00"
+						placeholder={$_('fuel.placeholders.quantity')}
 						required
 					>
 				</div>
 
 				<div>
 					<label for="pricePerLiter" class="block text-sm font-medium text-gray-700 mb-2">
-						Price per Liter
+						{$_('fuel.pricePerLiter')}
 					</label>
 					<input
 						id="pricePerLiter"
@@ -579,13 +580,13 @@
 						min="0"
 						bind:value={formData.pricePerLiter}
 						class="form-input"
-						placeholder="0.000"
+						placeholder={$_('fuel.placeholders.pricePerLiter')}
 					>
 				</div>
 
 				<div>
 					<label for="totalAmount" class="block text-sm font-medium text-gray-700 mb-2">
-						Total Amount
+						{$_('fuel.totalAmount')}
 					</label>
 					<input
 						id="totalAmount"
@@ -594,13 +595,13 @@
 						min="0"
 						bind:value={formData.totalAmount}
 						class="form-input"
-						placeholder="0.00"
+						placeholder={$_('fuel.placeholders.totalAmount')}
 					>
 				</div>
 
 				<div>
 					<label for="odometerReading" class="block text-sm font-medium text-gray-700 mb-2">
-						Odometer Reading (km)
+						{$_('fuel.odometerReading')}
 					</label>
 					<input
 						id="odometerReading"
@@ -608,49 +609,49 @@
 						min="0"
 						bind:value={formData.odometerReading}
 						class="form-input"
-						placeholder="0"
+						placeholder={$_('fuel.placeholders.odometerReading')}
 					>
 				</div>
 
 				<div>
 					<label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-2">
-						Payment Method
+						{$_('fuel.paymentMethod')}
 					</label>
 					<select
 						id="paymentMethod"
 						bind:value={formData.paymentMethod}
 						class="form-select"
 					>
-						<option value="cash">Cash</option>
-						<option value="card">Card</option>
-						<option value="credit">Credit</option>
-						<option value="voucher">Voucher</option>
+						<option value="cash">{$_('fuel.paymentMethods.cash')}</option>
+						<option value="card">{$_('fuel.paymentMethods.card')}</option>
+						<option value="credit">{$_('fuel.paymentMethods.credit')}</option>
+						<option value="voucher">{$_('fuel.paymentMethods.voucher')}</option>
 					</select>
 				</div>
 
 				<div>
 					<label for="receiptNumber" class="block text-sm font-medium text-gray-700 mb-2">
-						Receipt Number
+						{$_('fuel.receiptNumber')}
 					</label>
 					<input
 						id="receiptNumber"
 						type="text"
 						bind:value={formData.receiptNumber}
 						class="form-input"
-						placeholder="Enter receipt number"
+						placeholder={$_('fuel.placeholders.receiptNumber')}
 					>
 				</div>
 
 				<div>
 					<label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
-						Notes
+						{$_('fuel.notes')}
 					</label>
 					<textarea
 						id="notes"
 						bind:value={formData.notes}
 						rows="3"
 						class="form-textarea"
-						placeholder="Additional notes..."
+						placeholder={$_('fuel.placeholders.notes')}
 					></textarea>
 				</div>
 			</div>
@@ -663,13 +664,13 @@
 				on:click={handleCancel}
 				class="btn btn-secondary"
 			>
-				Cancel
+				{$_('common.cancel')}
 			</button>
 			<button
 				type="submit"
 				class="btn btn-primary"
 			>
-				Create Transaction
+				{$_('fuel.createTransaction')}
 			</button>
 		</div>
 	</form>
