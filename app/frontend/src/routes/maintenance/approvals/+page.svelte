@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { api } from '$lib/api';
+  import { _ } from '$lib/i18n';
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import WorkOrderFiles from '$lib/components/WorkOrderFiles.svelte';
@@ -25,35 +26,35 @@
     priority: '',
   };
 
-  // Priority options
-  const priorityOptions = [
-    { value: '', label: 'All Priorities' },
-    { value: 1, label: '1 - Urgent' },
-    { value: 2, label: '2 - High' },
-    { value: 3, label: '3 - Normal' },
-    { value: 4, label: '4 - Low' },
-    { value: 5, label: '5 - Optional' }
+  // Priority options - reactive to language changes
+  $: priorityOptions = [
+    { value: '', label: $_('maintenance.priority.allPriorities') },
+    { value: 1, label: $_('maintenance.priority.label1') },
+    { value: 2, label: $_('maintenance.priority.label2') },
+    { value: 3, label: $_('maintenance.priority.label3') },
+    { value: 4, label: $_('maintenance.priority.label4') },
+    { value: 5, label: $_('maintenance.priority.label5') }
   ];
 
-  // Data table columns - optimized for better visibility
-  const columns = [
+  // Data table columns - reactive to language changes
+  $: columns = [
     {
       key: 'workOrder.workOrderNumber',
-      label: 'WO#',
+      label: $_('maintenance.approvals.table.woHash'),
       sortable: true,
       width: '120px',
       render: (value, row) => row?.workOrder?.workOrderNumber || 'N/A'
     },
     {
       key: 'vehicle.vehicleCode',
-      label: 'Vehicle',
+      label: $_('maintenance.approvals.table.vehicle'),
       sortable: true,
       width: '140px',
       render: (value, row) => `${row?.vehicle?.vehicleCode || ''}<br><small class="text-gray-500">${row?.vehicle?.licensePlate || ''}</small>`
     },
     {
       key: 'workOrder.title',
-      label: 'Title',
+      label: $_('maintenance.approvals.table.title'),
       sortable: true,
       width: '200px',
       render: (value, row) => {
@@ -64,17 +65,17 @@
     },
     {
       key: 'workOrder.priority',
-      label: 'Priority',
+      label: $_('maintenance.approvals.table.priority'),
       sortable: true,
       width: '100px',
       render: (value, row) => {
         const priority = row?.workOrder?.priority || 3;
         const priorityLabels = {
-          1: { label: 'Urgent', class: 'bg-red-100 text-red-800' },
-          2: { label: 'High', class: 'bg-orange-100 text-orange-800' },
-          3: { label: 'Normal', class: 'bg-blue-100 text-blue-800' },
-          4: { label: 'Low', class: 'bg-green-100 text-green-800' },
-          5: { label: 'Optional', class: 'bg-gray-100 text-gray-800' }
+          1: { label: $_('maintenance.priority.urgent'), class: 'bg-red-100 text-red-800' },
+          2: { label: $_('maintenance.priority.high'), class: 'bg-orange-100 text-orange-800' },
+          3: { label: $_('maintenance.priority.normal'), class: 'bg-blue-100 text-blue-800' },
+          4: { label: $_('maintenance.priority.low'), class: 'bg-green-100 text-green-800' },
+          5: { label: $_('maintenance.priority.optional'), class: 'bg-gray-100 text-gray-800' }
         };
         const p = priorityLabels[priority] || priorityLabels[3];
         return `<span class="px-2 py-1 text-xs font-medium rounded-full ${p.class}">${p.label}</span>`;
@@ -82,14 +83,14 @@
     },
     {
       key: 'workOrder.scheduledDate',
-      label: 'Scheduled',
+      label: $_('maintenance.approvals.table.scheduled'),
       sortable: true,
       width: '110px',
       render: (value, row) => row?.workOrder?.scheduledDate ? new Date(row?.workOrder?.scheduledDate).toLocaleDateString() : '-'
     },
     {
       key: 'workOrder.estimatedCost',
-      label: 'Cost',
+      label: $_('maintenance.approvals.table.cost'),
       sortable: true,
       width: '90px',
       render: (value, row) => row?.workOrder?.estimatedCost ? `$${parseFloat(row?.workOrder?.estimatedCost).toFixed(0)}` : '-'
@@ -178,10 +179,10 @@
       await api.approveWorkOrder(selectedWorkOrder.workOrder?.id, approvalNotes);
       showApprovalModal = false;
       await loadWorkOrders();
-      alert('Work order approved successfully');
+      alert($_('maintenance.approvals.messages.approveSuccess'));
     } catch (error) {
       console.error('Error approving work order:', error);
-      alert('Failed to approve work order: ' + error.message);
+      alert($_('maintenance.approvals.messages.approveFailed') + ': ' + error.message);
     } finally {
       isApproving = false;
     }
@@ -189,7 +190,7 @@
 
   async function handleReject() {
     if (!selectedWorkOrder || !approvalNotes.trim()) {
-      alert('Please provide a reason for rejection');
+      alert($_('maintenance.approvals.messages.rejectReasonRequired'));
       return;
     }
 
@@ -198,10 +199,10 @@
       await api.rejectWorkOrder(selectedWorkOrder.workOrder?.id, approvalNotes);
       showApprovalModal = false;
       await loadWorkOrders();
-      alert('Work order rejected successfully');
+      alert($_('maintenance.approvals.messages.rejectSuccess'));
     } catch (error) {
       console.error('Error rejecting work order:', error);
-      alert('Failed to reject work order: ' + error.message);
+      alert($_('maintenance.approvals.messages.rejectFailed') + ': ' + error.message);
     } finally {
       isApproving = false;
     }
@@ -209,7 +210,7 @@
 </script>
 
 <svelte:head>
-  <title>Work Order Approvals - MedFMS</title>
+  <title>{$_('maintenance.approvals.pageTitle')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -218,14 +219,14 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
-          <a href="/dashboard" class="text-2xl font-bold text-primary-900">MedFMS</a>
+          <a href="/dashboard" class="text-2xl font-bold text-primary-900">{$_('common.appName')}</a>
           <nav class="ml-8">
             <ol class="flex items-center space-x-2 text-sm">
-              <li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+              <li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
               <li class="text-gray-500">/</li>
-              <li><a href="/maintenance" class="text-gray-500 hover:text-gray-700">Maintenance</a></li>
+              <li><a href="/maintenance" class="text-gray-500 hover:text-gray-700">{$_('dashboard.maintenance')}</a></li>
               <li class="text-gray-500">/</li>
-              <li class="text-gray-900 font-medium">Approvals</li>
+              <li class="text-gray-900 font-medium">{$_('maintenance.approvals.title')}</li>
             </ol>
           </nav>
         </div>
@@ -237,7 +238,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
-            Back to Maintenance
+            {$_('maintenance.approvals.backToMaintenance')}
           </a>
         </div>
       </div>
@@ -249,10 +250,10 @@
 
     <!-- Filters -->
     <div class="bg-white p-6 rounded-lg shadow border mb-6">
-      <h3 class="text-lg font-semibold mb-4">Filters</h3>
+      <h3 class="text-lg font-semibold mb-4">{$_('maintenance.approvals.filters.title')}</h3>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.approvals.filters.priority')}</label>
           <select
             bind:value={filters.priority}
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -268,13 +269,13 @@
             on:click={handleFilter}
             class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
           >
-            Apply Filters
+            {$_('maintenance.approvals.filters.applyFilters')}
           </button>
           <button
             on:click={resetFilters}
             class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
           >
-            Reset
+            {$_('maintenance.approvals.filters.reset')}
           </button>
         </div>
       </div>
@@ -289,13 +290,13 @@
       {currentPage}
       {pageSize}
       {totalItems}
-      title="Work Orders Pending Approval"
+      title={$_('maintenance.approvals.pendingApproval')}
       showSearch={true}
       showPagination={true}
       showExport={true}
       actions={[
-        { key: 'approve', label: 'Approve', condition: () => true, class: 'bg-green-600 hover:bg-green-700 text-white' },
-        { key: 'reject', label: 'Reject', condition: () => true, class: 'bg-red-600 hover:bg-red-700 text-white' }
+        { key: 'approve', label: $_('maintenance.approvals.actions.approve'), condition: () => true, class: 'bg-green-600 hover:bg-green-700 text-white' },
+        { key: 'reject', label: $_('maintenance.approvals.actions.reject'), condition: () => true, class: 'bg-red-600 hover:bg-red-700 text-white' }
       ]}
       on:search={handleSearch}
       on:pagechange={handlePageChange}
@@ -306,48 +307,48 @@
 </div>
 
 <!-- Approval Modal -->
-<Modal bind:open={showApprovalModal} title="Work Order Approval" on:close={() => showApprovalModal = false}>
+<Modal bind:open={showApprovalModal} title={$_('maintenance.approvals.modal.title')} on:close={() => showApprovalModal = false}>
   {#if selectedWorkOrder}
     <div class="space-y-4">
       <!-- Work Order Details -->
       <div class="bg-gray-50 p-4 rounded-lg">
-        <h4 class="font-medium text-gray-900 mb-2">Work Order Details</h4>
+        <h4 class="font-medium text-gray-900 mb-2">{$_('maintenance.approvals.modal.workOrderDetails')}</h4>
         <div class="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <span class="font-medium">Work Order #:</span>
+            <span class="font-medium">{$_('maintenance.approvals.modal.workOrderNumber')}</span>
             {selectedWorkOrder.workOrder?.workOrderNumber || 'N/A'}
           </div>
           <div>
-            <span class="font-medium">Vehicle:</span>
+            <span class="font-medium">{$_('maintenance.approvals.modal.vehicle')}</span>
             {selectedWorkOrder.vehicle?.vehicleCode} ({selectedWorkOrder.vehicle?.licensePlate})
           </div>
           <div>
-            <span class="font-medium">Maintenance Type:</span>
+            <span class="font-medium">{$_('maintenance.approvals.modal.maintenanceType')}</span>
             {selectedWorkOrder.maintenanceType?.typeName}
           </div>
           <div>
-            <span class="font-medium">Priority:</span>
-            {['', 'Urgent', 'High', 'Normal', 'Low', 'Optional'][selectedWorkOrder.workOrder?.priority || 3]}
+            <span class="font-medium">{$_('maintenance.approvals.modal.priority')}</span>
+            {['', $_('maintenance.priority.urgent'), $_('maintenance.priority.high'), $_('maintenance.priority.normal'), $_('maintenance.priority.low'), $_('maintenance.priority.optional')][selectedWorkOrder.workOrder?.priority || 3]}
           </div>
           <div class="col-span-2">
-            <span class="font-medium">Title:</span>
+            <span class="font-medium">{$_('maintenance.approvals.modal.title')}</span>
             {selectedWorkOrder.workOrder?.title || 'N/A'}
           </div>
           {#if selectedWorkOrder.workOrder?.description}
             <div class="col-span-2">
-              <span class="font-medium">Description:</span>
+              <span class="font-medium">{$_('maintenance.approvals.modal.description')}</span>
               {selectedWorkOrder.workOrder?.description}
             </div>
           {/if}
           {#if selectedWorkOrder.workOrder?.estimatedCost}
             <div>
-              <span class="font-medium">Estimated Cost:</span>
+              <span class="font-medium">{$_('maintenance.approvals.modal.estimatedCost')}</span>
               ${parseFloat(selectedWorkOrder.workOrder?.estimatedCost || 0).toFixed(2)}
             </div>
           {/if}
           {#if selectedWorkOrder.workOrder?.scheduledDate}
             <div>
-              <span class="font-medium">Scheduled Date:</span>
+              <span class="font-medium">{$_('maintenance.approvals.modal.scheduledDate')}</span>
               {new Date(selectedWorkOrder.workOrder?.scheduledDate).toLocaleDateString()}
             </div>
           {/if}
@@ -359,21 +360,21 @@
         <WorkOrderFiles
           workOrderId={selectedWorkOrder.workOrder?.id}
           showUpload={false}
-          title="Work Order Files and Photos"
+          title={$_('maintenance.approvals.modal.filesTitle')}
         />
       </div>
 
       <!-- Notes Section -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          Approval Notes
-          <span class="text-red-500">*</span>
+          {$_('maintenance.approvals.modal.approvalNotes')}
+          <span class="text-red-500">{$_('maintenance.approvals.modal.required')}</span>
         </label>
         <textarea
           bind:value={approvalNotes}
           rows="4"
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter notes about the approval or rejection (required for rejection)"
+          placeholder={$_('maintenance.approvals.modal.notesPlaceholder')}
         ></textarea>
       </div>
 
@@ -385,7 +386,7 @@
           class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
           disabled={isApproving}
         >
-          Cancel
+          {$_('maintenance.approvals.modal.cancel')}
         </button>
         <button
           type="button"
@@ -393,7 +394,7 @@
           disabled={isApproving || !approvalNotes.trim()}
           class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
         >
-          {isApproving ? 'Processing...' : 'Reject'}
+          {isApproving ? $_('maintenance.approvals.modal.processing') : $_('maintenance.approvals.modal.reject')}
         </button>
         <button
           type="button"
@@ -401,7 +402,7 @@
           disabled={isApproving}
           class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
         >
-          {isApproving ? 'Processing...' : 'Approve'}
+          {isApproving ? $_('maintenance.approvals.modal.processing') : $_('maintenance.approvals.modal.approve')}
         </button>
       </div>
     </div>

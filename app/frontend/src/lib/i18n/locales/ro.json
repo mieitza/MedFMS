@@ -721,6 +721,58 @@
         "cancelButton": "Anulează",
         "updateButton": "Actualizează Comandă Lucru"
       }
+    },
+    "approvals": {
+      "title": "Aprobări Comenzi Lucru",
+      "pageTitle": "Aprobări Comenzi Lucru - MedFMS",
+      "backToMaintenance": "Înapoi la Întreținere",
+      "pendingApproval": "Comenzi Lucru în Așteptare Aprobare",
+      "filters": {
+        "title": "Filtre",
+        "priority": "Prioritate",
+        "applyFilters": "Aplică Filtre",
+        "reset": "Resetare"
+      },
+      "table": {
+        "woHash": "Nr. CL",
+        "vehicle": "Vehicul",
+        "title": "Titlu",
+        "priority": "Prioritate",
+        "scheduled": "Programat",
+        "cost": "Cost"
+      },
+      "actions": {
+        "approve": "Aprobă",
+        "reject": "Respinge"
+      },
+      "modal": {
+        "title": "Aprobare Comandă Lucru",
+        "workOrderDetails": "Detalii Comandă Lucru",
+        "workOrderNumber": "Nr. Comandă Lucru:",
+        "vehicle": "Vehicul:",
+        "maintenanceType": "Tip Întreținere:",
+        "priority": "Prioritate:",
+        "title": "Titlu:",
+        "description": "Descriere:",
+        "estimatedCost": "Cost Estimat:",
+        "scheduledDate": "Data Programată:",
+        "filesTitle": "Fișiere și Fotografii Comandă Lucru",
+        "approvalNotes": "Notițe Aprobare",
+        "notesPlaceholder": "Introduceți notițe despre aprobare sau respingere (obligatoriu pentru respingere)",
+        "required": "*",
+        "cancel": "Anulează",
+        "approve": "Aprobă",
+        "reject": "Respinge",
+        "processing": "Se procesează..."
+      },
+      "messages": {
+        "loadFailed": "Încărcarea comenzilor de lucru pentru aprobare a eșuat",
+        "approveSuccess": "Comandă de lucru aprobată cu succes",
+        "approveFailed": "Aprobarea comenzii de lucru a eșuat",
+        "rejectSuccess": "Comandă de lucru respinsă cu succes",
+        "rejectFailed": "Respingerea comenzii de lucru a eșuat",
+        "rejectReasonRequired": "Vă rugăm să furnizați un motiv pentru respingere"
+      }
     }
   }
 }

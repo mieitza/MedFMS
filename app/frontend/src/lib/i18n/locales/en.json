@@ -721,6 +721,58 @@
         "cancelButton": "Cancel",
         "updateButton": "Update Work Order"
       }
+    },
+    "approvals": {
+      "title": "Work Order Approvals",
+      "pageTitle": "Work Order Approvals - MedFMS",
+      "backToMaintenance": "Back to Maintenance",
+      "pendingApproval": "Work Orders Pending Approval",
+      "filters": {
+        "title": "Filters",
+        "priority": "Priority",
+        "applyFilters": "Apply Filters",
+        "reset": "Reset"
+      },
+      "table": {
+        "woHash": "WO#",
+        "vehicle": "Vehicle",
+        "title": "Title",
+        "priority": "Priority",
+        "scheduled": "Scheduled",
+        "cost": "Cost"
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject"
+      },
+      "modal": {
+        "title": "Work Order Approval",
+        "workOrderDetails": "Work Order Details",
+        "workOrderNumber": "Work Order #:",
+        "vehicle": "Vehicle:",
+        "maintenanceType": "Maintenance Type:",
+        "priority": "Priority:",
+        "title": "Title:",
+        "description": "Description:",
+        "estimatedCost": "Estimated Cost:",
+        "scheduledDate": "Scheduled Date:",
+        "filesTitle": "Work Order Files and Photos",
+        "approvalNotes": "Approval Notes",
+        "notesPlaceholder": "Enter notes about the approval or rejection (required for rejection)",
+        "required": "*",
+        "cancel": "Cancel",
+        "approve": "Approve",
+        "reject": "Reject",
+        "processing": "Processing..."
+      },
+      "messages": {
+        "loadFailed": "Failed to load work orders for approval",
+        "approveSuccess": "Work order approved successfully",
+        "approveFailed": "Failed to approve work order",
+        "rejectSuccess": "Work order rejected successfully",
+        "rejectFailed": "Failed to reject work order",
+        "rejectReasonRequired": "Please provide a reason for rejection"
+      }
     }
   }
 }
