@@ -4,6 +4,7 @@
   import { api } from '$lib/api';
   import DataTable from '$lib/components/DataTable.svelte';
   import SimpleChart from '$lib/components/SimpleChart.svelte';
+  import { _ } from '$lib/i18n';
 
   let isLoading = true;
   let reportData = {
@@ -17,21 +18,21 @@
   let customEndDate = '';
   let selectedReport = 'overview';
 
-  // Date range options
-  const dateRangeOptions = [
-    { value: '7', label: 'Last 7 days' },
-    { value: '30', label: 'Last 30 days' },
-    { value: '90', label: 'Last 90 days' },
-    { value: '365', label: 'Last year' },
-    { value: 'custom', label: 'Custom range' }
+  // Date range options - reactive to language changes
+  $: dateRangeOptions = [
+    { value: '7', label: $_('maintenance.reports.dateRanges.last7Days') },
+    { value: '30', label: $_('maintenance.reports.dateRanges.last30Days') },
+    { value: '90', label: $_('maintenance.reports.dateRanges.last90Days') },
+    { value: '365', label: $_('maintenance.reports.dateRanges.lastYear') },
+    { value: 'custom', label: $_('maintenance.reports.dateRanges.customRange') }
   ];
 
-  // Report type options
-  const reportTypes = [
-    { value: 'overview', label: 'Overview', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-    { value: 'maintenance', label: 'Maintenance Analytics', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
-    { value: 'fleet', label: 'Fleet Performance', icon: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z' },
-    { value: 'costs', label: 'Cost Analysis', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1' }
+  // Report type options - reactive to language changes
+  $: reportTypes = [
+    { value: 'overview', label: $_('maintenance.reports.reportTypes.overview'), icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+    { value: 'maintenance', label: $_('maintenance.reports.reportTypes.maintenanceAnalytics'), icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+    { value: 'fleet', label: $_('maintenance.reports.reportTypes.fleetPerformance'), icon: 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z' },
+    { value: 'costs', label: $_('maintenance.reports.reportTypes.costAnalysis'), icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1' }
   ];
 
   onMount(async () => {
@@ -242,14 +243,14 @@
 
   function exportReport() {
     // Export functionality would go here
-    alert('Export functionality would be implemented here');
+    alert($_('maintenance.reports.messages.exportNotImplemented'));
   }
 
   $: currentReportData = reportData[selectedReport] || {};
 </script>
 
 <svelte:head>
-  <title>Reports & Analytics - MedFMS</title>
+  <title>{$_('maintenance.reports.pageTitle')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -258,12 +259,12 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
-          <a href="/dashboard" class="text-2xl font-bold text-primary-900">MedFMS</a>
+          <a href="/dashboard" class="text-2xl font-bold text-primary-900">{$_('common.appName')}</a>
           <nav class="ml-8">
             <ol class="flex items-center space-x-2 text-sm">
-              <li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+              <li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
               <li class="text-gray-500">/</li>
-              <li class="text-gray-900 font-medium">Reports & Analytics</li>
+              <li class="text-gray-900 font-medium">{$_('maintenance.reports.title')}</li>
             </ol>
           </nav>
         </div>
@@ -275,7 +276,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
-            Export Report
+            {$_('maintenance.reports.exportReport')}
           </button>
           <a
             href="/dashboard"
@@ -284,7 +285,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
             </svg>
-            Back to Dashboard
+            {$_('maintenance.reports.backToDashboard')}
           </a>
         </div>
       </div>
@@ -296,11 +297,11 @@
 
     <!-- Controls -->
     <div class="bg-white p-6 rounded-lg shadow border mb-6">
-      <h2 class="text-lg font-semibold mb-4">Report Configuration</h2>
+      <h2 class="text-lg font-semibold mb-4">{$_('maintenance.reports.configuration.title')}</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Report Type Selection -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{$_('maintenance.reports.configuration.reportType')}</label>
           <select
             bind:value={selectedReport}
             on:change={loadReportData}
@@ -314,7 +315,7 @@
 
         <!-- Date Range Selection -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{$_('maintenance.reports.configuration.dateRange')}</label>
           <select
             bind:value={selectedDateRange}
             on:change={handleDateRangeChange}
@@ -330,7 +331,7 @@
         {#if selectedDateRange === 'custom'}
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.reports.configuration.startDate')}</label>
               <input
                 type="date"
                 bind:value={customStartDate}
@@ -339,7 +340,7 @@
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.reports.configuration.endDate')}</label>
               <input
                 type="date"
                 bind:value={customEndDate}
@@ -361,7 +362,7 @@
       {#if selectedReport === 'overview'}
         <!-- Overview Dashboard -->
         <div class="space-y-6">
-          <h3 class="text-xl font-semibold text-gray-900">Fleet Overview</h3>
+          <h3 class="text-xl font-semibold text-gray-900">{$_('maintenance.reports.overview.title')}</h3>
 
           <!-- Key Metrics -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -373,7 +374,7 @@
                   </svg>
                 </div>
                 <div class="ml-4">
-                  <p class="text-sm font-medium text-gray-600">Total Vehicles</p>
+                  <p class="text-sm font-medium text-gray-600">{$_('maintenance.reports.overview.totalVehicles')}</p>
                   <p class="text-2xl font-bold text-gray-900">{currentReportData.totalVehicles || 0}</p>
                 </div>
               </div>
@@ -387,7 +388,7 @@
                   </svg>
                 </div>
                 <div class="ml-4">
-                  <p class="text-sm font-medium text-gray-600">Active Vehicles</p>
+                  <p class="text-sm font-medium text-gray-600">{$_('maintenance.reports.overview.activeVehicles')}</p>
                   <p class="text-2xl font-bold text-gray-900">{currentReportData.activeVehicles || 0}</p>
                 </div>
               </div>
@@ -401,7 +402,7 @@
                   </svg>
                 </div>
                 <div class="ml-4">
-                  <p class="text-sm font-medium text-gray-600">Pending Work Orders</p>
+                  <p class="text-sm font-medium text-gray-600">{$_('maintenance.reports.overview.pendingWorkOrders')}</p>
                   <p class="text-2xl font-bold text-gray-900">{currentReportData.pendingWorkOrders || 0}</p>
                 </div>
               </div>
@@ -415,7 +416,7 @@
                   </svg>
                 </div>
                 <div class="ml-4">
-                  <p class="text-sm font-medium text-gray-600">Overdue Maintenance</p>
+                  <p class="text-sm font-medium text-gray-600">{$_('maintenance.reports.overview.overdueMaintenance')}</p>
                   <p class="text-2xl font-bold text-gray-900">{currentReportData.overdueMaintenance || 0}</p>
                 </div>
               </div>
@@ -426,12 +427,12 @@
       {:else if selectedReport === 'maintenance'}
         <!-- Maintenance Analytics -->
         <div class="space-y-6">
-          <h3 class="text-xl font-semibold text-gray-900">Maintenance Analytics</h3>
+          <h3 class="text-xl font-semibold text-gray-900">{$_('maintenance.reports.maintenance.title')}</h3>
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Work Orders by Status -->
             <div class="bg-white p-6 rounded-lg shadow border">
-              <h4 class="text-lg font-medium text-gray-900 mb-4">Work Orders by Status</h4>
+              <h4 class="text-lg font-medium text-gray-900 mb-4">{$_('maintenance.reports.maintenance.workOrdersByStatus')}</h4>
               {#if currentReportData.workOrdersByStatus}
                 <div class="space-y-2">
                   {#each Object.entries(currentReportData.workOrdersByStatus) as [status, count]}
@@ -442,24 +443,24 @@
                   {/each}
                 </div>
               {:else}
-                <p class="text-gray-500">No data available</p>
+                <p class="text-gray-500">{$_('maintenance.reports.maintenance.noDataAvailable')}</p>
               {/if}
             </div>
 
             <!-- Maintenance Summary -->
             <div class="bg-white p-6 rounded-lg shadow border">
-              <h4 class="text-lg font-medium text-gray-900 mb-4">Maintenance Summary</h4>
+              <h4 class="text-lg font-medium text-gray-900 mb-4">{$_('maintenance.reports.maintenance.maintenanceSummary')}</h4>
               <div class="space-y-4">
                 <div class="flex justify-between">
-                  <span class="text-sm text-gray-600">Total Work Orders</span>
+                  <span class="text-sm text-gray-600">{$_('maintenance.reports.maintenance.totalWorkOrders')}</span>
                   <span class="text-sm font-medium">{currentReportData.totalWorkOrders || 0}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-gray-600">Avg Cost per Work Order</span>
+                  <span class="text-sm text-gray-600">{$_('maintenance.reports.maintenance.avgCostPerWorkOrder')}</span>
                   <span class="text-sm font-medium">${(currentReportData.avgCostPerWorkOrder || 0).toFixed(2)}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-gray-600">Total Maintenance Records</span>
+                  <span class="text-sm text-gray-600">{$_('maintenance.reports.maintenance.totalMaintenanceRecords')}</span>
                   <span class="text-sm font-medium">{currentReportData.totalMaintenanceRecords || 0}</span>
                 </div>
               </div>
@@ -470,12 +471,12 @@
       {:else if selectedReport === 'fleet'}
         <!-- Fleet Performance -->
         <div class="space-y-6">
-          <h3 class="text-xl font-semibold text-gray-900">Fleet Performance</h3>
+          <h3 class="text-xl font-semibold text-gray-900">{$_('maintenance.reports.fleet.title')}</h3>
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Vehicles by Type -->
             <div class="bg-white p-6 rounded-lg shadow border">
-              <h4 class="text-lg font-medium text-gray-900 mb-4">Fleet Composition by Type</h4>
+              <h4 class="text-lg font-medium text-gray-900 mb-4">{$_('maintenance.reports.fleet.compositionByType')}</h4>
               {#if currentReportData.vehiclesByType}
                 <div class="space-y-2">
                   {#each Object.entries(currentReportData.vehiclesByType) as [type, count]}
@@ -486,20 +487,20 @@
                   {/each}
                 </div>
               {:else}
-                <p class="text-gray-500">No data available</p>
+                <p class="text-gray-500">{$_('maintenance.reports.maintenance.noDataAvailable')}</p>
               {/if}
             </div>
 
             <!-- Fleet Age Analysis -->
             <div class="bg-white p-6 rounded-lg shadow border">
-              <h4 class="text-lg font-medium text-gray-900 mb-4">Fleet Age Analysis</h4>
+              <h4 class="text-lg font-medium text-gray-900 mb-4">{$_('maintenance.reports.fleet.fleetAgeAnalysis')}</h4>
               <div class="space-y-4">
                 <div class="flex justify-between">
-                  <span class="text-sm text-gray-600">Average Vehicle Age</span>
-                  <span class="text-sm font-medium">{currentReportData.avgVehicleAge || 0} years</span>
+                  <span class="text-sm text-gray-600">{$_('maintenance.reports.fleet.avgVehicleAge')}</span>
+                  <span class="text-sm font-medium">{currentReportData.avgVehicleAge || 0} {$_('maintenance.reports.fleet.years')}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-gray-600">Total Fleet Size</span>
+                  <span class="text-sm text-gray-600">{$_('maintenance.reports.fleet.totalFleetSize')}</span>
                   <span class="text-sm font-medium">{currentReportData.totalVehicles || 0}</span>
                 </div>
               </div>
@@ -510,19 +511,19 @@
       {:else if selectedReport === 'costs'}
         <!-- Cost Analysis -->
         <div class="space-y-6">
-          <h3 class="text-xl font-semibold text-gray-900">Cost Analysis</h3>
+          <h3 class="text-xl font-semibold text-gray-900">{$_('maintenance.reports.costs.title')}</h3>
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Total Costs -->
             <div class="bg-white p-6 rounded-lg shadow border">
-              <h4 class="text-lg font-medium text-gray-900 mb-4">Maintenance Costs Overview</h4>
+              <h4 class="text-lg font-medium text-gray-900 mb-4">{$_('maintenance.reports.costs.maintenanceCostsOverview')}</h4>
               <div class="space-y-4">
                 <div class="flex justify-between">
-                  <span class="text-sm text-gray-600">Total Maintenance Cost</span>
+                  <span class="text-sm text-gray-600">{$_('maintenance.reports.costs.totalMaintenanceCost')}</span>
                   <span class="text-sm font-medium">${(currentReportData.totalMaintenanceCost || 0).toFixed(2)}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-sm text-gray-600">Average Cost per Vehicle</span>
+                  <span class="text-sm text-gray-600">{$_('maintenance.reports.costs.avgCostPerVehicle')}</span>
                   <span class="text-sm font-medium">${(currentReportData.avgCostPerVehicle || 0).toFixed(2)}</span>
                 </div>
               </div>
@@ -530,7 +531,7 @@
 
             <!-- Highest Cost Vehicles -->
             <div class="bg-white p-6 rounded-lg shadow border">
-              <h4 class="text-lg font-medium text-gray-900 mb-4">Highest Cost Vehicles</h4>
+              <h4 class="text-lg font-medium text-gray-900 mb-4">{$_('maintenance.reports.costs.highestCostVehicles')}</h4>
               {#if currentReportData.highestCostVehicles}
                 <div class="space-y-2">
                   {#each currentReportData.highestCostVehicles as [vehicle, cost]}
@@ -541,7 +542,7 @@
                   {/each}
                 </div>
               {:else}
-                <p class="text-gray-500">No data available</p>
+                <p class="text-gray-500">{$_('maintenance.reports.maintenance.noDataAvailable')}</p>
               {/if}
             </div>
           </div>

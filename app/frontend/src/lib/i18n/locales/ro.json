@@ -773,6 +773,66 @@
         "rejectFailed": "Respingerea comenzii de lucru a eșuat",
         "rejectReasonRequired": "Vă rugăm să furnizați un motiv pentru respingere"
       }
+    },
+    "reports": {
+      "title": "Rapoarte și Analize",
+      "pageTitle": "Rapoarte și Analize - MedFMS",
+      "exportReport": "Exportă Raport",
+      "backToDashboard": "Înapoi la Panou",
+      "configuration": {
+        "title": "Configurare Raport",
+        "reportType": "Tip Raport",
+        "dateRange": "Interval Date",
+        "startDate": "Data Început",
+        "endDate": "Data Sfârșit"
+      },
+      "dateRanges": {
+        "last7Days": "Ultimele 7 zile",
+        "last30Days": "Ultimele 30 zile",
+        "last90Days": "Ultimele 90 zile",
+        "lastYear": "Ultimul an",
+        "customRange": "Interval personalizat"
+      },
+      "reportTypes": {
+        "overview": "Prezentare Generală",
+        "maintenanceAnalytics": "Analize Întreținere",
+        "fleetPerformance": "Performanță Flotă",
+        "costAnalysis": "Analiză Costuri"
+      },
+      "overview": {
+        "title": "Prezentare Generală Flotă",
+        "totalVehicles": "Total Vehicule",
+        "activeVehicles": "Vehicule Active",
+        "pendingWorkOrders": "Comenzi Lucru în Așteptare",
+        "overdueMaintenance": "Întreținere Depășită"
+      },
+      "maintenance": {
+        "title": "Analize Întreținere",
+        "workOrdersByStatus": "Comenzi Lucru după Status",
+        "maintenanceSummary": "Sumar Întreținere",
+        "totalWorkOrders": "Total Comenzi Lucru",
+        "avgCostPerWorkOrder": "Cost Mediu pe Comandă Lucru",
+        "totalMaintenanceRecords": "Total Înregistrări Întreținere",
+        "noDataAvailable": "Nicio dată disponibilă"
+      },
+      "fleet": {
+        "title": "Performanță Flotă",
+        "compositionByType": "Compoziție Flotă după Tip",
+        "fleetAgeAnalysis": "Analiză Vârstă Flotă",
+        "avgVehicleAge": "Vârsta Medie Vehicul",
+        "years": "ani",
+        "totalFleetSize": "Dimensiune Totală Flotă"
+      },
+      "costs": {
+        "title": "Analiză Costuri",
+        "maintenanceCostsOverview": "Prezentare Generală Costuri Întreținere",
+        "totalMaintenanceCost": "Cost Total Întreținere",
+        "avgCostPerVehicle": "Cost Mediu pe Vehicul",
+        "highestCostVehicles": "Vehicule cu Cele Mai Mari Costuri"
+      },
+      "messages": {
+        "exportNotImplemented": "Funcționalitatea de export va fi implementată aici"
+      }
     }
   }
 }

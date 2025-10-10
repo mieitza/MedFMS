@@ -773,6 +773,66 @@
         "rejectFailed": "Failed to reject work order",
         "rejectReasonRequired": "Please provide a reason for rejection"
       }
+    },
+    "reports": {
+      "title": "Reports & Analytics",
+      "pageTitle": "Reports & Analytics - MedFMS",
+      "exportReport": "Export Report",
+      "backToDashboard": "Back to Dashboard",
+      "configuration": {
+        "title": "Report Configuration",
+        "reportType": "Report Type",
+        "dateRange": "Date Range",
+        "startDate": "Start Date",
+        "endDate": "End Date"
+      },
+      "dateRanges": {
+        "last7Days": "Last 7 days",
+        "last30Days": "Last 30 days",
+        "last90Days": "Last 90 days",
+        "lastYear": "Last year",
+        "customRange": "Custom range"
+      },
+      "reportTypes": {
+        "overview": "Overview",
+        "maintenanceAnalytics": "Maintenance Analytics",
+        "fleetPerformance": "Fleet Performance",
+        "costAnalysis": "Cost Analysis"
+      },
+      "overview": {
+        "title": "Fleet Overview",
+        "totalVehicles": "Total Vehicles",
+        "activeVehicles": "Active Vehicles",
+        "pendingWorkOrders": "Pending Work Orders",
+        "overdueMaintenance": "Overdue Maintenance"
+      },
+      "maintenance": {
+        "title": "Maintenance Analytics",
+        "workOrdersByStatus": "Work Orders by Status",
+        "maintenanceSummary": "Maintenance Summary",
+        "totalWorkOrders": "Total Work Orders",
+        "avgCostPerWorkOrder": "Avg Cost per Work Order",
+        "totalMaintenanceRecords": "Total Maintenance Records",
+        "noDataAvailable": "No data available"
+      },
+      "fleet": {
+        "title": "Fleet Performance",
+        "compositionByType": "Fleet Composition by Type",
+        "fleetAgeAnalysis": "Fleet Age Analysis",
+        "avgVehicleAge": "Average Vehicle Age",
+        "years": "years",
+        "totalFleetSize": "Total Fleet Size"
+      },
+      "costs": {
+        "title": "Cost Analysis",
+        "maintenanceCostsOverview": "Maintenance Costs Overview",
+        "totalMaintenanceCost": "Total Maintenance Cost",
+        "avgCostPerVehicle": "Average Cost per Vehicle",
+        "highestCostVehicles": "Highest Cost Vehicles"
+      },
+      "messages": {
+        "exportNotImplemented": "Export functionality would be implemented here"
+      }
     }
   }
 }
