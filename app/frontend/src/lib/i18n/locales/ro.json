@@ -516,5 +516,107 @@
     "email": "Introduceți o adresă de email validă",
     "minLength": "Lungimea minimă este de {min} caractere",
     "maxLength": "Lungimea maximă este de {max} caractere"
+  },
+  "maintenance": {
+    "title": "Gestionare Întreținere",
+    "pageTitle": "Gestionare Întreținere - MedFMS",
+    "createWorkOrder": "Creează Comandă Lucru",
+    "editWorkOrder": "Editează Comandă Lucru",
+    "workOrderApprovals": "Aprobări Comenzi Lucru",
+    "maintenanceWorkOrders": "Comenzi Lucru Întreținere",
+    "dashboard": {
+      "pendingWorkOrders": "Comenzi în Așteptare",
+      "overdueMaintenance": "Întreținere Depășită",
+      "upcomingDays": "Viitoare (7 zile)",
+      "monthlyCost": "Cost Lunar"
+    },
+    "filters": {
+      "title": "Filtre",
+      "vehicle": "Vehicul",
+      "allVehicles": "Toate Vehiculele",
+      "status": "Status",
+      "priority": "Prioritate",
+      "startDate": "Data Început",
+      "endDate": "Data Sfârșit",
+      "applyFilters": "Aplică Filtre",
+      "reset": "Resetare"
+    },
+    "status": {
+      "allStatuses": "Toate Statusurile",
+      "pending": "În Așteptare",
+      "approved": "Aprobat",
+      "inProgress": "În Progres",
+      "completed": "Finalizat",
+      "cancelled": "Anulat",
+      "onHold": "În Așteptare"
+    },
+    "priority": {
+      "allPriorities": "Toate Prioritățile",
+      "urgent": "Urgent",
+      "high": "Ridicat",
+      "normal": "Normal",
+      "low": "Scăzut",
+      "optional": "Opțional",
+      "label1": "1 - Urgent",
+      "label2": "2 - Ridicat",
+      "label3": "3 - Normal",
+      "label4": "4 - Scăzut",
+      "label5": "5 - Opțional"
+    },
+    "table": {
+      "workOrderNumber": "Nr. Comandă",
+      "vehicle": "Vehicul",
+      "title": "Titlu",
+      "priority": "Prioritate",
+      "status": "Status",
+      "scheduled": "Programat",
+      "cost": "Cost"
+    },
+    "actions": {
+      "edit": "Editează",
+      "approve": "Aprobă",
+      "start": "Începe",
+      "complete": "Finalizează",
+      "cancel": "Anulează",
+      "delete": "Șterge"
+    },
+    "form": {
+      "vehicle": "Vehicul",
+      "vehicleRequired": "Vehicul *",
+      "selectVehicle": "Selectați Vehicul",
+      "selectAVehicle": "Selectați un vehicul",
+      "maintenanceType": "Tip Întreținere",
+      "maintenanceTypeRequired": "Tip Întreținere *",
+      "selectType": "Selectați Tip",
+      "selectMaintenanceType": "Selectați tip întreținere",
+      "title": "Titlu",
+      "titleRequired": "Titlu *",
+      "titlePlaceholder": "Descriere scurtă a lucrării de întreținere",
+      "enterTitle": "Introduceți titlul comenzii de lucru",
+      "description": "Descriere",
+      "descriptionPlaceholder": "Descriere detaliată a lucrării ce trebuie efectuată",
+      "enterDescription": "Introduceți descriere detaliată",
+      "priority": "Prioritate",
+      "scheduledDate": "Data Programată",
+      "estimatedCost": "Cost Estimat",
+      "notes": "Notițe",
+      "notesPlaceholder": "Notițe adiționale sau instrucțiuni speciale",
+      "additionalNotes": "Notițe adiționale",
+      "attachFiles": "Atașați Fotografii și Documente",
+      "workOrderFiles": "Fișiere Comandă Lucru"
+    },
+    "messages": {
+      "createSuccess": "Comandă de lucru creată cu succes",
+      "createFailed": "Crearea comenzii de lucru a eșuat",
+      "updateSuccess": "Comandă de lucru actualizată cu succes",
+      "updateFailed": "Actualizarea comenzii de lucru a eșuat",
+      "deleteConfirm": "Sigur doriți să ștergeți această comandă de lucru? Această acțiune nu poate fi anulată.",
+      "deleteSuccess": "Comandă de lucru ștersă cu succes",
+      "deleteFailed": "Ștergerea comenzii de lucru a eșuat",
+      "statusUpdateFailed": "Actualizarea statusului a eșuat",
+      "enterNotes": "Introduceți notițe pentru schimbarea statusului la \"{status}\":",
+      "creating": "Se creează...",
+      "updating": "Se actualizează..."
+    }
   }
 }

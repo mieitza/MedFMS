@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { api } from '$lib/api';
+  import { _ } from '$lib/i18n';
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import FileUpload from '$lib/components/FileUpload.svelte';
@@ -45,45 +46,45 @@
     notes: ''
   };
 
-  // Status options
-  const statusOptions = [
-    { value: '', label: 'All Statuses' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'approved', label: 'Approved' },
-    { value: 'in_progress', label: 'In Progress' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'cancelled', label: 'Cancelled' },
-    { value: 'on_hold', label: 'On Hold' }
+  // Status options - using reactive declarations for translations
+  $: statusOptions = [
+    { value: '', label: $_('maintenance.status.allStatuses') },
+    { value: 'pending', label: $_('maintenance.status.pending') },
+    { value: 'approved', label: $_('maintenance.status.approved') },
+    { value: 'in_progress', label: $_('maintenance.status.inProgress') },
+    { value: 'completed', label: $_('maintenance.status.completed') },
+    { value: 'cancelled', label: $_('maintenance.status.cancelled') },
+    { value: 'on_hold', label: $_('maintenance.status.onHold') }
   ];
 
-  const priorityOptions = [
-    { value: '', label: 'All Priorities' },
-    { value: 1, label: '1 - Urgent' },
-    { value: 2, label: '2 - High' },
-    { value: 3, label: '3 - Normal' },
-    { value: 4, label: '4 - Low' },
-    { value: 5, label: '5 - Optional' }
+  $: priorityOptions = [
+    { value: '', label: $_('maintenance.priority.allPriorities') },
+    { value: 1, label: $_('maintenance.priority.label1') },
+    { value: 2, label: $_('maintenance.priority.label2') },
+    { value: 3, label: $_('maintenance.priority.label3') },
+    { value: 4, label: $_('maintenance.priority.label4') },
+    { value: 5, label: $_('maintenance.priority.label5') }
   ];
 
-  // Data table columns - optimized for better visibility
-  const columns = [
+  // Data table columns - using reactive declarations for translations
+  $: columns = [
     {
       key: 'workOrder.workOrderNumber',
-      label: 'WO#',
+      label: $_('maintenance.table.workOrderNumber'),
       sortable: true,
       width: '120px',
       render: (value, row) => row?.workOrder?.workOrderNumber || 'N/A'
     },
     {
       key: 'vehicle.vehicleCode',
-      label: 'Vehicle',
+      label: $_('maintenance.table.vehicle'),
       sortable: true,
       width: '140px',
       render: (value, row) => `${row?.vehicle?.vehicleCode || ''}<br><small class="text-gray-500">${row?.vehicle?.licensePlate || ''}</small>`
     },
     {
       key: 'workOrder.title',
-      label: 'Title',
+      label: $_('maintenance.table.title'),
       sortable: true,
       width: '200px',
       render: (value, row) => {
@@ -94,17 +95,17 @@
     },
     {
       key: 'workOrder.priority',
-      label: 'Priority',
+      label: $_('maintenance.table.priority'),
       sortable: true,
       width: '100px',
       render: (value, row) => {
         const priority = row?.workOrder?.priority || 3;
         const priorityLabels = {
-          1: { label: 'Urgent', class: 'bg-red-100 text-red-800' },
-          2: { label: 'High', class: 'bg-orange-100 text-orange-800' },
-          3: { label: 'Normal', class: 'bg-blue-100 text-blue-800' },
-          4: { label: 'Low', class: 'bg-green-100 text-green-800' },
-          5: { label: 'Optional', class: 'bg-gray-100 text-gray-800' }
+          1: { label: $_('maintenance.priority.urgent'), class: 'bg-red-100 text-red-800' },
+          2: { label: $_('maintenance.priority.high'), class: 'bg-orange-100 text-orange-800' },
+          3: { label: $_('maintenance.priority.normal'), class: 'bg-blue-100 text-blue-800' },
+          4: { label: $_('maintenance.priority.low'), class: 'bg-green-100 text-green-800' },
+          5: { label: $_('maintenance.priority.optional'), class: 'bg-gray-100 text-gray-800' }
         };
         const p = priorityLabels[priority] || priorityLabels[3];
         return `<span class="px-2 py-1 text-xs font-medium rounded-full ${p.class}">${p.label}</span>`;
@@ -112,7 +113,7 @@
     },
     {
       key: 'workOrder.status',
-      label: 'Status',
+      label: $_('maintenance.table.status'),
       sortable: true,
       width: '110px',
       render: (value, row) => {
@@ -125,21 +126,29 @@
           cancelled: 'bg-red-100 text-red-800',
           on_hold: 'bg-gray-100 text-gray-800'
         };
+        const statusLabels = {
+          pending: $_('maintenance.status.pending'),
+          approved: $_('maintenance.status.approved'),
+          in_progress: $_('maintenance.status.inProgress'),
+          completed: $_('maintenance.status.completed'),
+          cancelled: $_('maintenance.status.cancelled'),
+          on_hold: $_('maintenance.status.onHold')
+        };
         const statusClass = statusClasses[status] || statusClasses.pending;
-        const statusLabel = status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
+        const statusLabel = statusLabels[status] || status;
         return `<span class="px-2 py-1 text-xs font-medium rounded-full ${statusClass}">${statusLabel}</span>`;
       }
     },
     {
       key: 'workOrder.scheduledDate',
-      label: 'Scheduled',
+      label: $_('maintenance.table.scheduled'),
       sortable: true,
       width: '110px',
       render: (value, row) => row?.workOrder?.scheduledDate ? new Date(row?.workOrder?.scheduledDate).toLocaleDateString() : '-'
     },
     {
       key: 'workOrder.estimatedCost',
-      label: 'Cost',
+      label: $_('maintenance.table.cost'),
       sortable: true,
       width: '90px',
       render: (value, row) => row?.workOrder?.estimatedCost ? `$${parseFloat(row?.workOrder?.estimatedCost).toFixed(0)}` : '-'
@@ -314,7 +323,7 @@
       debouncedLoadDashboardData(); // Refresh dashboard with debouncing
     } catch (error) {
       console.error('Error creating work order:', error);
-      alert('Failed to create work order: ' + error.message);
+      alert($_('maintenance.messages.createFailed') + ': ' + error.message);
     } finally {
       loading = false;
     }
@@ -327,7 +336,7 @@
 
   async function updateWorkOrderStatus(workOrderId, newStatus) {
     try {
-      const notes = prompt(`Enter notes for status change to "${newStatus}":`);
+      const notes = prompt($_('maintenance.messages.enterNotes', { values: { status: newStatus } }));
       if (notes === null) return; // User cancelled
 
       await api.updateMaintenanceWorkOrderStatus(workOrderId, newStatus, notes);
@@ -335,7 +344,7 @@
       debouncedLoadDashboardData(); // Refresh dashboard with debouncing
     } catch (error) {
       console.error('Error updating work order status:', error);
-      alert('Failed to update status: ' + error.message);
+      alert($_('maintenance.messages.statusUpdateFailed') + ': ' + error.message);
     }
   }
 
@@ -378,15 +387,15 @@
   async function handleDeleteWorkOrder(workOrderId) {
     if (!workOrderId) return;
 
-    if (confirm('Are you sure you want to delete this work order? This action cannot be undone.')) {
+    if (confirm($_('maintenance.messages.deleteConfirm'))) {
       try {
         loading = true;
         await api.deleteWorkOrder(workOrderId);
         await loadWorkOrders();
-        alert('Work order deleted successfully');
+        alert($_('maintenance.messages.deleteSuccess'));
       } catch (error) {
         console.error('Error deleting work order:', error);
-        alert('Failed to delete work order: ' + error.message);
+        alert($_('maintenance.messages.deleteFailed') + ': ' + error.message);
       } finally {
         loading = false;
       }
@@ -411,10 +420,10 @@
       await api.updateWorkOrder(editingWorkOrder.id, submitData);
       showEditModal = false;
       await loadWorkOrders();
-      alert('Work order updated successfully');
+      alert($_('maintenance.messages.updateSuccess'));
     } catch (error) {
       console.error('Error updating work order:', error);
-      alert('Failed to update work order: ' + error.message);
+      alert($_('maintenance.messages.updateFailed') + ': ' + error.message);
     } finally {
       loading = false;
     }
@@ -422,7 +431,7 @@
 </script>
 
 <svelte:head>
-  <title>Maintenance Management - MedFMS</title>
+  <title>{$_('maintenance.pageTitle')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -431,12 +440,12 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
-          <a href="/dashboard" class="text-2xl font-bold text-primary-900">MedFMS</a>
+          <a href="/dashboard" class="text-2xl font-bold text-primary-900">{$_('common.appName')}</a>
           <nav class="ml-8">
             <ol class="flex items-center space-x-2 text-sm">
-              <li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+              <li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
               <li class="text-gray-500">/</li>
-              <li class="text-gray-900 font-medium">Maintenance</li>
+              <li class="text-gray-900 font-medium">{$_('maintenance.title')}</li>
             </ol>
           </nav>
         </div>
@@ -448,7 +457,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            Work Order Approvals
+            {$_('maintenance.workOrderApprovals')}
           </a>
           <button
             on:click={openCreateModal}
@@ -457,7 +466,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
-            Create Work Order
+            {$_('maintenance.createWorkOrder')}
           </button>
         </div>
       </div>
@@ -473,7 +482,7 @@
         <div class="bg-white p-6 rounded-lg shadow border">
           <div class="flex items-center">
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600">Pending Work Orders</p>
+              <p class="text-sm font-medium text-gray-600">{$_('maintenance.dashboard.pendingWorkOrders')}</p>
               <p class="text-2xl font-bold text-gray-900">{dashboardData.pendingWorkOrders}</p>
             </div>
             <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -487,7 +496,7 @@
         <div class="bg-white p-6 rounded-lg shadow border">
           <div class="flex items-center">
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600">Overdue Maintenance</p>
+              <p class="text-sm font-medium text-gray-600">{$_('maintenance.dashboard.overdueMaintenance')}</p>
               <p class="text-2xl font-bold text-gray-900">{dashboardData.overdueMaintenance}</p>
             </div>
             <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -501,7 +510,7 @@
         <div class="bg-white p-6 rounded-lg shadow border">
           <div class="flex items-center">
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600">Upcoming (7 days)</p>
+              <p class="text-sm font-medium text-gray-600">{$_('maintenance.dashboard.upcomingDays')}</p>
               <p class="text-2xl font-bold text-gray-900">{dashboardData.upcomingMaintenance}</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -515,7 +524,7 @@
         <div class="bg-white p-6 rounded-lg shadow border">
           <div class="flex items-center">
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600">Monthly Cost</p>
+              <p class="text-sm font-medium text-gray-600">{$_('maintenance.dashboard.monthlyCost')}</p>
               <p class="text-2xl font-bold text-gray-900">${dashboardData.monthlyMaintenanceCost.toFixed(2)}</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -530,15 +539,15 @@
 
     <!-- Filters -->
     <div class="bg-white p-6 rounded-lg shadow border mb-6">
-      <h3 class="text-lg font-semibold mb-4">Filters</h3>
+      <h3 class="text-lg font-semibold mb-4">{$_('maintenance.filters.title')}</h3>
       <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Vehicle</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.filters.vehicle')}</label>
           <select
             bind:value={filters.vehicleId}
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">All Vehicles</option>
+            <option value="">{$_('maintenance.filters.allVehicles')}</option>
             {#each vehicles as vehicle}
               <option value={vehicle.id}>{vehicle.vehicleCode} ({vehicle.licensePlate})</option>
             {/each}
@@ -546,7 +555,7 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.filters.status')}</label>
           <select
             bind:value={filters.status}
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -558,7 +567,7 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.filters.priority')}</label>
           <select
             bind:value={filters.priority}
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -570,7 +579,7 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.filters.startDate')}</label>
           <input
             type="date"
             bind:value={filters.startDate}
@@ -579,7 +588,7 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.filters.endDate')}</label>
           <input
             type="date"
             bind:value={filters.endDate}
@@ -592,13 +601,13 @@
             on:click={handleFilter}
             class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
           >
-            Apply Filters
+            {$_('maintenance.filters.applyFilters')}
           </button>
           <button
             on:click={resetFilters}
             class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
           >
-            Reset
+            {$_('maintenance.filters.reset')}
           </button>
         </div>
       </div>
@@ -613,17 +622,17 @@
       {currentPage}
       {pageSize}
       {totalItems}
-      title="Maintenance Work Orders"
+      title={$_('maintenance.maintenanceWorkOrders')}
       showSearch={true}
       showPagination={true}
       showExport={true}
       actions={[
-        { key: 'edit', label: 'Edit', condition: (row) => row?.workOrder?.status && !['completed', 'cancelled'].includes(row?.workOrder?.status), class: 'bg-blue-600 hover:bg-blue-700 text-white' },
-        { key: 'approve', label: 'Approve', condition: (row) => row?.workOrder?.status === 'pending', class: 'bg-green-600 hover:bg-green-700 text-white' },
-        { key: 'start', label: 'Start', condition: (row) => row?.workOrder?.status === 'approved', class: 'bg-yellow-600 hover:bg-yellow-700 text-white' },
-        { key: 'complete', label: 'Complete', condition: (row) => row?.workOrder?.status === 'in_progress', class: 'bg-purple-600 hover:bg-purple-700 text-white' },
-        { key: 'cancel', label: 'Cancel', condition: (row) => row?.workOrder?.status && !['completed', 'cancelled'].includes(row?.workOrder?.status), class: 'bg-gray-600 hover:bg-gray-700 text-white' },
-        { key: 'delete', label: 'Delete', condition: (row) => row?.workOrder?.status && ['pending', 'cancelled'].includes(row?.workOrder?.status), class: 'bg-red-600 hover:bg-red-700 text-white' }
+        { key: 'edit', label: $_('maintenance.actions.edit'), condition: (row) => row?.workOrder?.status && !['completed', 'cancelled'].includes(row?.workOrder?.status), class: 'bg-blue-600 hover:bg-blue-700 text-white' },
+        { key: 'approve', label: $_('maintenance.actions.approve'), condition: (row) => row?.workOrder?.status === 'pending', class: 'bg-green-600 hover:bg-green-700 text-white' },
+        { key: 'start', label: $_('maintenance.actions.start'), condition: (row) => row?.workOrder?.status === 'approved', class: 'bg-yellow-600 hover:bg-yellow-700 text-white' },
+        { key: 'complete', label: $_('maintenance.actions.complete'), condition: (row) => row?.workOrder?.status === 'in_progress', class: 'bg-purple-600 hover:bg-purple-700 text-white' },
+        { key: 'cancel', label: $_('maintenance.actions.cancel'), condition: (row) => row?.workOrder?.status && !['completed', 'cancelled'].includes(row?.workOrder?.status), class: 'bg-gray-600 hover:bg-gray-700 text-white' },
+        { key: 'delete', label: $_('maintenance.actions.delete'), condition: (row) => row?.workOrder?.status && ['pending', 'cancelled'].includes(row?.workOrder?.status), class: 'bg-red-600 hover:bg-red-700 text-white' }
       ]}
       on:search={handleSearch}
       on:pagechange={handlePageChange}
@@ -634,17 +643,17 @@
 </div>
 
 <!-- Create Work Order Modal -->
-<Modal bind:open={showCreateModal} title="Create Work Order" on:close={() => showCreateModal = false}>
+<Modal bind:open={showCreateModal} title={$_('maintenance.createWorkOrder')} on:close={() => showCreateModal = false}>
     <form on:submit|preventDefault={handleSubmit} class="space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Vehicle *</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.vehicleRequired')}</label>
           <select
             bind:value={formData.vehicleId}
             required
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Select Vehicle</option>
+            <option value="">{$_('maintenance.form.selectVehicle')}</option>
             {#each vehicles as vehicle}
               <option value={vehicle.id}>{vehicle.vehicleCode} ({vehicle.licensePlate})</option>
             {/each}
@@ -652,13 +661,13 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Maintenance Type *</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.maintenanceTypeRequired')}</label>
           <select
             bind:value={formData.maintenanceTypeId}
             required
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Select Type</option>
+            <option value="">{$_('maintenance.form.selectType')}</option>
             {#each maintenanceTypes as type}
               <option value={type.id}>{type.typeName} ({type.category})</option>
             {/each}
@@ -667,43 +676,43 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.titleRequired')}</label>
         <input
           type="text"
           bind:value={formData.title}
           required
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Brief description of the maintenance work"
+          placeholder={$_('maintenance.form.titlePlaceholder')}
         />
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.description')}</label>
         <textarea
           bind:value={formData.description}
           rows="3"
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Detailed description of the work to be performed"
+          placeholder={$_('maintenance.form.descriptionPlaceholder')}
         ></textarea>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.priority')}</label>
           <select
             bind:value={formData.priority}
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value={1}>1 - Urgent</option>
-            <option value={2}>2 - High</option>
-            <option value={3}>3 - Normal</option>
-            <option value={4}>4 - Low</option>
-            <option value={5}>5 - Optional</option>
+            <option value={1}>{$_('maintenance.priority.label1')}</option>
+            <option value={2}>{$_('maintenance.priority.label2')}</option>
+            <option value={3}>{$_('maintenance.priority.label3')}</option>
+            <option value={4}>{$_('maintenance.priority.label4')}</option>
+            <option value={5}>{$_('maintenance.priority.label5')}</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Scheduled Date</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.scheduledDate')}</label>
           <input
             type="date"
             bind:value={formData.scheduledDate}
@@ -712,7 +721,7 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Estimated Cost</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.estimatedCost')}</label>
           <input
             type="number"
             step="0.01"
@@ -724,12 +733,12 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.notes')}</label>
         <textarea
           bind:value={formData.notes}
           rows="2"
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Additional notes or special instructions"
+          placeholder={$_('maintenance.form.notesPlaceholder')}
         ></textarea>
       </div>
 
@@ -738,7 +747,7 @@
         <WorkOrderFiles
           workOrderId={createdWorkOrderId}
           showUpload={true}
-          title="Attach Photos and Documents"
+          title={$_('maintenance.form.attachFiles')}
           on:fileUploaded={handleFileUploaded}
         />
       </div>
@@ -749,27 +758,27 @@
           on:click={() => showCreateModal = false}
           class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
         >
-          Cancel
+          {$_('common.cancel')}
         </button>
         <button
           type="submit"
           disabled={loading}
           class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
-          {loading ? 'Creating...' : 'Create Work Order'}
+          {loading ? $_('maintenance.messages.creating') : $_('maintenance.createWorkOrder')}
         </button>
       </div>
     </form>
 </Modal>
 
 <!-- Edit Work Order Modal -->
-<Modal bind:open={showEditModal} title="Edit Work Order" on:close={() => showEditModal = false}>
+<Modal bind:open={showEditModal} title={$_('maintenance.editWorkOrder')} on:close={() => showEditModal = false}>
   {#if editingWorkOrder}
     <form on:submit|preventDefault={handleEditSubmit} class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">
-            Vehicle <span class="text-red-500">*</span>
+            {$_('maintenance.form.vehicle')} <span class="text-red-500">*</span>
           </label>
           <select
             bind:value={formData.vehicleId}
@@ -777,7 +786,7 @@
             disabled={loading}
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Select a vehicle</option>
+            <option value="">{$_('maintenance.form.selectAVehicle')}</option>
             {#each vehicles as vehicle}
               <option value={vehicle.id}>{vehicle.vehicleCode} - {vehicle.licensePlate}</option>
             {/each}
@@ -786,7 +795,7 @@
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">
-            Maintenance Type <span class="text-red-500">*</span>
+            {$_('maintenance.form.maintenanceType')} <span class="text-red-500">*</span>
           </label>
           <select
             bind:value={formData.maintenanceTypeId}
@@ -794,7 +803,7 @@
             disabled={loading}
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Select maintenance type</option>
+            <option value="">{$_('maintenance.form.selectMaintenanceType')}</option>
             {#each maintenanceTypes as type}
               <option value={type.id}>{type.typeName} ({type.category})</option>
             {/each}
@@ -803,7 +812,7 @@
 
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-700 mb-1">
-            Title <span class="text-red-500">*</span>
+            {$_('maintenance.form.title')} <span class="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -811,27 +820,27 @@
             required
             disabled={loading}
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter work order title"
+            placeholder={$_('maintenance.form.enterTitle')}
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.priority')}</label>
           <select
             bind:value={formData.priority}
             disabled={loading}
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value={1}>1 - Urgent</option>
-            <option value={2}>2 - High</option>
-            <option value={3}>3 - Normal</option>
-            <option value={4}>4 - Low</option>
-            <option value={5}>5 - Optional</option>
+            <option value={1}>{$_('maintenance.priority.label1')}</option>
+            <option value={2}>{$_('maintenance.priority.label2')}</option>
+            <option value={3}>{$_('maintenance.priority.label3')}</option>
+            <option value={4}>{$_('maintenance.priority.label4')}</option>
+            <option value={5}>{$_('maintenance.priority.label5')}</option>
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Scheduled Date</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.scheduledDate')}</label>
           <input
             type="date"
             bind:value={formData.scheduledDate}
@@ -841,7 +850,7 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Estimated Cost</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.estimatedCost')}</label>
           <input
             type="number"
             step="0.01"
@@ -853,24 +862,24 @@
         </div>
 
         <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.description')}</label>
           <textarea
             bind:value={formData.description}
             rows="3"
             disabled={loading}
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter detailed description"
+            placeholder={$_('maintenance.form.enterDescription')}
           ></textarea>
         </div>
 
         <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.notes')}</label>
           <textarea
             bind:value={formData.notes}
             rows="2"
             disabled={loading}
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Additional notes"
+            placeholder={$_('maintenance.form.additionalNotes')}
           ></textarea>
         </div>
       </div>
@@ -880,7 +889,7 @@
         <WorkOrderFiles
           workOrderId={editingWorkOrder?.id}
           showUpload={true}
-          title="Work Order Files"
+          title={$_('maintenance.form.workOrderFiles')}
           on:fileUploaded={() => {
             // File uploaded successfully
             console.log('File uploaded to work order');
@@ -900,14 +909,14 @@
           class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
           disabled={loading}
         >
-          Cancel
+          {$_('common.cancel')}
         </button>
         <button
           type="submit"
           disabled={loading}
           class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
-          {loading ? 'Updating...' : 'Update Work Order'}
+          {loading ? $_('maintenance.messages.updating') : $_('maintenance.editWorkOrder')}
         </button>
       </div>
     </form>
