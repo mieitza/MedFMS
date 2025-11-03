@@ -1250,10 +1250,6 @@ export const api = {
     return response.json();
   },
 
-  async getBrands() {
-    return this.getReferenceData('brands');
-  },
-
   // User Management
   async getUsers(params = {}) {
     const queryParams = new URLSearchParams();
