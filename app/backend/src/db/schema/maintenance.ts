@@ -183,7 +183,7 @@ export const maintenanceHistory = sqliteTable('maintenance_history', {
   laborCost: real('labor_cost'),
   partsCost: real('parts_cost'),
   externalCost: real('external_cost'),
-  currency: text('currency').notNull().default('USD'),
+  currency: text('currency').notNull().default('RON'),
 
   // Duration
   duration: integer('duration'), // in minutes

@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api';
+	import { _ } from '$lib/i18n';
 	import Modal from '$lib/components/Modal.svelte';
 	import DriverForm from '$lib/components/DriverForm.svelte';
 	import DocumentManager from '$lib/components/DocumentManager.svelte';
@@ -40,7 +41,7 @@
 			driver = response.data;
 		} catch (err) {
 			console.error('Failed to load driver:', err);
-			error = 'Failed to load driver details';
+			error = $_('drivers.messages.saveFailed');
 		} finally {
 			loading = false;
 		}
@@ -66,13 +67,13 @@
 	}
 
 	async function handleDelete() {
-		if (confirm(`Are you sure you want to delete driver ${driver.fullName}?`)) {
+		if (confirm($_('drivers.messages.deleteConfirm', { values: { name: driver.fullName } }))) {
 			try {
 				await api.deleteDriver(driver.id);
 				goto('/drivers');
 			} catch (error) {
 				console.error('Failed to delete driver:', error);
-				alert('Failed to delete driver. Please try again.');
+				alert($_('drivers.messages.deleteFailed'));
 			}
 		}
 	}
@@ -94,12 +95,12 @@
 	}
 
 	function formatDate(dateString) {
-		if (!dateString) return 'Not specified';
+		if (!dateString) return $_('vehicles.notRecorded');
 		return new Date(dateString).toLocaleDateString();
 	}
 
 	function calculateAge(dateOfBirth) {
-		if (!dateOfBirth) return 'Not specified';
+		if (!dateOfBirth) return $_('vehicles.notRecorded');
 		const birthDate = new Date(dateOfBirth);
 		const today = new Date();
 		const age = today.getFullYear() - birthDate.getFullYear();
@@ -112,12 +113,12 @@
 
 	function getDepartmentName(departmentId) {
 		const department = departments.find(d => d.id === departmentId);
-		return department ? department.departmentName : 'Not assigned';
+		return department ? department.departmentName : $_('vehicles.notAssigned');
 	}
 
 	function getCityName(cityId) {
 		const city = cities.find(c => c.id === cityId);
-		return city ? city.cityName : 'Not specified';
+		return city ? city.cityName : $_('vehicles.notRecorded');
 	}
 
 	function getStatusColor(active) {
@@ -125,12 +126,12 @@
 	}
 
 	function getStatusText(active) {
-		return active ? 'Active' : 'Inactive';
+		return active ? $_('common.active') : $_('common.inactive');
 	}
 </script>
 
 <svelte:head>
-	<title>Driver Details - MedFMS</title>
+	<title>{driver ? `${driver.fullName} - ${$_('drivers.title')}` : $_('drivers.title')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -139,15 +140,15 @@
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="flex justify-between items-center h-16">
 				<div class="flex items-center">
-					<a href="/dashboard" class="text-2xl font-bold text-primary-900">MedFMS</a>
+					<a href="/dashboard" class="text-2xl font-bold text-primary-900">{$_('common.appName')}</a>
 					<nav class="ml-8">
 						<ol class="flex items-center space-x-2 text-sm">
-							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li><a href="/drivers" class="text-gray-500 hover:text-gray-700">Drivers</a></li>
+							<li><a href="/drivers" class="text-gray-500 hover:text-gray-700">{$_('drivers.title')}</a></li>
 							<li class="text-gray-500">/</li>
 							<li class="text-gray-900 font-medium">
-								{driver ? driver.fullName : 'Loading...'}
+								{driver ? driver.fullName : $_('common.loading')}
 							</li>
 						</ol>
 					</nav>
@@ -161,7 +162,7 @@
 							<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
 							</svg>
-							Edit Driver
+							{$_('drivers.editDriver')}
 						</button>
 						<button
 							on:click={handleDelete}
@@ -170,7 +171,7 @@
 							<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
 							</svg>
-							Delete Driver
+							{$_('common.delete')}
 						</button>
 					</div>
 				{/if}
@@ -207,10 +208,10 @@
 								{driver.fullName}
 							</h1>
 							<p class="text-lg text-gray-600 mt-1">
-								{driver.licenseType} License • {driver.driverCode}
+								{driver.licenseType} {$_('drivers.license')} • {driver.driverCode}
 							</p>
 							<p class="text-sm text-gray-500 mt-2">
-								License #: {driver.licenseNumber}
+								{$_('drivers.licenseNumber')}: {driver.licenseNumber}
 							</p>
 						</div>
 						<div class="text-right">
@@ -227,23 +228,23 @@
 						<!-- Personal Information -->
 						<div class="space-y-4">
 							<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-								Personal Information
+								{$_('drivers.sections.basicInfo')}
 							</h3>
 							<div class="space-y-3">
 								<div>
-									<label class="block text-sm font-medium text-gray-500">First Name</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.firstName || 'Not specified'}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('drivers.firstName')}</label>
+									<p class="mt-1 text-sm text-gray-900">{driver.firstName || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Last Name</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.lastName || 'Not specified'}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('drivers.lastName')}</label>
+									<p class="mt-1 text-sm text-gray-900">{driver.lastName || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">ID Number</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.idNumber || 'Not specified'}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('drivers.idNumber')}</label>
+									<p class="mt-1 text-sm text-gray-900">{driver.idNumber || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Date of Birth</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('drivers.dateOfBirth')}</label>
 									<p class="mt-1 text-sm text-gray-900">{formatDate(driver.dateOfBirth)}</p>
 								</div>
 								<div>
@@ -256,27 +257,27 @@
 						<!-- License Information -->
 						<div class="space-y-4">
 							<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-								License Information
+								{$_('drivers.sections.licenseInfo')}
 							</h3>
 							<div class="space-y-3">
 								<div>
-									<label class="block text-sm font-medium text-gray-500">License Number</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('drivers.licenseNumber')}</label>
 									<p class="mt-1 text-sm text-gray-900">{driver.licenseNumber}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">License Type</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.licenseType || 'Not specified'}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('drivers.licenseType')}</label>
+									<p class="mt-1 text-sm text-gray-900">{driver.licenseType || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Expiry Date</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('drivers.licenseExpiryDate')}</label>
 									<p class="mt-1 text-sm text-gray-900">{formatDate(driver.licenseExpiryDate)}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Hire Date</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('drivers.hireDate')}</label>
 									<p class="mt-1 text-sm text-gray-900">{formatDate(driver.hireDate)}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Department</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('users.department')}</label>
 									<p class="mt-1 text-sm text-gray-900">{getDepartmentName(driver.departmentId)}</p>
 								</div>
 							</div>
@@ -285,28 +286,28 @@
 						<!-- Contact Information -->
 						<div class="space-y-4">
 							<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-								Contact Information
+								{$_('drivers.sections.contactInfo')}
 							</h3>
 							<div class="space-y-3">
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Phone Number</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.phoneNumber || 'Not specified'}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('users.phoneNumber')}</label>
+									<p class="mt-1 text-sm text-gray-900">{driver.phoneNumber || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Mobile Number</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.mobileNumber || 'Not specified'}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('drivers.mobileNumber')}</label>
+									<p class="mt-1 text-sm text-gray-900">{driver.mobileNumber || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Email</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.email || 'Not specified'}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('users.email')}</label>
+									<p class="mt-1 text-sm text-gray-900">{driver.email || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">City</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('drivers.city')}</label>
 									<p class="mt-1 text-sm text-gray-900">{getCityName(driver.cityId)}</p>
 								</div>
 								{#if driver.address}
 									<div>
-										<label class="block text-sm font-medium text-gray-500">Address</label>
+										<label class="block text-sm font-medium text-gray-500">{$_('drivers.address')}</label>
 										<p class="mt-1 text-sm text-gray-900">{driver.address}</p>
 									</div>
 								{/if}
@@ -322,14 +323,14 @@
 				<PhotoManager
 					entityType="driver"
 					entityId={driver.id}
-					title="Driver Photos"
+					title={$_('vehicles.vehiclePhotos')}
 				/>
 
 				<!-- Documents -->
 				<DocumentManager
 					entityType="driver"
 					entityId={driver.id}
-					title="Driver Documents"
+					title={$_('vehicles.vehicleDocuments')}
 				/>
 			</div>
 		{:else}
@@ -337,11 +338,11 @@
 				<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
 				</svg>
-				<h3 class="mt-2 text-sm font-medium text-gray-900">Driver not found</h3>
-				<p class="mt-1 text-sm text-gray-500">The requested driver could not be found.</p>
+				<h3 class="mt-2 text-sm font-medium text-gray-900">{$_('vehicles.vehicleNotFound')}</h3>
+				<p class="mt-1 text-sm text-gray-500">{$_('vehicles.vehicleNotFoundDesc')}</p>
 				<div class="mt-6">
 					<a href="/drivers" class="btn btn-primary">
-						Back to Drivers
+						{$_('common.back')}
 					</a>
 				</div>
 			</div>
@@ -353,7 +354,7 @@
 {#if driver}
 	<Modal
 		open={showEditModal}
-		title="Edit Driver"
+		title={$_('drivers.editDriver')}
 		size="xl"
 		on:close={handleFormCancel}
 	>

@@ -3634,7 +3634,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'USD'"
+          "default": "'RON'"
         },
         "active": {
           "name": "active",

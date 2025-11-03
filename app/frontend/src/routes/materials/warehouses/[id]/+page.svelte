@@ -59,7 +59,7 @@
       key: 'standardPrice',
       label: $_('materials.standardPrice'),
       sortable: true,
-      render: (value, row) => `$${parseFloat(row?.standardPrice || 0).toFixed(2)}`
+      render: (value, row) => `${parseFloat(row?.standardPrice || 0).toFixed(2)} RON`
     },
     {
       key: 'unit',

@@ -152,6 +152,7 @@ async function seedMaintenanceData() {
         priority,
         status,
         scheduledDate,
+        requestedDate: date,
         estimatedCost: maintenanceType.estimatedCost + (Math.random() * 100 - 50), // Add some variance
         requestedBy: user.id,
         notes: status === 'pending' ? 'Awaiting approval' :
@@ -171,11 +172,11 @@ async function seedMaintenanceData() {
 
       // Add start/completion dates for in-progress and completed orders
       if (status === 'in_progress') {
-        workOrder.startDate = new Date(scheduledDate.getTime() + Math.random() * 24 * 60 * 60 * 1000);
+        workOrder.startedDate = new Date(scheduledDate.getTime() + Math.random() * 24 * 60 * 60 * 1000);
       } else if (status === 'completed') {
-        workOrder.startDate = new Date(scheduledDate.getTime() + Math.random() * 24 * 60 * 60 * 1000);
-        workOrder.completionDate = new Date(workOrder.startDate.getTime() + maintenanceType.estimatedDuration * 60 * 1000);
-        workOrder.actualDuration = maintenanceType.estimatedDuration + Math.floor(Math.random() * 60 - 30); // Add variance
+        workOrder.startedDate = new Date(scheduledDate.getTime() + Math.random() * 24 * 60 * 60 * 1000);
+        workOrder.completedDate = new Date(workOrder.startedDate.getTime() + maintenanceType.estimatedDuration * 60 * 1000);
+        workOrder.laborHours = maintenanceType.estimatedDuration / 60 + (Math.random() * 2 - 1); // Add variance
       }
 
       workOrdersData.push(workOrder);
@@ -183,10 +184,21 @@ async function seedMaintenanceData() {
 
     const insertedWorkOrders = await db.insert(maintenanceWorkOrders)
       .values(workOrdersData)
+      .onConflictDoNothing()
       .returning();
 
-    logger.info(`Inserted ${insertedWorkOrders.length} work orders`);
+    logger.info(`Inserted ${insertedWorkOrders.length} new work orders`);
 
+    // If no new work orders were inserted, get existing ones for history creation
+    let allWorkOrders = insertedWorkOrders;
+    if (allWorkOrders.length === 0) {
+      allWorkOrders = await db.select().from(maintenanceWorkOrders).limit(50);
+      logger.info(`Using ${allWorkOrders.length} existing work orders for history creation`);
+    }
+
+    // Skip schedules and alerts for now - focus on maintenance history
+    // They can be added after proper database migration
+    /*
     // Create maintenance schedules for vehicles
     const schedulesData = [];
     for (let i = 0; i < existingVehicles.length; i++) {
@@ -268,9 +280,10 @@ async function seedMaintenanceData() {
         .returning();
       logger.info(`Inserted ${insertedAlerts.length} maintenance alerts`);
     }
+    */
 
     // Create maintenance history for completed work orders
-    const completedWorkOrders = insertedWorkOrders.filter(wo => wo.status === 'completed');
+    const completedWorkOrders = allWorkOrders.filter(wo => wo.status === 'completed');
     const historyData = [];
 
     for (const workOrder of completedWorkOrders) {
@@ -281,17 +294,17 @@ async function seedMaintenanceData() {
         vehicleId: workOrder.vehicleId,
         workOrderId: workOrder.id,
         maintenanceTypeId: workOrder.maintenanceTypeId,
-        maintenanceDate: workOrder.completionDate,
-        odometerReading: (vehicle?.mileage || 0) + Math.floor(Math.random() * 1000),
+        maintenanceDate: workOrder.completedDate,
+        odometerReading: (vehicle?.odometer || 0) + Math.floor(Math.random() * 1000),
         workPerformed: `Completed ${maintenanceType?.typeName}`,
         partsReplaced: JSON.stringify(['Oil filter', 'Engine oil']),
-        totalCost: workOrder.estimatedCost,
-        laborCost: workOrder.estimatedCost * 0.6,
-        partsCost: workOrder.estimatedCost * 0.4,
-        duration: workOrder.actualDuration,
+        totalCost: workOrder.estimatedCost || 100,
+        laborCost: (workOrder.estimatedCost || 100) * 0.6,
+        partsCost: (workOrder.estimatedCost || 100) * 0.4,
+        duration: workOrder.laborHours ? Math.floor(workOrder.laborHours * 60) : 60,
         qualityRating: Math.floor(Math.random() * 2) + 4, // 4 or 5 stars
         performedBy: 'Service Technician',
-        currency: 'USD'
+        currency: 'RON'
       });
     }
 
@@ -313,8 +326,6 @@ async function seedMaintenanceData() {
     logger.info(`- In Progress: ${workOrdersData.filter(wo => wo.status === 'in_progress').length}`);
     logger.info(`- Completed: ${workOrdersData.filter(wo => wo.status === 'completed').length}`);
     logger.info(`- Cancelled: ${workOrdersData.filter(wo => wo.status === 'cancelled').length}`);
-    logger.info(`Maintenance Schedules: ${schedulesData.length}`);
-    logger.info(`Alerts: ${alertsData.length}`);
     logger.info(`History Records: ${historyData.length}`);
 
   } catch (error) {

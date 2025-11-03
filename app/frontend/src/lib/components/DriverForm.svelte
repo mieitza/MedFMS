@@ -1,6 +1,7 @@
 <script>
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { api } from '$lib/api';
+	import { _ } from '$lib/i18n';
 
 	export let driver = null;
 	export let cities = [];
@@ -62,7 +63,7 @@
 
 	async function handleSubmit() {
 		if (!formData.driverCode || !formData.firstName || !formData.lastName || !formData.licenseNumber) {
-			dispatch('error', { message: 'Please fill in all required fields' });
+			dispatch('error', { message: $_('drivers.messages.requiredFields') });
 			return;
 		}
 
@@ -87,7 +88,7 @@
 			}
 		} catch (error) {
 			console.error('Failed to save driver:', error);
-			dispatch('error', { message: 'Failed to save driver. Please try again.' });
+			dispatch('error', { message: $_('drivers.messages.saveFailed') });
 		} finally {
 			loading = false;
 		}
@@ -118,19 +119,19 @@
 	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 		<div class="space-y-4">
 			<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-				Basic Information
+				{$_('drivers.sections.basicInfo')}
 			</h3>
 
 			<div>
 				<label for="driverCode" class="block text-sm font-medium text-gray-700 mb-2">
-					Driver Code *
+					{$_('drivers.driverCode')} *
 				</label>
 				<input
 					id="driverCode"
 					type="text"
 					bind:value={formData.driverCode}
 					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-					placeholder="Enter driver code"
+					placeholder={$_('drivers.placeholders.driverCode')}
 					required
 				/>
 			</div>
@@ -138,7 +139,7 @@
 			<div class="grid grid-cols-2 gap-4">
 				<div>
 					<label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">
-						First Name *
+						{$_('drivers.firstName')} *
 					</label>
 					<input
 						id="firstName"
@@ -146,14 +147,14 @@
 						bind:value={formData.firstName}
 						on:input={updateFullName}
 						class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-						placeholder="First name"
+						placeholder={$_('drivers.placeholders.firstName')}
 						required
 					/>
 				</div>
 
 				<div>
 					<label for="lastName" class="block text-sm font-medium text-gray-700 mb-2">
-						Last Name *
+						{$_('drivers.lastName')} *
 					</label>
 					<input
 						id="lastName"
@@ -161,7 +162,7 @@
 						bind:value={formData.lastName}
 						on:input={updateFullName}
 						class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-						placeholder="Last name"
+						placeholder={$_('drivers.placeholders.lastName')}
 						required
 					/>
 				</div>
@@ -169,34 +170,34 @@
 
 			<div>
 				<label for="fullName" class="block text-sm font-medium text-gray-700 mb-2">
-					Full Name
+					{$_('drivers.fullName')}
 				</label>
 				<input
 					id="fullName"
 					type="text"
 					bind:value={formData.fullName}
 					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50"
-					placeholder="Auto-generated from first and last name"
+					placeholder={$_('drivers.placeholders.fullName')}
 					readonly
 				/>
 			</div>
 
 			<div>
 				<label for="idNumber" class="block text-sm font-medium text-gray-700 mb-2">
-					ID Number
+					{$_('drivers.idNumber')}
 				</label>
 				<input
 					id="idNumber"
 					type="text"
 					bind:value={formData.idNumber}
 					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-					placeholder="Enter ID number"
+					placeholder={$_('drivers.placeholders.idNumber')}
 				/>
 			</div>
 
 			<div>
 				<label for="dateOfBirth" class="block text-sm font-medium text-gray-700 mb-2">
-					Date of Birth
+					{$_('drivers.dateOfBirth')}
 				</label>
 				<input
 					id="dateOfBirth"
@@ -209,46 +210,46 @@
 
 		<div class="space-y-4">
 			<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-				License Information
+				{$_('drivers.sections.licenseInfo')}
 			</h3>
 
 			<div>
 				<label for="licenseNumber" class="block text-sm font-medium text-gray-700 mb-2">
-					License Number *
+					{$_('drivers.licenseNumber')} *
 				</label>
 				<input
 					id="licenseNumber"
 					type="text"
 					bind:value={formData.licenseNumber}
 					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-					placeholder="Enter license number"
+					placeholder={$_('drivers.placeholders.licenseNumber')}
 					required
 				/>
 			</div>
 
 			<div>
 				<label for="licenseType" class="block text-sm font-medium text-gray-700 mb-2">
-					License Type
+					{$_('drivers.licenseType')}
 				</label>
 				<select
 					id="licenseType"
 					bind:value={formData.licenseType}
 					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 				>
-					<option value="">Select license type</option>
-					<option value="Class A">Class A</option>
-					<option value="Class B">Class B</option>
-					<option value="Class C">Class C</option>
-					<option value="CDL A">CDL A</option>
-					<option value="CDL B">CDL B</option>
-					<option value="CDL C">CDL C</option>
-					<option value="Motorcycle">Motorcycle</option>
+					<option value="">{$_('drivers.placeholders.selectLicenseType')}</option>
+					<option value="Class A">{$_('drivers.licenseTypes.classA')}</option>
+					<option value="Class B">{$_('drivers.licenseTypes.classB')}</option>
+					<option value="Class C">{$_('drivers.licenseTypes.classC')}</option>
+					<option value="CDL A">{$_('drivers.licenseTypes.cdlA')}</option>
+					<option value="CDL B">{$_('drivers.licenseTypes.cdlB')}</option>
+					<option value="CDL C">{$_('drivers.licenseTypes.cdlC')}</option>
+					<option value="Motorcycle">{$_('drivers.licenseTypes.motorcycle')}</option>
 				</select>
 			</div>
 
 			<div>
 				<label for="licenseExpiryDate" class="block text-sm font-medium text-gray-700 mb-2">
-					License Expiry Date
+					{$_('drivers.licenseExpiryDate')}
 				</label>
 				<input
 					id="licenseExpiryDate"
@@ -260,7 +261,7 @@
 
 			<div>
 				<label for="hireDate" class="block text-sm font-medium text-gray-700 mb-2">
-					Hire Date
+					{$_('drivers.hireDate')}
 				</label>
 				<input
 					id="hireDate"
@@ -272,14 +273,14 @@
 
 			<div>
 				<label for="departmentId" class="block text-sm font-medium text-gray-700 mb-2">
-					Department
+					{$_('users.department')}
 				</label>
 				<select
 					id="departmentId"
 					bind:value={formData.departmentId}
 					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 				>
-					<option value="">Select department</option>
+					<option value="">{$_('drivers.placeholders.selectDepartment')}</option>
 					{#each departments as department}
 						<option value={department.id}>{department.departmentName}</option>
 					{/each}
@@ -291,59 +292,59 @@
 	<!-- Contact Information -->
 	<div>
 		<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2 mb-4">
-			Contact Information
+			{$_('drivers.sections.contactInfo')}
 		</h3>
 
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 			<div>
 				<label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-2">
-					Phone Number
+					{$_('users.phoneNumber')}
 				</label>
 				<input
 					id="phoneNumber"
 					type="tel"
 					bind:value={formData.phoneNumber}
 					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-					placeholder="Enter phone number"
+					placeholder={$_('drivers.placeholders.phoneNumber')}
 				/>
 			</div>
 
 			<div>
 				<label for="mobileNumber" class="block text-sm font-medium text-gray-700 mb-2">
-					Mobile Number
+					{$_('drivers.mobileNumber')}
 				</label>
 				<input
 					id="mobileNumber"
 					type="tel"
 					bind:value={formData.mobileNumber}
 					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-					placeholder="Enter mobile number"
+					placeholder={$_('drivers.placeholders.mobileNumber')}
 				/>
 			</div>
 
 			<div>
 				<label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-					Email
+					{$_('users.email')}
 				</label>
 				<input
 					id="email"
 					type="email"
 					bind:value={formData.email}
 					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-					placeholder="Enter email address"
+					placeholder={$_('drivers.placeholders.email')}
 				/>
 			</div>
 
 			<div>
 				<label for="cityId" class="block text-sm font-medium text-gray-700 mb-2">
-					City
+					{$_('drivers.city')}
 				</label>
 				<select
 					id="cityId"
 					bind:value={formData.cityId}
 					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 				>
-					<option value="">Select city</option>
+					<option value="">{$_('drivers.placeholders.selectCity')}</option>
 					{#each cities as city}
 						<option value={city.id}>{city.cityName}</option>
 					{/each}
@@ -352,14 +353,14 @@
 
 			<div class="md:col-span-2">
 				<label for="address" class="block text-sm font-medium text-gray-700 mb-2">
-					Address
+					{$_('drivers.address')}
 				</label>
 				<textarea
 					id="address"
 					bind:value={formData.address}
 					rows="3"
 					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-					placeholder="Enter address"
+					placeholder={$_('drivers.placeholders.address')}
 				></textarea>
 			</div>
 		</div>
@@ -373,7 +374,7 @@
 			class="btn btn-secondary"
 			disabled={loading}
 		>
-			Cancel
+			{$_('common.cancel')}
 		</button>
 		<button
 			type="submit"
@@ -386,7 +387,7 @@
 					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 				</svg>
 			{/if}
-			{driver ? 'Update' : 'Create'} Driver
+			{driver ? $_('drivers.updateDriver') : $_('drivers.createDriver')}
 		</button>
 	</div>
 </form>

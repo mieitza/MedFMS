@@ -5,6 +5,7 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import VehicleForm from '$lib/components/VehicleForm.svelte';
 	import { api } from '$lib/api';
+	import { _ } from '$lib/i18n';
 
 	let vehicles = [];
 	let loading = false;
@@ -28,91 +29,96 @@
 	let departments = [];
 	let drivers = [];
 
-	function renderLicensePlate(value) {
-		return `<span class="font-semibold text-primary-600">${value}</span>`;
-	}
+	let columns = [];
 
-	function renderStatus(value, row) {
-		const colorMap = {
-			'Active': 'bg-green-100 text-green-800',
-			'Maintenance': 'bg-yellow-100 text-yellow-800',
-			'In Maintenance': 'bg-yellow-100 text-yellow-800',
-			'Retired': 'bg-red-100 text-red-800',
-			'Reserved': 'bg-purple-100 text-purple-800'
+	// Make columns reactive to locale changes
+	$: {
+		const renderLicensePlate = (value) => {
+			return `<span class="font-semibold text-primary-600">${value}</span>`;
 		};
-		const colorClass = colorMap[value] || 'bg-gray-100 text-gray-800';
-		return `<span class="px-2 py-1 text-xs font-medium rounded-full ${colorClass}">${value}</span>`;
-	}
 
-	function renderOdometer(value) {
-		return value ? `${value.toLocaleString()} km` : '-';
-	}
+		const renderStatus = (value, row) => {
+			const colorMap = {
+				'Active': 'bg-green-100 text-green-800',
+				'Maintenance': 'bg-yellow-100 text-yellow-800',
+				'In Maintenance': 'bg-yellow-100 text-yellow-800',
+				'Retired': 'bg-red-100 text-red-800',
+				'Reserved': 'bg-purple-100 text-purple-800'
+			};
+			const colorClass = colorMap[value] || 'bg-gray-100 text-gray-800';
+			return `<span class="px-2 py-1 text-xs font-medium rounded-full ${colorClass}">${value}</span>`;
+		};
 
-	const columns = [
-		{
-			key: 'vehicleCode',
-			label: 'Vehicle Code',
-			sortable: true,
-			width: '120px'
-		},
-		{
-			key: 'licensePlate',
-			label: 'License Plate',
-			sortable: true,
-			width: '130px',
-			render: renderLicensePlate
-		},
-		{
-			key: 'brandName',
-			label: 'Brand',
-			sortable: true,
-			width: '100px'
-		},
-		{
-			key: 'modelName',
-			label: 'Model',
-			sortable: true,
-			width: '120px'
-		},
-		{
-			key: 'year',
-			label: 'Year',
-			sortable: true,
-			width: '80px'
-		},
-		{
-			key: 'fuelTypeName',
-			label: 'Fuel Type',
-			sortable: true,
-			width: '100px'
-		},
-		{
-			key: 'vehicleTypeName',
-			label: 'Type',
-			sortable: true,
-			width: '100px'
-		},
-		{
-			key: 'statusName',
-			label: 'Status',
-			sortable: true,
-			width: '100px',
-			render: renderStatus
-		},
-		{
-			key: 'odometer',
-			label: 'Odometer',
-			sortable: true,
-			width: '100px',
-			render: renderOdometer
-		},
-		{
-			key: 'driverName',
-			label: 'Driver',
-			sortable: true,
-			width: '150px'
-		}
-	];
+		const renderOdometer = (value) => {
+			return value ? `${value.toLocaleString()} km` : '-';
+		};
+
+		columns = [
+			{
+				key: 'vehicleCode',
+				label: $_('vehicles.vehicleCode'),
+				sortable: true,
+				width: '120px'
+			},
+			{
+				key: 'licensePlate',
+				label: $_('vehicles.licensePlate'),
+				sortable: true,
+				width: '130px',
+				render: renderLicensePlate
+			},
+			{
+				key: 'brandName',
+				label: $_('vehicles.brand'),
+				sortable: true,
+				width: '100px'
+			},
+			{
+				key: 'modelName',
+				label: $_('vehicles.model'),
+				sortable: true,
+				width: '120px'
+			},
+			{
+				key: 'year',
+				label: $_('vehicles.year'),
+				sortable: true,
+				width: '80px'
+			},
+			{
+				key: 'fuelTypeName',
+				label: $_('vehicles.fuelType'),
+				sortable: true,
+				width: '100px'
+			},
+			{
+				key: 'vehicleTypeName',
+				label: $_('vehicles.type'),
+				sortable: true,
+				width: '100px'
+			},
+			{
+				key: 'statusName',
+				label: $_('common.status'),
+				sortable: true,
+				width: '100px',
+				render: renderStatus
+			},
+			{
+				key: 'odometer',
+				label: $_('vehicles.odometer'),
+				sortable: true,
+				width: '100px',
+				render: renderOdometer
+			},
+			{
+				key: 'driverName',
+				label: $_('vehicles.driver'),
+				sortable: true,
+				width: '150px'
+			}
+		];
+	}
 
 	onMount(async () => {
 		// Check authentication
@@ -145,12 +151,12 @@
 			// Data already includes joined names from API
 			vehicles = response.data.map((vehicle) => ({
 				...vehicle,
-				brandName: vehicle.brandName || 'Unknown',
-				modelName: vehicle.modelName || 'Unknown',
-				statusName: vehicle.statusName || 'Unknown',
-				fuelType: vehicle.fuelTypeName || 'Unknown',
-				vehicleType: vehicle.vehicleTypeName || 'Unknown',
-				driverName: vehicle.driverName || '-'
+				brandName: vehicle.brandName || $_('vehicles.unknown'),
+				modelName: vehicle.modelName || $_('vehicles.unknown'),
+				statusName: vehicle.statusName || $_('vehicles.unknown'),
+				fuelType: vehicle.fuelTypeName || $_('vehicles.unknown'),
+				vehicleType: vehicle.vehicleTypeName || $_('vehicles.unknown'),
+				driverName: vehicle.driverName || $_('vehicles.notAssigned')
 			}));
 
 			totalItems = response.pagination?.total || response.data.length;
@@ -200,23 +206,23 @@
 
 	function getBrandName(brandId) {
 		const brand = brands.find(b => b.id === brandId);
-		return brand?.brandName || 'Unknown';
+		return brand?.brandName || $_('vehicles.unknown');
 	}
 
 	function getModelName(modelId) {
 		const model = models.find(m => m.id === modelId);
-		return model?.modelName || 'Unknown';
+		return model?.modelName || $_('vehicles.unknown');
 	}
 
 	function getStatusName(statusId) {
 		const status = vehicleStatuses.find(s => s.id === statusId);
-		return status?.statusName || 'Unknown';
+		return status?.statusName || $_('vehicles.unknown');
 	}
 
 	function getDriverName(driverId) {
-		if (!driverId) return '-';
+		if (!driverId) return $_('vehicles.notAssigned');
 		const driver = drivers.find(d => d.id === driverId);
-		return driver?.fullName || 'Unknown';
+		return driver?.fullName || $_('vehicles.unknown');
 	}
 
 	function handleSearch(event) {
@@ -248,13 +254,13 @@
 
 	async function handleDelete(event) {
 		const vehicle = event.detail;
-		if (confirm(`Are you sure you want to delete vehicle ${vehicle.licensePlate}?`)) {
+		if (confirm($_('vehicles.messages.deleteConfirm', { values: { licensePlate: vehicle.licensePlate } }))) {
 			try {
 				await api.deleteVehicle(vehicle.id);
 				await loadVehicles();
 			} catch (error) {
 				console.error('Failed to delete vehicle:', error);
-				alert('Failed to delete vehicle. Please try again.');
+				alert($_('vehicles.messages.deleteFailed'));
 			}
 		}
 	}
@@ -297,7 +303,7 @@
 </script>
 
 <svelte:head>
-	<title>Vehicle Management - MedFMS</title>
+	<title>{$_('vehicles.pageTitle')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -306,12 +312,12 @@
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="flex justify-between items-center h-16">
 				<div class="flex items-center">
-					<a href="/dashboard" class="text-2xl font-bold text-primary-900">MedFMS</a>
+					<a href="/dashboard" class="text-2xl font-bold text-primary-900">{$_('common.appName')}</a>
 					<nav class="ml-8">
 						<ol class="flex items-center space-x-2 text-sm">
-							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li class="text-gray-900 font-medium">Vehicles</li>
+							<li class="text-gray-900 font-medium">{$_('vehicles.title')}</li>
 						</ol>
 					</nav>
 				</div>
@@ -323,7 +329,7 @@
 						<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
 						</svg>
-						Add Vehicle
+						{$_('vehicles.addVehicle')}
 					</button>
 				</div>
 			</div>
@@ -342,7 +348,7 @@
 			{totalItems}
 			{sortField}
 			{sortDirection}
-			title="Vehicle Fleet"
+			title={$_('vehicles.vehicleFleet')}
 			showSearch={true}
 			showPagination={true}
 			showExport={true}
@@ -360,7 +366,7 @@
 <!-- Add/Edit Vehicle Modal -->
 <Modal
 	open={showAddModal || showEditModal}
-	title={selectedVehicle ? 'Edit Vehicle' : 'Add New Vehicle'}
+	title={selectedVehicle ? $_('vehicles.editVehicle') : $_('vehicles.addNewVehicle')}
 	size="xl"
 	on:close={closeModals}
 >

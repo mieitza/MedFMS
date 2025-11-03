@@ -1,6 +1,7 @@
 <script>
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import { api } from '$lib/api';
+	import { _ } from '$lib/i18n';
 
 	export let vehicle = null;
 	export let brands = [];
@@ -34,30 +35,27 @@
 	let loading = false;
 	let errors = {};
 
-	let initialized = false;
-	let lastVehicleId = null;
-
 	// Initialize form with vehicle data if editing
-	$: if (vehicle && brands.length > 0 && (!initialized || vehicle?.id !== lastVehicleId)) {
-		formData = {
-			vehicleCode: vehicle.vehicleCode || '',
-			licensePlate: vehicle.licensePlate || '',
-			brandId: vehicle.brandId?.toString() || '',
-			modelId: vehicle.modelId?.toString() || '',
-			year: vehicle.year || new Date().getFullYear(),
-			fuelTypeId: vehicle.fuelTypeId?.toString() || '',
-			vehicleTypeId: vehicle.vehicleTypeId?.toString() || '',
-			statusId: vehicle.statusId?.toString() || '',
-			locationId: vehicle.locationId?.toString() || '',
-			departmentId: vehicle.departmentId?.toString() || '',
-			driverId: vehicle.driverId?.toString() || '',
-			odometer: vehicle.odometer || '',
-			description: vehicle.description || ''
-		};
-		updateFilteredModels();
-		initialized = true;
-		lastVehicleId = vehicle?.id;
-	}
+	onMount(() => {
+		if (vehicle) {
+			formData = {
+				vehicleCode: vehicle.vehicleCode || '',
+				licensePlate: vehicle.licensePlate || '',
+				brandId: vehicle.brandId?.toString() || '',
+				modelId: vehicle.modelId?.toString() || '',
+				year: vehicle.year || new Date().getFullYear(),
+				fuelTypeId: vehicle.fuelTypeId?.toString() || '',
+				vehicleTypeId: vehicle.vehicleTypeId?.toString() || '',
+				statusId: vehicle.statusId?.toString() || '',
+				locationId: vehicle.locationId?.toString() || '',
+				departmentId: vehicle.departmentId?.toString() || '',
+				driverId: vehicle.driverId?.toString() || '',
+				odometer: vehicle.odometer || '',
+				description: vehicle.description || ''
+			};
+			updateFilteredModels();
+		}
+	});
 
 	function updateFilteredModels() {
 		if (formData.brandId) {
@@ -79,35 +77,35 @@
 		errors = {};
 
 		if (!formData.vehicleCode.trim()) {
-			errors.vehicleCode = 'Vehicle code is required';
+			errors.vehicleCode = $_('validation.required');
 		}
 
 		if (!formData.licensePlate.trim()) {
-			errors.licensePlate = 'License plate is required';
+			errors.licensePlate = $_('validation.required');
 		}
 
 		if (!formData.brandId) {
-			errors.brandId = 'Brand is required';
+			errors.brandId = $_('validation.required');
 		}
 
 		if (!formData.modelId) {
-			errors.modelId = 'Model is required';
+			errors.modelId = $_('validation.required');
 		}
 
 		if (!formData.year || formData.year < 1900 || formData.year > new Date().getFullYear() + 1) {
-			errors.year = 'Please enter a valid year';
+			errors.year = $_('validation.required');
 		}
 
 		if (!formData.fuelTypeId) {
-			errors.fuelTypeId = 'Fuel type is required';
+			errors.fuelTypeId = $_('validation.required');
 		}
 
 		if (!formData.vehicleTypeId) {
-			errors.vehicleTypeId = 'Vehicle type is required';
+			errors.vehicleTypeId = $_('validation.required');
 		}
 
 		if (!formData.statusId) {
-			errors.statusId = 'Status is required';
+			errors.statusId = $_('validation.required');
 		}
 
 		return Object.keys(errors).length === 0;
@@ -144,7 +142,7 @@
 			}
 		} catch (error) {
 			console.error('Failed to save vehicle:', error);
-			dispatch('error', { message: 'Failed to save vehicle. Please try again.' });
+			dispatch('error', { message: $_('vehicles.messages.saveFailed') });
 		} finally {
 			loading = false;
 		}
@@ -161,7 +159,7 @@
 			<!-- Vehicle Code -->
 			<div>
 				<label for="vehicleCode" class="block text-sm font-medium text-gray-700 mb-1">
-					Vehicle Code *
+					{$_('vehicles.vehicleCode')} *
 				</label>
 				<input
 					type="text"
@@ -169,7 +167,7 @@
 					bind:value={formData.vehicleCode}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 					class:border-red-500={errors.vehicleCode}
-					placeholder="e.g., VEH001"
+					placeholder={$_('vehicles.placeholders.vehicleCode')}
 					required
 				/>
 				{#if errors.vehicleCode}
@@ -180,7 +178,7 @@
 			<!-- License Plate -->
 			<div>
 				<label for="licensePlate" class="block text-sm font-medium text-gray-700 mb-1">
-					License Plate *
+					{$_('vehicles.licensePlate')} *
 				</label>
 				<input
 					type="text"
@@ -188,7 +186,7 @@
 					bind:value={formData.licensePlate}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 					class:border-red-500={errors.licensePlate}
-					placeholder="e.g., ABC-123"
+					placeholder={$_('vehicles.placeholders.licensePlate')}
 					required
 				/>
 				{#if errors.licensePlate}
@@ -199,7 +197,7 @@
 			<!-- Brand -->
 			<div>
 				<label for="brandId" class="block text-sm font-medium text-gray-700 mb-1">
-					Brand *
+					{$_('vehicles.brand')} *
 				</label>
 				<select
 					id="brandId"
@@ -209,7 +207,7 @@
 					class:border-red-500={errors.brandId}
 					required
 				>
-					<option value="">Select a brand</option>
+					<option value="">{$_('vehicles.placeholders.selectBrand')}</option>
 					{#each brands as brand}
 						<option value={brand.id}>{brand.brandName}</option>
 					{/each}
@@ -222,7 +220,7 @@
 			<!-- Model -->
 			<div>
 				<label for="modelId" class="block text-sm font-medium text-gray-700 mb-1">
-					Model *
+					{$_('vehicles.model')} *
 				</label>
 				<select
 					id="modelId"
@@ -232,7 +230,7 @@
 					disabled={!formData.brandId}
 					required
 				>
-					<option value="">Select a model</option>
+					<option value="">{$_('vehicles.placeholders.selectModel')}</option>
 					{#each filteredModels as model}
 						<option value={model.id}>{model.modelName}</option>
 					{/each}
@@ -245,7 +243,7 @@
 			<!-- Year -->
 			<div>
 				<label for="year" class="block text-sm font-medium text-gray-700 mb-1">
-					Year *
+					{$_('vehicles.year')} *
 				</label>
 				<input
 					type="number"
@@ -255,6 +253,7 @@
 					max={new Date().getFullYear() + 1}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 					class:border-red-500={errors.year}
+					placeholder={$_('vehicles.placeholders.year')}
 					required
 				/>
 				{#if errors.year}
@@ -265,7 +264,7 @@
 			<!-- Fuel Type -->
 			<div>
 				<label for="fuelTypeId" class="block text-sm font-medium text-gray-700 mb-1">
-					Fuel Type *
+					{$_('vehicles.fuelType')} *
 				</label>
 				<select
 					id="fuelTypeId"
@@ -274,7 +273,7 @@
 					class:border-red-500={errors.fuelTypeId}
 					required
 				>
-					<option value="">Select fuel type</option>
+					<option value="">{$_('vehicles.placeholders.selectFuelType')}</option>
 					{#each fuelTypes as fuelType}
 						<option value={fuelType.id}>{fuelType.fuelName}</option>
 					{/each}
@@ -287,7 +286,7 @@
 			<!-- Vehicle Type -->
 			<div>
 				<label for="vehicleTypeId" class="block text-sm font-medium text-gray-700 mb-1">
-					Vehicle Type *
+					{$_('vehicles.vehicleType')} *
 				</label>
 				<select
 					id="vehicleTypeId"
@@ -296,7 +295,7 @@
 					class:border-red-500={errors.vehicleTypeId}
 					required
 				>
-					<option value="">Select vehicle type</option>
+					<option value="">{$_('vehicles.placeholders.selectVehicleType')}</option>
 					{#each vehicleTypes as vehicleType}
 						<option value={vehicleType.id}>{vehicleType.typeName}</option>
 					{/each}
@@ -309,7 +308,7 @@
 			<!-- Status -->
 			<div>
 				<label for="statusId" class="block text-sm font-medium text-gray-700 mb-1">
-					Status *
+					{$_('common.status')} *
 				</label>
 				<select
 					id="statusId"
@@ -318,7 +317,7 @@
 					class:border-red-500={errors.statusId}
 					required
 				>
-					<option value="">Select status</option>
+					<option value="">{$_('vehicles.placeholders.selectStatus')}</option>
 					{#each vehicleStatuses as status}
 						<option value={status.id}>{status.statusName}</option>
 					{/each}
@@ -331,14 +330,14 @@
 			<!-- Location (Optional) -->
 			<div>
 				<label for="locationId" class="block text-sm font-medium text-gray-700 mb-1">
-					Location
+					{$_('vehicles.location')}
 				</label>
 				<select
 					id="locationId"
 					bind:value={formData.locationId}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 				>
-					<option value="">Select location</option>
+					<option value="">{$_('vehicles.placeholders.selectLocation')}</option>
 					{#each locations as location}
 						<option value={location.id}>{location.locationName}</option>
 					{/each}
@@ -348,14 +347,14 @@
 			<!-- Department (Optional) -->
 			<div>
 				<label for="departmentId" class="block text-sm font-medium text-gray-700 mb-1">
-					Department
+					{$_('users.department')}
 				</label>
 				<select
 					id="departmentId"
 					bind:value={formData.departmentId}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 				>
-					<option value="">Select department</option>
+					<option value="">{$_('vehicles.placeholders.selectDepartment')}</option>
 					{#each departments as department}
 						<option value={department.id}>{department.departmentName}</option>
 					{/each}
@@ -365,14 +364,14 @@
 			<!-- Driver (Optional) -->
 			<div>
 				<label for="driverId" class="block text-sm font-medium text-gray-700 mb-1">
-					Assigned Driver
+					{$_('vehicles.assignedDriver')}
 				</label>
 				<select
 					id="driverId"
 					bind:value={formData.driverId}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 				>
-					<option value="">Select driver</option>
+					<option value="">{$_('vehicles.placeholders.selectDriver')}</option>
 					{#each drivers as driver}
 						<option value={driver.id}>{driver.fullName}</option>
 					{/each}
@@ -382,7 +381,7 @@
 			<!-- Odometer (Optional) -->
 			<div>
 				<label for="odometer" class="block text-sm font-medium text-gray-700 mb-1">
-					Odometer (km)
+					{$_('vehicles.odometer')}
 				</label>
 				<input
 					type="number"
@@ -390,7 +389,6 @@
 					bind:value={formData.odometer}
 					min="0"
 					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-					placeholder="e.g., 15000"
 				/>
 			</div>
 		</div>
@@ -398,14 +396,14 @@
 		<!-- Description -->
 		<div class="mt-6">
 			<label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-				Description
+				{$_('vehicles.description')}
 			</label>
 			<textarea
 				id="description"
 				bind:value={formData.description}
 				rows="3"
 				class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-				placeholder="Additional notes about the vehicle..."
+				placeholder={$_('vehicles.placeholders.description')}
 			></textarea>
 		</div>
 
@@ -417,7 +415,7 @@
 				class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
 				disabled={loading}
 			>
-				Cancel
+				{$_('common.cancel')}
 			</button>
 			<button
 				type="submit"
@@ -429,9 +427,9 @@
 						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 					</svg>
-					Saving...
+					{$_('common.loading')}
 				{:else}
-					{vehicle ? 'Update' : 'Create'} Vehicle
+					{vehicle ? $_('vehicles.updateVehicle') : $_('vehicles.createVehicle')}
 				{/if}
 			</button>
 		</div>

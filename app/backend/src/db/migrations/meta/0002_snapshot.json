@@ -905,7 +905,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'USD'"
+          "default": "'RON'"
         },
         "department_id": {
           "name": "department_id",
@@ -2229,7 +2229,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'USD'"
+          "default": "'RON'"
         },
         "duration": {
           "name": "duration",
@@ -5814,7 +5814,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'USD'"
+          "default": "'RON'"
         },
         "active": {
           "name": "active",

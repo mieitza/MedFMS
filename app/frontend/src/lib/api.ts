@@ -76,6 +76,19 @@ export const api = {
     return headers;
   },
 
+  // Generic GET helper
+  async get(endpoint: string): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${endpoint}`);
+    }
+
+    return response.json();
+  },
+
   // Vehicles API
   async getVehicles(params: {
     page?: number;

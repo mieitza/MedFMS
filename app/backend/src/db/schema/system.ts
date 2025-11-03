@@ -127,7 +127,7 @@ export const penaltyDefinitions = sqliteTable('penalty_definitions', {
   penaltyType: text('penalty_type'),
   description: text('description'),
   standardAmount: real('standard_amount'),
-  currency: text('currency').notNull().default('USD'),
+  currency: text('currency').notNull().default('RON'),
   active: integer('active', { mode: 'boolean' }).notNull().default(true),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),

@@ -372,7 +372,7 @@
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-2">{$_('maintenance.workOrderDetail.fields.estimatedCost')}</h3>
             <p class="text-lg font-semibold text-gray-900">
-              {workOrder.estimatedCost ? `$${parseFloat(workOrder.estimatedCost).toFixed(2)}` : 'N/A'}
+              {workOrder.estimatedCost ? `${parseFloat(workOrder.estimatedCost).toFixed(2)} RON` : 'N/A'}
             </p>
           </div>
 
@@ -380,7 +380,7 @@
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-2">{$_('maintenance.workOrderDetail.fields.actualCost')}</h3>
             <p class="text-lg font-semibold text-gray-900">
-              {workOrder.actualCost ? `$${parseFloat(workOrder.actualCost).toFixed(2)}` : 'N/A'}
+              {workOrder.actualCost ? `${parseFloat(workOrder.actualCost).toFixed(2)} RON` : 'N/A'}
             </p>
           </div>
 

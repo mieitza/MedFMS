@@ -151,7 +151,7 @@
       label: $_('maintenance.table.cost'),
       sortable: true,
       width: '90px',
-      render: (value, row) => row?.workOrder?.estimatedCost ? `$${parseFloat(row?.workOrder?.estimatedCost).toFixed(0)}` : '-'
+      render: (value, row) => row?.workOrder?.estimatedCost ? `${parseFloat(row?.workOrder?.estimatedCost).toFixed(0)} RON` : '-'
     }
   ];
 
@@ -525,7 +525,7 @@
           <div class="flex items-center">
             <div class="flex-1">
               <p class="text-sm font-medium text-gray-600">{$_('maintenance.dashboard.monthlyCost')}</p>
-              <p class="text-2xl font-bold text-gray-900">${dashboardData.monthlyMaintenanceCost.toFixed(2)}</p>
+              <p class="text-2xl font-bold text-gray-900">{dashboardData.monthlyMaintenanceCost.toFixed(2)} RON</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

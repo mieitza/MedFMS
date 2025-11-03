@@ -5,6 +5,7 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import DriverForm from '$lib/components/DriverForm.svelte';
 	import { api } from '$lib/api';
+	import { _ } from '$lib/i18n';
 
 	let drivers = [];
 	let loading = false;
@@ -21,69 +22,74 @@
 	let departments = [];
 	let positions = [];
 
-	function renderDriverName(value, row) {
-		return `<span class="font-semibold text-primary-600">${row.fullName}</span>`;
-	}
+	let columns = [];
 
-	function renderStatus(value, row) {
-		const isActive = row.active;
-		const colorClass = isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-		const statusText = isActive ? 'Active' : 'Inactive';
-		return `<span class="px-2 py-1 text-xs font-medium rounded-full ${colorClass}">${statusText}</span>`;
-	}
+	// Make columns reactive to locale changes
+	$: {
+		const renderDriverName = (value, row) => {
+			return `<span class="font-semibold text-primary-600">${row.fullName}</span>`;
+		};
 
-	function renderContact(value) {
-		if (!value) return '-';
-		return `<div class="text-sm"><div>${value}</div></div>`;
-	}
+		const renderStatus = (value, row) => {
+			const isActive = row.active;
+			const colorClass = isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+			const statusText = isActive ? $_('common.active') : $_('common.inactive');
+			return `<span class="px-2 py-1 text-xs font-medium rounded-full ${colorClass}">${statusText}</span>`;
+		};
 
-	function renderLicense(value, row) {
-		if (!row.licenseNumber) return '-';
-		return `<div class="text-sm"><div><strong>${row.licenseNumber}</strong></div><div class="text-gray-500">Type: ${row.licenseType || 'N/A'}</div></div>`;
-	}
+		const renderContact = (value) => {
+			if (!value) return '-';
+			return `<div class="text-sm"><div>${value}</div></div>`;
+		};
 
-	const columns = [
-		{
-			key: 'driverCode',
-			label: 'Driver Code',
-			sortable: true,
-			width: '120px'
-		},
-		{
-			key: 'fullName',
-			label: 'Name',
-			sortable: true,
-			width: '200px',
-			render: renderDriverName
-		},
-		{
-			key: 'email',
-			label: 'Email',
-			sortable: true,
-			width: '200px'
-		},
-		{
-			key: 'phoneNumber',
-			label: 'Phone',
-			sortable: true,
-			width: '150px',
-			render: renderContact
-		},
-		{
-			key: 'licenseNumber',
-			label: 'License',
-			sortable: true,
-			width: '150px',
-			render: renderLicense
-		},
-		{
-			key: 'active',
-			label: 'Status',
-			sortable: true,
-			width: '100px',
-			render: renderStatus
-		}
-	];
+		const renderLicense = (value, row) => {
+			if (!row.licenseNumber) return '-';
+			return `<div class="text-sm"><div><strong>${row.licenseNumber}</strong></div><div class="text-gray-500">${$_('drivers.licenseType')}: ${row.licenseType || 'N/A'}</div></div>`;
+		};
+
+		columns = [
+			{
+				key: 'driverCode',
+				label: $_('drivers.driverCode'),
+				sortable: true,
+				width: '120px'
+			},
+			{
+				key: 'fullName',
+				label: $_('drivers.name'),
+				sortable: true,
+				width: '200px',
+				render: renderDriverName
+			},
+			{
+				key: 'email',
+				label: $_('users.email'),
+				sortable: true,
+				width: '200px'
+			},
+			{
+				key: 'phoneNumber',
+				label: $_('drivers.phone'),
+				sortable: true,
+				width: '150px',
+				render: renderContact
+			},
+			{
+				key: 'licenseNumber',
+				label: $_('drivers.license'),
+				sortable: true,
+				width: '150px',
+				render: renderLicense
+			},
+			{
+				key: 'active',
+				label: $_('common.status'),
+				sortable: true,
+				width: '100px',
+				render: renderStatus
+			}
+		];
+	}
 
 	onMount(async () => {
 		// Check authentication
@@ -154,13 +160,13 @@
 
 	async function handleDelete(event) {
 		const driver = event.detail;
-		if (confirm(`Are you sure you want to delete driver ${driver.fullName}?`)) {
+		if (confirm($_('drivers.messages.deleteConfirm', { values: { name: driver.fullName } }))) {
 			try {
 				await api.deleteDriver(driver.id);
 				await loadDrivers();
 			} catch (error) {
 				console.error('Failed to delete driver:', error);
-				alert('Failed to delete driver. Please try again.');
+				alert($_('drivers.messages.deleteFailed'));
 			}
 		}
 	}
@@ -204,7 +210,7 @@
 </script>
 
 <svelte:head>
-	<title>Driver Management - MedFMS</title>
+	<title>{$_('drivers.title')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -213,12 +219,12 @@
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="flex justify-between items-center h-16">
 				<div class="flex items-center">
-					<a href="/dashboard" class="text-2xl font-bold text-primary-900">MedFMS</a>
+					<a href="/dashboard" class="text-2xl font-bold text-primary-900">{$_('common.appName')}</a>
 					<nav class="ml-8">
 						<ol class="flex items-center space-x-2 text-sm">
-							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li class="text-gray-900 font-medium">Drivers</li>
+							<li class="text-gray-900 font-medium">{$_('drivers.title')}</li>
 						</ol>
 					</nav>
 				</div>
@@ -230,7 +236,7 @@
 						<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
 						</svg>
-						Add Driver
+						{$_('drivers.addDriver')}
 					</button>
 				</div>
 			</div>
@@ -247,7 +253,7 @@
 			{currentPage}
 			{pageSize}
 			{totalItems}
-			title="Driver Management"
+			title={$_('drivers.title')}
 			showSearch={true}
 			showPagination={true}
 			showExport={true}
@@ -264,7 +270,7 @@
 <!-- Add/Edit Driver Modal -->
 <Modal
 	open={showAddModal || showEditModal}
-	title={selectedDriver ? 'Edit Driver' : 'Add New Driver'}
+	title={selectedDriver ? $_('drivers.editDriver') : $_('drivers.addNewDriver')}
 	size="xl"
 	on:close={closeModals}
 >

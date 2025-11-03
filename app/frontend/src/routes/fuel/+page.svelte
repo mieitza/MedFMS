@@ -39,7 +39,7 @@
 		quantity: '',
 		pricePerLiter: '',
 		totalAmount: '',
-		currency: 'USD',
+		currency: 'RON',
 		odometerReading: '',
 		paymentMethod: 'cash',
 		receiptNumber: '',
@@ -56,7 +56,7 @@
 
 	function renderAmount(value, row) {
 		if (!value) return '-';
-		return `$${value.toFixed(2)}`;
+		return `${value.toFixed(2)} RON`;
 	}
 
 	function renderQuantity(value) {
@@ -314,7 +314,7 @@
 			quantity: '',
 			pricePerLiter: '',
 			totalAmount: '',
-			currency: 'USD',
+			currency: 'RON',
 			odometerReading: '',
 			paymentMethod: 'cash',
 			receiptNumber: '',

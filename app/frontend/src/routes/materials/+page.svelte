@@ -91,7 +91,7 @@
       key: 'standardPrice',
       label: $_('materials.standardPrice'),
       sortable: true,
-      render: (row) => (row && row.standardPrice) ? `$${parseFloat(row.standardPrice).toFixed(2)}` : '-'
+      render: (row) => (row && row.standardPrice) ? `${parseFloat(row.standardPrice).toFixed(2)} RON` : '-'
     },
     {
       key: 'stockStatus',

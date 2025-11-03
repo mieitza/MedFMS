@@ -65,6 +65,43 @@ export const fuelTransactions = sqliteTable('fuel_transactions', {
   approvedBy: integer('approved_by'),
   approvalDate: integer('approval_date', { mode: 'timestamp' }),
 
+  // UTA Import fields - Fuel card information
+  // fuelCardId: integer('fuel_card_id').references(() => fuelCards.id),
+  cardNumber: text('card_number'),
+
+  // Cost center tracking for departmental analysis
+  costCenter1: text('cost_center1'),
+  costCenter2: text('cost_center2'),
+
+  // Location details for better geographic analysis
+  country: text('country'),
+  postalCode: text('postal_code'),
+  stationExternalId: text('station_external_id'),
+
+  // VAT and currency details for international operations
+  vatRate: real('vat_rate'),
+  vatAmount: real('vat_amount'),
+  amountExclVat: real('amount_excl_vat'),
+  currency: text('currency').default('RON'),
+
+  // External reference tracking
+  voucherNumber: text('voucher_number'),
+  externalReference: text('external_reference'),
+  importBatchId: text('import_batch_id'),
+
+  // Delivery information separate from invoice
+  deliveryDate: integer('delivery_date', { mode: 'timestamp' }),
+  deliveryTime: text('delivery_time'),
+  invoiceDate: integer('invoice_date', { mode: 'timestamp' }),
+
+  // Product categorization for detailed analysis
+  productName: text('product_name'),
+  productCategory: text('product_category'),
+
+  // Additional notes for import tracking
+  importSource: text('import_source'),
+  importNotes: text('import_notes'),
+
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -113,7 +150,7 @@ export const fuelBudgets = sqliteTable('fuel_budgets', {
   allocatedAmount: real('allocated_amount').notNull(),
   spentAmount: real('spent_amount').notNull().default(0),
   remainingAmount: real('remaining_amount').notNull(),
-  currency: text('currency').notNull().default('USD'),
+  currency: text('currency').notNull().default('RON'),
 
   // Scope
   departmentId: integer('department_id'),

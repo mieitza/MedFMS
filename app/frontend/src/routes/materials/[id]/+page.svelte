@@ -75,13 +75,13 @@
       key: 'unitPrice',
       label: $_('materials.transactions.unitPrice'),
       sortable: true,
-      render: (row) => row.unitPrice ? `$${parseFloat(row.unitPrice).toFixed(2)}` : '-'
+      render: (row) => row.unitPrice ? `${parseFloat(row.unitPrice).toFixed(2)} RON` : '-'
     },
     {
       key: 'totalAmount',
       label: $_('materials.transactions.totalAmount'),
       sortable: true,
-      render: (row) => row.totalAmount ? `$${parseFloat(row.totalAmount).toFixed(2)}` : '-'
+      render: (row) => row.totalAmount ? `${parseFloat(row.totalAmount).toFixed(2)} RON` : '-'
     },
     {
       key: 'transactionDate',
@@ -419,7 +419,7 @@
           <div>
             <h3 class="text-sm font-medium text-gray-500 mb-1">{$_('materials.standardPrice')}</h3>
             <p class="text-2xl font-bold text-gray-900">
-              {material.standardPrice ? `$${parseFloat(material.standardPrice).toFixed(2)}` : 'N/A'}
+              {material.standardPrice ? `${parseFloat(material.standardPrice).toFixed(2)} RON` : 'N/A'}
             </p>
           </div>
 

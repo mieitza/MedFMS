@@ -158,7 +158,7 @@
         { key: 'fuelCode', label: 'Code', sortable: true },
         { key: 'fuelName', label: 'Fuel Type', sortable: true },
         { key: 'unit', label: 'Unit', sortable: false },
-        { key: 'currentPrice', label: 'Price', sortable: true, render: (val) => val ? `$${parseFloat(val).toFixed(2)}` : '-' },
+        { key: 'currentPrice', label: 'Price', sortable: true, render: (val) => val ? `${parseFloat(val).toFixed(2)} RON` : '-' },
         { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
         { key: 'actions', label: 'Actions', sortable: false },
       ],

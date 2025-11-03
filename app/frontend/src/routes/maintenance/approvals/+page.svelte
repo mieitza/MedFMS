@@ -93,7 +93,7 @@
       label: $_('maintenance.approvals.table.cost'),
       sortable: true,
       width: '90px',
-      render: (value, row) => row?.workOrder?.estimatedCost ? `$${parseFloat(row?.workOrder?.estimatedCost).toFixed(0)}` : '-'
+      render: (value, row) => row?.workOrder?.estimatedCost ? `${parseFloat(row?.workOrder?.estimatedCost).toFixed(0)} RON` : '-'
     }
   ];
 
@@ -343,7 +343,7 @@
           {#if selectedWorkOrder.workOrder?.estimatedCost}
             <div>
               <span class="font-medium">{$_('maintenance.approvals.modal.estimatedCost')}</span>
-              ${parseFloat(selectedWorkOrder.workOrder?.estimatedCost || 0).toFixed(2)}
+              {parseFloat(selectedWorkOrder.workOrder?.estimatedCost || 0).toFixed(2)} RON
             </div>
           {/if}
           {#if selectedWorkOrder.workOrder?.scheduledDate}

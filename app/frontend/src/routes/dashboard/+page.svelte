@@ -178,6 +178,11 @@
 					<p class="text-gray-600">{$_('dashboard.reportsAnalyticsDesc')}</p>
 				</a>
 
+				<a href="/fuel/import" class="card hover:shadow-md transition-shadow cursor-pointer">
+					<h3 class="text-lg font-semibold text-gray-900 mb-2">{$_('dashboard.dataImport')}</h3>
+					<p class="text-gray-600">{$_('dashboard.dataImportDesc')}</p>
+				</a>
+
 				{#if user.role === 'admin' || user.role === 'manager'}
 					<a href="/admin" class="card hover:shadow-md transition-shadow cursor-pointer bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
 						<div class="flex items-center mb-2">

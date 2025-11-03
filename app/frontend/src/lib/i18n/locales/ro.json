@@ -54,7 +54,71 @@
     "reportsAnalytics": "Rapoarte și Analize",
     "reportsAnalyticsDesc": "Generați rapoarte și analizați performanța flotei",
     "adminSettings": "Setări Administrator",
-    "adminSettingsDesc": "Gestionați datele de referință, configurările și setările sistemului"
+    "adminSettingsDesc": "Gestionați datele de referință, configurările și setările sistemului",
+    "dataImport": "Import Date",
+    "dataImportDesc": "Importați date din surse externe cum ar fi exporturi de carduri de combustibil UTA"
+  },
+  "dataImport": {
+    "title": "Import Date",
+    "pageTitle": "Import Card Combustibil UTA - MedFMS",
+    "utaImportTitle": "Importați Date Card Combustibil UTA",
+    "backToFuel": "Înapoi la Combustibil",
+    "breadcrumbs": {
+      "dashboard": "Panou de Control",
+      "fuel": "Combustibil",
+      "utaImport": "Import UTA"
+    },
+    "upload": {
+      "title": "Secțiune Încărcare",
+      "description": "Încărcați fișierul Excel exportat de la UTA pentru a importa tranzacțiile de combustibil. Fișierul trebuie să conțină data facturii, data livrării, numărul de înmatriculare al vehiculului, tipul de combustibil, cantitatea și informațiile despre cost.",
+      "selectFile": "Selectați Fișier Excel",
+      "selectedFile": "Selectat:",
+      "fileSize": "KB",
+      "invalidFileType": "Vă rugăm să selectați un fișier Excel (.xlsx sau .xls)",
+      "parseError": "Analizarea fișierului Excel a eșuat. Verificați formatul fișierului."
+    },
+    "preview": {
+      "title": "Previzualizare Date",
+      "showingCount": "Se afișează primele 10 din {count} tranzacții",
+      "table": {
+        "date": "Data",
+        "vehicle": "Vehicul",
+        "station": "Stație",
+        "product": "Produs",
+        "quantity": "Cantitate",
+        "amount": "Sumă"
+      }
+    },
+    "buttons": {
+      "cancel": "Anulează",
+      "importing": "Se importă...",
+      "importTransactions": "Importați {count} Tranzacții"
+    },
+    "results": {
+      "title": "Rezultate Import",
+      "successful": "Reușite",
+      "failed": "Eșuate",
+      "batchId": "ID Lot",
+      "errors": "Erori ({count})"
+    },
+    "history": {
+      "title": "Istoric Import",
+      "loading": "Se încarcă istoricul...",
+      "noHistory": "Nu există istoric de import disponibil",
+      "table": {
+        "batchId": "ID Lot",
+        "importDate": "Data Importului",
+        "transactions": "Tranzacții",
+        "totalAmount": "Suma Totală"
+      }
+    },
+    "messages": {
+      "noData": "Nu există date de importat",
+      "confirmImport": "Importați {count} tranzacții?",
+      "importSuccess": "Import finalizat cu succes",
+      "importFailed": "Importul a eșuat: {error}",
+      "unknownError": "Eroare necunoscută"
+    }
   },
   "admin": {
     "title": "Setări Administrator",

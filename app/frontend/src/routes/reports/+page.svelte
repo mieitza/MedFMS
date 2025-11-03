@@ -457,7 +457,7 @@
                 </div>
                 <div class="flex justify-between">
                   <span class="text-sm text-gray-600">{$_('maintenance.reports.maintenance.avgCostPerWorkOrder')}</span>
-                  <span class="text-sm font-medium">${(currentReportData.avgCostPerWorkOrder || 0).toFixed(2)}</span>
+                  <span class="text-sm font-medium">{(currentReportData.avgCostPerWorkOrder || 0).toFixed(2)} RON</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-sm text-gray-600">{$_('maintenance.reports.maintenance.totalMaintenanceRecords')}</span>
@@ -520,11 +520,11 @@
               <div class="space-y-4">
                 <div class="flex justify-between">
                   <span class="text-sm text-gray-600">{$_('maintenance.reports.costs.totalMaintenanceCost')}</span>
-                  <span class="text-sm font-medium">${(currentReportData.totalMaintenanceCost || 0).toFixed(2)}</span>
+                  <span class="text-sm font-medium">{(currentReportData.totalMaintenanceCost || 0).toFixed(2)} RON</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-sm text-gray-600">{$_('maintenance.reports.costs.avgCostPerVehicle')}</span>
-                  <span class="text-sm font-medium">${(currentReportData.avgCostPerVehicle || 0).toFixed(2)}</span>
+                  <span class="text-sm font-medium">{(currentReportData.avgCostPerVehicle || 0).toFixed(2)} RON</span>
                 </div>
               </div>
             </div>
@@ -537,7 +537,7 @@
                   {#each currentReportData.highestCostVehicles as [vehicle, cost]}
                     <div class="flex justify-between items-center">
                       <span class="text-sm font-medium text-gray-600">{vehicle}</span>
-                      <span class="text-sm font-bold text-gray-900">${cost.toFixed(2)}</span>
+                      <span class="text-sm font-bold text-gray-900">{cost.toFixed(2)} RON</span>
                     </div>
                   {/each}
                 </div>

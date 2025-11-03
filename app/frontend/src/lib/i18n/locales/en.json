@@ -54,7 +54,71 @@
     "reportsAnalytics": "Reports & Analytics",
     "reportsAnalyticsDesc": "Generate reports and analyze fleet performance",
     "adminSettings": "Admin Settings",
-    "adminSettingsDesc": "Manage system reference data, configurations, and settings"
+    "adminSettingsDesc": "Manage system reference data, configurations, and settings",
+    "dataImport": "Data Import",
+    "dataImportDesc": "Import data from external sources such as UTA fuel card exports"
+  },
+  "dataImport": {
+    "title": "Data Import",
+    "pageTitle": "UTA Fuel Card Import - MedFMS",
+    "utaImportTitle": "Import UTA Fuel Card Data",
+    "backToFuel": "Back to Fuel",
+    "breadcrumbs": {
+      "dashboard": "Dashboard",
+      "fuel": "Fuel",
+      "utaImport": "UTA Import"
+    },
+    "upload": {
+      "title": "Upload Section",
+      "description": "Upload UTA Excel export file to import fuel transactions. The file should contain invoice date, delivery date, vehicle registration, fuel type, quantity, and cost information.",
+      "selectFile": "Select Excel File",
+      "selectedFile": "Selected:",
+      "fileSize": "KB",
+      "invalidFileType": "Please select an Excel file (.xlsx or .xls)",
+      "parseError": "Failed to parse Excel file. Please check the file format."
+    },
+    "preview": {
+      "title": "Data Preview",
+      "showingCount": "Showing first 10 of {count} transactions",
+      "table": {
+        "date": "Date",
+        "vehicle": "Vehicle",
+        "station": "Station",
+        "product": "Product",
+        "quantity": "Quantity",
+        "amount": "Amount"
+      }
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "importing": "Importing...",
+      "importTransactions": "Import {count} Transactions"
+    },
+    "results": {
+      "title": "Import Results",
+      "successful": "Successful",
+      "failed": "Failed",
+      "batchId": "Batch ID",
+      "errors": "Errors ({count})"
+    },
+    "history": {
+      "title": "Import History",
+      "loading": "Loading history...",
+      "noHistory": "No import history available",
+      "table": {
+        "batchId": "Batch ID",
+        "importDate": "Import Date",
+        "transactions": "Transactions",
+        "totalAmount": "Total Amount"
+      }
+    },
+    "messages": {
+      "noData": "No data to import",
+      "confirmImport": "Import {count} transactions?",
+      "importSuccess": "Import completed successfully",
+      "importFailed": "Import failed: {error}",
+      "unknownError": "Unknown error"
+    }
   },
   "admin": {
     "title": "Admin Settings",

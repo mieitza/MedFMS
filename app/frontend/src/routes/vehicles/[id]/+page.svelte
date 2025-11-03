@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api';
+	import { _ } from '$lib/i18n';
 	import Modal from '$lib/components/Modal.svelte';
 	import VehicleForm from '$lib/components/VehicleForm.svelte';
 	import DocumentManager from '$lib/components/DocumentManager.svelte';
@@ -22,6 +23,7 @@
 	let locations = [];
 	let departments = [];
 	let drivers = [];
+	let dropdownDataLoaded = false;
 
 	// Maintenance history data
 	let maintenanceHistory = [];
@@ -29,6 +31,7 @@
 	let maintenanceError = null;
 
 	$: vehicleId = $page.params.id;
+	$: dataReady = vehicle && dropdownDataLoaded;
 
 	onMount(async () => {
 		// Check authentication
@@ -38,8 +41,10 @@
 			return;
 		}
 
-		await loadVehicle();
-		await loadDropdownData();
+		await Promise.all([
+			loadVehicle(),
+			loadDropdownData()
+		]);
 		await loadMaintenanceHistory();
 	});
 
@@ -51,7 +56,7 @@
 			vehicle = response.data;
 		} catch (err) {
 			console.error('Failed to load vehicle:', err);
-			error = 'Failed to load vehicle details';
+			error = $_('vehicles.messages.loadFailed');
 		} finally {
 			loading = false;
 		}
@@ -87,8 +92,10 @@
 			locations = locationsResponse.data || [];
 			departments = departmentsResponse.data || [];
 			drivers = driversResponse.data || [];
+			dropdownDataLoaded = true;
 		} catch (error) {
 			console.error('Failed to load dropdown data:', error);
+			dropdownDataLoaded = true; // Set to true even on error to unblock UI
 		}
 	}
 
@@ -103,7 +110,7 @@
 			maintenanceHistory = response.data || [];
 		} catch (error) {
 			console.error('Failed to load maintenance history:', error);
-			maintenanceError = 'Failed to load maintenance history';
+			maintenanceError = $_('vehicles.messages.loadFailed');
 			maintenanceHistory = [];
 		} finally {
 			maintenanceLoading = false;
@@ -115,7 +122,7 @@
 	}
 
 	function handleDelete() {
-		if (confirm(`Are you sure you want to delete vehicle ${vehicle.licensePlate}?`)) {
+		if (confirm($_('vehicles.messages.deleteConfirm', { values: { licensePlate: vehicle.licensePlate } }))) {
 			deleteVehicle();
 		}
 	}
@@ -126,7 +133,7 @@
 			goto('/vehicles');
 		} catch (error) {
 			console.error('Failed to delete vehicle:', error);
-			alert('Failed to delete vehicle. Please try again.');
+			alert($_('vehicles.messages.deleteFailed'));
 		}
 	}
 
@@ -146,45 +153,45 @@
 
 	function getBrandName(brandId) {
 		const brand = brands.find(b => b.id === brandId);
-		return brand?.brandName || 'Unknown';
+		return brand?.brandName || $_('vehicles.unknown');
 	}
 
 	function getModelName(modelId) {
 		const model = models.find(m => m.id === modelId);
-		return model?.modelName || 'Unknown';
+		return model?.modelName || $_('vehicles.unknown');
 	}
 
 	function getStatusName(statusId) {
 		const status = vehicleStatuses.find(s => s.id === statusId);
-		return status?.statusName || 'Unknown';
+		return status?.statusName || $_('vehicles.unknown');
 	}
 
 	function getFuelTypeName(fuelTypeId) {
 		const fuelType = fuelTypes.find(f => f.id === fuelTypeId);
-		return fuelType?.fuelName || 'Unknown';
+		return fuelType?.fuelName || $_('vehicles.unknown');
 	}
 
 	function getVehicleTypeName(vehicleTypeId) {
 		const vehicleType = vehicleTypes.find(v => v.id === vehicleTypeId);
-		return vehicleType?.typeName || 'Unknown';
+		return vehicleType?.typeName || $_('vehicles.unknown');
 	}
 
 	function getLocationName(locationId) {
-		if (!locationId) return 'Not assigned';
+		if (!locationId) return $_('vehicles.notAssigned');
 		const location = locations.find(l => l.id === locationId);
-		return location?.locationName || 'Unknown';
+		return location?.locationName || $_('vehicles.unknown');
 	}
 
 	function getDepartmentName(departmentId) {
-		if (!departmentId) return 'Not assigned';
+		if (!departmentId) return $_('vehicles.notAssigned');
 		const department = departments.find(d => d.id === departmentId);
-		return department?.departmentName || 'Unknown';
+		return department?.departmentName || $_('vehicles.unknown');
 	}
 
 	function getDriverName(driverId) {
-		if (!driverId) return 'Not assigned';
+		if (!driverId) return $_('vehicles.notAssigned');
 		const driver = drivers.find(d => d.id === driverId);
-		return driver?.fullName || 'Unknown';
+		return driver?.fullName || $_('vehicles.unknown');
 	}
 
 	function getStatusColor(statusId) {
@@ -203,7 +210,7 @@
 </script>
 
 <svelte:head>
-	<title>{vehicle ? `${vehicle.licensePlate} - Vehicle Details` : 'Vehicle Details'} - MedFMS</title>
+	<title>{vehicle ? `${vehicle.licensePlate} - ${$_('vehicles.vehicleDetails')}` : $_('vehicles.vehicleDetails')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -212,15 +219,15 @@
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="flex justify-between items-center h-16">
 				<div class="flex items-center">
-					<a href="/dashboard" class="text-2xl font-bold text-primary-900">MedFMS</a>
+					<a href="/dashboard" class="text-2xl font-bold text-primary-900">{$_('common.appName')}</a>
 					<nav class="ml-8">
 						<ol class="flex items-center space-x-2 text-sm">
-							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</a></li>
+							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li><a href="/vehicles" class="text-gray-500 hover:text-gray-700">Vehicles</a></li>
+							<li><a href="/vehicles" class="text-gray-500 hover:text-gray-700">{$_('vehicles.title')}</a></li>
 							<li class="text-gray-500">/</li>
 							<li class="text-gray-900 font-medium">
-								{vehicle?.licensePlate || 'Vehicle Details'}
+								{vehicle?.licensePlate || $_('vehicles.vehicleDetails')}
 							</li>
 						</ol>
 					</nav>
@@ -234,7 +241,7 @@
 							<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
 							</svg>
-							Edit Vehicle
+							{$_('vehicles.editVehicle')}
 						</button>
 						<button
 							on:click={handleDelete}
@@ -243,7 +250,7 @@
 							<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
 							</svg>
-							Delete Vehicle
+							{$_('vehicles.deleteVehicle')}
 						</button>
 					</div>
 				{/if}
@@ -253,7 +260,7 @@
 
 	<!-- Main Content -->
 	<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-		{#if loading}
+		{#if loading || !dropdownDataLoaded}
 			<div class="flex items-center justify-center h-64">
 				<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
 			</div>
@@ -269,7 +276,7 @@
 					</div>
 				</div>
 			</div>
-		{:else if vehicle}
+		{:else if dataReady}
 			<!-- Vehicle Details -->
 			<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
 				<!-- Vehicle Header -->
@@ -283,7 +290,7 @@
 								{getBrandName(vehicle.brandId)} {getModelName(vehicle.modelId)} ({vehicle.year})
 							</p>
 							<p class="text-sm text-gray-500 mt-2">
-								Vehicle Code: {vehicle.vehicleCode}
+								{$_('vehicles.vehicleCode')}: {vehicle.vehicleCode}
 							</p>
 						</div>
 						<div class="text-right">
@@ -300,25 +307,25 @@
 						<!-- Basic Information -->
 						<div class="space-y-4">
 							<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-								Basic Information
+								{$_('vehicles.sections.basicInfo')}
 							</h3>
 							<div class="space-y-3">
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Vehicle Type</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('vehicles.vehicleType')}</label>
 									<p class="mt-1 text-sm text-gray-900">{getVehicleTypeName(vehicle.vehicleTypeId)}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Fuel Type</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('vehicles.fuelType')}</label>
 									<p class="mt-1 text-sm text-gray-900">{getFuelTypeName(vehicle.fuelTypeId)}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Year</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('vehicles.year')}</label>
 									<p class="mt-1 text-sm text-gray-900">{vehicle.year}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Odometer</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('vehicles.odometer')}</label>
 									<p class="mt-1 text-sm text-gray-900">
-										{vehicle.odometer ? `${vehicle.odometer.toLocaleString()} km` : 'Not recorded'}
+										{vehicle.odometer ? `${vehicle.odometer.toLocaleString()} km` : $_('vehicles.notRecorded')}
 									</p>
 								</div>
 							</div>
@@ -327,19 +334,19 @@
 						<!-- Assignment Information -->
 						<div class="space-y-4">
 							<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-								Assignment
+								{$_('vehicles.sections.assignmentInfo')}
 							</h3>
 							<div class="space-y-3">
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Assigned Driver</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('vehicles.assignedDriver')}</label>
 									<p class="mt-1 text-sm text-gray-900">{getDriverName(vehicle.driverId)}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Location</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('vehicles.location')}</label>
 									<p class="mt-1 text-sm text-gray-900">{getLocationName(vehicle.locationId)}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Department</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('users.department')}</label>
 									<p class="mt-1 text-sm text-gray-900">{getDepartmentName(vehicle.departmentId)}</p>
 								</div>
 							</div>
@@ -348,24 +355,24 @@
 						<!-- Additional Information -->
 						<div class="space-y-4">
 							<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-								Additional Information
+								{$_('vehicles.sections.purchaseInfo')}
 							</h3>
 							<div class="space-y-3">
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Created</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('vehicles.created')}</label>
 									<p class="mt-1 text-sm text-gray-900">
 										{new Date(vehicle.createdAt).toLocaleDateString()}
 									</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">Last Updated</label>
+									<label class="block text-sm font-medium text-gray-500">{$_('vehicles.lastUpdated')}</label>
 									<p class="mt-1 text-sm text-gray-900">
 										{new Date(vehicle.updatedAt).toLocaleDateString()}
 									</p>
 								</div>
 								{#if vehicle.description}
 									<div>
-										<label class="block text-sm font-medium text-gray-500">Description</label>
+										<label class="block text-sm font-medium text-gray-500">{$_('vehicles.description')}</label>
 										<p class="mt-1 text-sm text-gray-900">{vehicle.description}</p>
 									</div>
 								{/if}
@@ -381,14 +388,14 @@
 				<PhotoManager
 					entityType="vehicle"
 					entityId={vehicle.id}
-					title="Vehicle Photos"
+					title={$_('vehicles.vehiclePhotos')}
 				/>
 
 				<!-- Documents -->
 				<DocumentManager
 					entityType="vehicle"
 					entityId={vehicle.id}
-					title="Vehicle Documents"
+					title={$_('vehicles.vehicleDocuments')}
 				/>
 			</div>
 
@@ -396,16 +403,16 @@
 			<div class="mt-8">
 				<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
 					<div class="flex justify-between items-center mb-4">
-						<h3 class="text-lg font-semibold text-gray-900">Maintenance History</h3>
+						<h3 class="text-lg font-semibold text-gray-900">{$_('vehicles.maintenanceHistory')}</h3>
 						<a href="/maintenance/work-orders?vehicleId={vehicle.id}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-							View All
+							{$_('vehicles.viewAll')}
 						</a>
 					</div>
 
 					{#if maintenanceLoading}
 						<div class="text-center py-8">
 							<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-							<p class="mt-2 text-sm text-gray-500">Loading maintenance history...</p>
+							<p class="mt-2 text-sm text-gray-500">{$_('vehicles.loadingMaintenanceHistory')}</p>
 						</div>
 					{:else if maintenanceError}
 						<div class="text-center py-8 text-red-500">
@@ -419,7 +426,7 @@
 							<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
 							</svg>
-							<p class="mt-2">No maintenance history found for this vehicle</p>
+							<p class="mt-2">{$_('vehicles.noMaintenanceHistory')}</p>
 						</div>
 					{:else}
 						<div class="space-y-4">
@@ -429,27 +436,27 @@
 										<div class="flex-1">
 											<div class="flex items-center space-x-2 mb-2">
 												<h4 class="font-medium text-gray-900">
-													{record.history?.workPerformed || record.maintenanceType?.typeName || 'Maintenance Work'}
+													{record.history?.workPerformed || record.maintenanceType?.typeName || $_('vehicles.maintenanceWork')}
 												</h4>
 												<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-													Completed
+													{$_('vehicles.completed')}
 												</span>
 											</div>
 											<p class="text-sm text-gray-600 mb-2">
-												{record.maintenanceType?.typeName || 'General Maintenance'}
+												{record.maintenanceType?.typeName || $_('vehicles.generalMaintenance')}
 											</p>
 											<div class="flex items-center space-x-4 text-xs text-gray-500">
 												{#if record.history?.workOrderId}
 													<span>WO ID: {record.history.workOrderId}</span>
 												{/if}
 												{#if record.history?.maintenanceDate}
-													<span>Date: {new Date(record.history.maintenanceDate).toLocaleDateString()}</span>
+													<span>{$_('vehicles.date')}: {new Date(record.history.maintenanceDate).toLocaleDateString()}</span>
 												{/if}
 												{#if record.history?.totalCost}
-													<span>Cost: ${parseFloat(record.history.totalCost).toFixed(2)}</span>
+													<span>{$_('vehicles.cost')}: {parseFloat(record.history.totalCost).toFixed(2)} RON</span>
 												{/if}
 												{#if record.history?.odometerReading}
-													<span>Odometer: {record.history.odometerReading} km</span>
+													<span>{$_('vehicles.odometer')}: {record.history.odometerReading} km</span>
 												{/if}
 											</div>
 										</div>
@@ -459,10 +466,10 @@
 													href="/maintenance/work-orders/{record.history.workOrderId}"
 													class="text-blue-600 hover:text-blue-800 text-sm font-medium"
 												>
-													View Details
+													{$_('vehicles.viewDetails')}
 												</a>
 											{:else}
-												<span class="text-gray-400 text-sm">History Record</span>
+												<span class="text-gray-400 text-sm">{$_('vehicles.historyRecord')}</span>
 											{/if}
 										</div>
 									</div>
@@ -477,11 +484,11 @@
 				<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
 				</svg>
-				<h3 class="mt-2 text-sm font-medium text-gray-900">Vehicle not found</h3>
-				<p class="mt-1 text-sm text-gray-500">The requested vehicle could not be found.</p>
+				<h3 class="mt-2 text-sm font-medium text-gray-900">{$_('vehicles.vehicleNotFound')}</h3>
+				<p class="mt-1 text-sm text-gray-500">{$_('vehicles.vehicleNotFoundDesc')}</p>
 				<div class="mt-6">
 					<a href="/vehicles" class="btn btn-primary">
-						Back to Vehicles
+						{$_('vehicles.backToVehicles')}
 					</a>
 				</div>
 			</div>
@@ -493,7 +500,7 @@
 {#if vehicle}
 	<Modal
 		open={showEditModal}
-		title="Edit Vehicle"
+		title={$_('vehicles.editVehicle')}
 		size="xl"
 		on:close={handleFormCancel}
 	>
