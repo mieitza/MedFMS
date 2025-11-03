@@ -388,6 +388,7 @@
     "approved": "Aprobat",
     "pending": "În Așteptare",
     "approve": "Aprobă",
+    "approveAll": "Aprobă Toate",
     "revoke": "Revocă",
     "types": {
       "purchase": "Achiziție",
@@ -424,9 +425,61 @@
       "revokeFailed": "Revocarea aprobării a eșuat",
       "createSuccess": "Tranzacție creată cu succes",
       "createFailed": "Crearea tranzacției de combustibil a eșuat. Încercați din nou.",
-      "loadFailed": "Încărcarea tranzacțiilor de combustibil a eșuat"
+      "loadFailed": "Încărcarea tranzacțiilor de combustibil a eșuat",
+      "noPendingTransactions": "Nu există tranzacții în așteptare pentru aprobare",
+      "approveAllConfirm": "Sigur doriți să aprobați {count} tranzacții în așteptare?",
+      "approvingInProgress": "Se aprobă {count} tranzacții... Vă rugăm așteptați.",
+      "approveAllResult": "Aprobare în masă finalizată: {success} reușite, {fail} eșuate"
     },
-    "createTransaction": "Creează Tranzacție"
+    "createTransaction": "Creează Tranzacție",
+    "reports": {
+      "title": "Analiză Combustibil",
+      "pageTitle": "Analiză Combustibil - MedFMS",
+      "exportReport": "Exportă Raport",
+      "backToFuel": "Înapoi la Combustibil",
+      "allVehicles": "Toate Vehiculele",
+      "analysisFor": "Analiză Combustibil pentru",
+      "totalTransactions": "Total Tranzacții",
+      "noData": "Nu există date disponibile",
+      "noTransactions": "Nu s-au găsit tranzacții",
+      "noTransactionsDesc": "Nu s-au găsit tranzacții de combustibil pentru criteriile selectate.",
+      "configuration": {
+        "title": "Configurare Raport",
+        "vehicle": "Vehicul",
+        "dateRange": "Interval Date",
+        "startDate": "Data Început",
+        "endDate": "Data Sfârșit"
+      },
+      "dateRanges": {
+        "last7Days": "Ultimele 7 zile",
+        "last30Days": "Ultimele 30 zile",
+        "last90Days": "Ultimele 90 zile",
+        "lastYear": "Ultimul an",
+        "customRange": "Interval personalizat"
+      },
+      "metrics": {
+        "totalFuel": "Total Combustibil",
+        "totalCost": "Cost Total",
+        "avgPrice": "Preț Mediu",
+        "efficiency": "Eficiență Combustibil",
+        "avgConsumption": "Consum Mediu",
+        "perTransaction": "Per tranzacție",
+        "costPerKm": "Cost pe km",
+        "avgCostDistance": "Cost mediu pe kilometru",
+        "transactions": "Tranzacții",
+        "approvedOnly": "Doar aprobate"
+      },
+      "charts": {
+        "fuelByMonth": "Consum Combustibil pe Lună",
+        "costByMonth": "Cost Combustibil pe Lună",
+        "transactionsByType": "Tranzacții după Tip",
+        "topExpensive": "Top 10 Tranzacții Costisitoare",
+        "efficiencyTrend": "Tendință Eficiență Combustibil"
+      },
+      "messages": {
+        "exportNotImplemented": "Funcționalitatea de export în curând"
+      }
+    }
   },
   "materials": {
     "title": "Materiale și Inventar",

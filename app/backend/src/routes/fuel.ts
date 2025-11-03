@@ -193,6 +193,11 @@ router.get('/transactions', authorize('admin', 'manager', 'operator'), async (re
         fullName: drivers.fullName,
         driverCode: drivers.driverCode
       },
+      fuelType: {
+        id: fuelTypes.id,
+        fuelCode: fuelTypes.fuelCode,
+        fuelName: fuelTypes.fuelName
+      },
       station: {
         id: fuelStations.id,
         stationName: fuelStations.stationName
@@ -201,6 +206,7 @@ router.get('/transactions', authorize('admin', 'manager', 'operator'), async (re
     .from(fuelTransactions)
     .leftJoin(vehicles, eq(fuelTransactions.vehicleId, vehicles.id))
     .leftJoin(drivers, eq(fuelTransactions.driverId, drivers.id))
+    .leftJoin(fuelTypes, eq(fuelTransactions.fuelTypeId, fuelTypes.id))
     .leftJoin(fuelStations, eq(fuelTransactions.locationId, fuelStations.id));
 
     // Apply filters

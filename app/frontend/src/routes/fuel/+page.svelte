@@ -175,6 +175,7 @@
 
 		await loadTransactions();
 		await loadDropdownData();
+		await loadTotalPendingCount();
 	});
 
 	async function loadTransactions() {
@@ -245,6 +246,7 @@
 			if (response.success) {
 				alert(response.message || $_('fuel.messages.approveSuccess'));
 				await loadTransactions();
+				await loadTotalPendingCount();
 			}
 		} catch (error) {
 			console.error('Error approving transaction:', error);
@@ -260,12 +262,87 @@
 			if (response.success) {
 				alert(response.message || $_('fuel.messages.revokeSuccess'));
 				await loadTransactions();
+				await loadTotalPendingCount();
 			}
 		} catch (error) {
 			console.error('Error rejecting transaction:', error);
 			alert($_('fuel.messages.revokeFailed'));
 		}
 	}
+
+	async function approveAllPending() {
+		// Fetch ALL pending transactions from the database
+		try {
+			const response = await api.getFuelTransactions({
+				limit: 10000, // Large limit to get all transactions
+				approved: false // Filter for only unapproved transactions
+			});
+
+			const pendingTransactions = (response.data || []).filter(t => !t.approved);
+
+			if (pendingTransactions.length === 0) {
+				alert($_('fuel.messages.noPendingTransactions'));
+				return;
+			}
+
+			const confirmMessage = $_('fuel.messages.approveAllConfirm').replace('{count}', pendingTransactions.length);
+			if (!confirm(confirmMessage)) return;
+
+			let successCount = 0;
+			let failCount = 0;
+
+			// Show progress
+			alert($_('fuel.messages.approvingInProgress').replace('{count}', pendingTransactions.length));
+
+			for (const transaction of pendingTransactions) {
+				try {
+					const response = await api.approveFuelTransaction(transaction.id);
+					if (response.success) {
+						successCount++;
+					} else {
+						failCount++;
+					}
+				} catch (error) {
+					console.error(`Error approving transaction ${transaction.id}:`, error);
+					failCount++;
+				}
+			}
+
+			const resultMessage = $_('fuel.messages.approveAllResult')
+				.replace('{success}', successCount)
+				.replace('{fail}', failCount);
+			alert(resultMessage);
+
+			await loadTransactions();
+			await loadTotalPendingCount();
+		} catch (error) {
+			console.error('Error fetching pending transactions:', error);
+			alert($_('fuel.messages.loadFailed'));
+		}
+	}
+
+	// Computed properties
+	$: user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
+	$: canApprove = user.role === 'admin' || user.role === 'manager';
+
+	// Track total pending count across all pages
+	let totalPendingCount = 0;
+
+	// Load total pending count when page loads
+	async function loadTotalPendingCount() {
+		try {
+			const response = await api.getFuelTransactions({
+				limit: 1,
+				approved: false
+			});
+			totalPendingCount = response.pagination?.total || 0;
+		} catch (error) {
+			console.error('Failed to load pending count:', error);
+			totalPendingCount = 0;
+		}
+	}
+
+	$: pendingCount = totalPendingCount;
 
 	// Expose functions to window for onclick handlers
 	if (typeof window !== 'undefined') {
@@ -353,6 +430,26 @@
 					</nav>
 				</div>
 				<div class="flex items-center space-x-4">
+					<a
+						href="/fuel/reports"
+						class="btn btn-secondary"
+					>
+						<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+						</svg>
+						{$_('fuel.reports.title')}
+					</a>
+					{#if canApprove && pendingCount > 0}
+						<button
+							on:click={approveAllPending}
+							class="btn btn-success"
+						>
+							<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+							</svg>
+							{$_('fuel.approveAll')} ({pendingCount})
+						</button>
+					{/if}
 					<button
 						on:click={handleAddTransaction}
 						class="btn btn-primary"

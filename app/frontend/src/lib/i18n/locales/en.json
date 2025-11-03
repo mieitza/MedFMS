@@ -388,6 +388,7 @@
     "approved": "Approved",
     "pending": "Pending",
     "approve": "Approve",
+    "approveAll": "Approve All",
     "revoke": "Revoke",
     "types": {
       "purchase": "Purchase",
@@ -424,9 +425,61 @@
       "revokeFailed": "Failed to revoke approval",
       "createSuccess": "Transaction created successfully",
       "createFailed": "Failed to create fuel transaction. Please try again.",
-      "loadFailed": "Failed to load fuel transactions"
+      "loadFailed": "Failed to load fuel transactions",
+      "noPendingTransactions": "No pending transactions to approve",
+      "approveAllConfirm": "Are you sure you want to approve {count} pending transactions?",
+      "approvingInProgress": "Approving {count} transactions... Please wait.",
+      "approveAllResult": "Bulk approval complete: {success} succeeded, {fail} failed"
     },
-    "createTransaction": "Create Transaction"
+    "createTransaction": "Create Transaction",
+    "reports": {
+      "title": "Fuel Analysis",
+      "pageTitle": "Fuel Analysis - MedFMS",
+      "exportReport": "Export Report",
+      "backToFuel": "Back to Fuel",
+      "allVehicles": "All Vehicles",
+      "analysisFor": "Fuel Analysis for",
+      "totalTransactions": "Total Transactions",
+      "noData": "No data available",
+      "noTransactions": "No transactions found",
+      "noTransactionsDesc": "No fuel transactions found for the selected criteria.",
+      "configuration": {
+        "title": "Report Configuration",
+        "vehicle": "Vehicle",
+        "dateRange": "Date Range",
+        "startDate": "Start Date",
+        "endDate": "End Date"
+      },
+      "dateRanges": {
+        "last7Days": "Last 7 days",
+        "last30Days": "Last 30 days",
+        "last90Days": "Last 90 days",
+        "lastYear": "Last year",
+        "customRange": "Custom range"
+      },
+      "metrics": {
+        "totalFuel": "Total Fuel",
+        "totalCost": "Total Cost",
+        "avgPrice": "Avg Price",
+        "efficiency": "Fuel Efficiency",
+        "avgConsumption": "Avg Consumption",
+        "perTransaction": "Per transaction",
+        "costPerKm": "Cost per km",
+        "avgCostDistance": "Average cost per kilometer",
+        "transactions": "Transactions",
+        "approvedOnly": "Approved only"
+      },
+      "charts": {
+        "fuelByMonth": "Fuel Consumption by Month",
+        "costByMonth": "Fuel Cost by Month",
+        "transactionsByType": "Transactions by Type",
+        "topExpensive": "Top 10 Expensive Transactions",
+        "efficiencyTrend": "Fuel Efficiency Trend"
+      },
+      "messages": {
+        "exportNotImplemented": "Export functionality coming soon"
+      }
+    }
   },
   "materials": {
     "title": "Materials & Inventory",
