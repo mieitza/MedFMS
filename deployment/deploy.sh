@@ -114,7 +114,17 @@ fi
 # Install all dependencies from root (handles workspaces)
 log_step "Installing dependencies..."
 cd "$APP_DIR"
+
+# Clean install from root
 npm ci
+
+# Ensure workspace dependencies are properly linked
+log_info "Verifying workspace dependencies..."
+cd "$APP_DIR/app/backend"
+npm install --include=dev
+
+cd "$APP_DIR/app/frontend"
+npm install --include=dev
 
 # Build frontend (backend will run with tsx, no build needed)
 log_step "Building frontend..."
