@@ -151,12 +151,12 @@ export DATABASE_PATH="$APP_DIR/data/db/database.sqlite"
 # Run database migrations
 log_step "Running database migrations..."
 cd "$APP_DIR/app/backend"
-npm run db:push || log_warn "Database migration had warnings (this may be normal)"
+npm run db:migrate || log_warn "Database migration had warnings (this may be normal)"
 
 # Setup PM2 ecosystem file if not exists
-if [ ! -f "$APP_DIR/ecosystem.config.js" ]; then
+if [ ! -f "$APP_DIR/ecosystem.config.cjs" ]; then
     log_info "Creating PM2 ecosystem configuration..."
-    cp "$APP_DIR/deployment/ecosystem.config.js" "$APP_DIR/ecosystem.config.js"
+    cp "$APP_DIR/deployment/ecosystem.config.cjs" "$APP_DIR/ecosystem.config.cjs"
 fi
 
 # Restart/Start application with PM2
@@ -168,7 +168,7 @@ if pm2 describe medfms-backend > /dev/null 2>&1; then
     pm2 restart medfms-backend
 else
     log_info "Starting backend for the first time..."
-    pm2 start ecosystem.config.js --only medfms-backend
+    pm2 start ecosystem.config.cjs --only medfms-backend
 fi
 
 if pm2 describe medfms-frontend > /dev/null 2>&1; then
@@ -176,7 +176,7 @@ if pm2 describe medfms-frontend > /dev/null 2>&1; then
     pm2 restart medfms-frontend
 else
     log_info "Starting frontend for the first time..."
-    pm2 start ecosystem.config.js --only medfms-frontend
+    pm2 start ecosystem.config.cjs --only medfms-frontend
 fi
 
 # Save PM2 configuration

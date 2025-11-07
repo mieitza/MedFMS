@@ -152,7 +152,7 @@ Internet → nginx (443) → SvelteKit Frontend (5173)
 ├── data/
 │   └── db/                # SQLite database
 ├── deployment/            # Deployment scripts
-└── ecosystem.config.js    # PM2 configuration
+└── ecosystem.config.cjs   # PM2 configuration
 
 /var/log/medfms/           # Application logs
 /var/backups/medfms/       # Database backups

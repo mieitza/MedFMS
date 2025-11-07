@@ -248,7 +248,7 @@ PM2 manages two processes:
 1. **medfms-backend** - Express API server (port 3000)
 2. **medfms-frontend** - SvelteKit app (port 5173)
 
-Configuration is in `deployment/ecosystem.config.js`.
+Configuration is in `deployment/ecosystem.config.cjs`.
 
 ## Deployment
 
