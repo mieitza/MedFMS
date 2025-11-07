@@ -114,11 +114,15 @@ fi
 # Install backend dependencies
 log_step "Installing backend dependencies..."
 cd "$APP_DIR/app/backend"
-npm ci --production
+npm ci
 
 # Build backend
 log_info "Building backend..."
 npm run build
+
+# Remove devDependencies after build (optional, saves space)
+log_info "Removing devDependencies..."
+npm prune --production
 
 # Install frontend dependencies
 log_step "Installing frontend dependencies..."
