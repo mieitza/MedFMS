@@ -81,6 +81,11 @@ app.use('/', authRoutes);
 // API routes
 app.use('/api', router);
 
+// Health check endpoint - MUST be before the catch-all frontend route!
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Serve SvelteKit frontend in production
 if (process.env.NODE_ENV === 'production') {
   const frontendPath = join(__dirname, '../../frontend/build');
@@ -89,11 +94,6 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(join(frontendPath, 'index.html'));
   });
 }
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
 
 // Error handling
 app.use(errorHandler);
