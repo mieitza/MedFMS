@@ -618,7 +618,8 @@ export const api = {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to approve fuel transaction');
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Failed to approve fuel transaction');
     }
 
     return response.json();
@@ -631,7 +632,8 @@ export const api = {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to reject fuel transaction');
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Failed to reject fuel transaction');
     }
 
     return response.json();
