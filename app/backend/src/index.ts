@@ -25,8 +25,9 @@ const HOST = process.env.SERVER_HOST || 'localhost';
 
 // Trust proxy when behind nginx/reverse proxy
 // This is needed for rate limiting and proper IP detection
+// Trust only loopback (localhost) - nginx is on the same machine
 if (process.env.NODE_ENV === 'production') {
-  app.set('trust proxy', true);
+  app.set('trust proxy', 'loopback');
 }
 
 // Initialize database
