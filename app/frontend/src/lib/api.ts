@@ -92,6 +92,21 @@ export const api = {
     return response.json();
   },
 
+  // Generic POST helper
+  async post(endpoint: string, data?: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: data ? JSON.stringify(data) : undefined,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to post to ${endpoint}`);
+    }
+
+    return response.json();
+  },
+
   // Vehicles API
   async getVehicles(params: {
     page?: number;
