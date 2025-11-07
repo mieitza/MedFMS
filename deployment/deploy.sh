@@ -186,27 +186,64 @@ pm2 save
 if [ ! -z "$DOMAIN" ]; then
     log_step "Configuring nginx..."
 
-    # Generate nginx config from template
-    sed "s/{{DOMAIN}}/$DOMAIN/g" "$APP_DIR/deployment/nginx.conf" | \
-    sed "s|{{APP_DIR}}|$APP_DIR|g" | \
-    sudo tee /etc/nginx/sites-available/medfms > /dev/null
+    # Check if SSL certificates already exist
+    if [ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
+        log_info "SSL certificates already exist, using full HTTPS config"
+        # Generate full nginx config with HTTPS
+        sed "s/{{DOMAIN}}/$DOMAIN/g" "$APP_DIR/deployment/nginx.conf" | \
+        sed "s|{{APP_DIR}}|$APP_DIR|g" | \
+        sudo tee /etc/nginx/sites-available/medfms > /dev/null
+    else
+        log_info "SSL certificates not found, using HTTP-only config first"
+        # Generate HTTP-only nginx config for initial setup
+        sed "s/{{DOMAIN}}/$DOMAIN/g" "$APP_DIR/deployment/nginx-http-only.conf" | \
+        sed "s|{{APP_DIR}}|$APP_DIR|g" | \
+        sudo tee /etc/nginx/sites-available/medfms > /dev/null
+    fi
 
     # Enable site
     sudo ln -sf /etc/nginx/sites-available/medfms /etc/nginx/sites-enabled/medfms
 
     # Test nginx configuration
-    sudo nginx -t
+    if sudo nginx -t; then
+        # Reload nginx
+        sudo systemctl reload nginx
+        log_info "Nginx configured for domain: $DOMAIN"
+    else
+        log_error "Nginx configuration test failed"
+        exit 1
+    fi
 
-    # Reload nginx
-    sudo systemctl reload nginx
-
-    log_info "Nginx configured for domain: $DOMAIN"
-
-    # Setup SSL with Let's Encrypt if email is provided
-    if [ ! -z "$EMAIL" ]; then
+    # Setup SSL with Let's Encrypt if email is provided and certs don't exist
+    if [ ! -z "$EMAIL" ] && [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
         log_step "Setting up SSL certificate..."
-        sudo certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$EMAIL" || \
-            log_warn "SSL setup failed or certificate already exists"
+
+        # Create certbot webroot directory
+        sudo mkdir -p /var/www/certbot
+
+        # Run certbot
+        if sudo certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" --non-interactive --agree-tos -m "$EMAIL"; then
+            log_info "SSL certificate obtained successfully"
+
+            # Now switch to full HTTPS nginx config
+            log_info "Updating nginx to use HTTPS..."
+            sed "s/{{DOMAIN}}/$DOMAIN/g" "$APP_DIR/deployment/nginx.conf" | \
+            sed "s|{{APP_DIR}}|$APP_DIR|g" | \
+            sudo tee /etc/nginx/sites-available/medfms > /dev/null
+
+            # Test and reload nginx with HTTPS config
+            if sudo nginx -t; then
+                sudo systemctl reload nginx
+                log_info "Nginx configured with HTTPS"
+            else
+                log_error "Nginx HTTPS configuration test failed"
+                exit 1
+            fi
+        else
+            log_warn "SSL certificate setup failed. Application will run on HTTP only."
+        fi
+    elif [ ! -z "$EMAIL" ] && [ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
+        log_info "SSL certificates already exist, skipping certbot"
     fi
 fi
 

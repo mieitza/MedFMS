@@ -29,7 +29,7 @@ module.exports = {
       script: 'node',
       args: './app/frontend/build/index.js',
       instances: 1,
-      exec_mode: 'cluster',
+      exec_mode: 'fork',
       autorestart: true,
       watch: false,
       max_memory_restart: '300M',
@@ -44,9 +44,7 @@ module.exports = {
       time: true,
       merge_logs: true,
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-      kill_timeout: 3000,
-      wait_ready: true,
-      listen_timeout: 10000
+      kill_timeout: 3000
     }
   ],
 
