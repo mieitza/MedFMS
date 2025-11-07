@@ -2,9 +2,10 @@ module.exports = {
   apps: [
     {
       name: 'medfms-backend',
-      script: './app/backend/dist/index.js',
+      script: 'npx',
+      args: 'tsx ./app/backend/src/index.ts',
       instances: 1,
-      exec_mode: 'cluster',
+      exec_mode: 'fork',
       autorestart: true,
       watch: false,
       max_memory_restart: '500M',

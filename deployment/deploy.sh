@@ -116,24 +116,15 @@ log_step "Installing dependencies..."
 cd "$APP_DIR"
 npm ci
 
-# Build backend
-log_step "Building backend..."
-cd "$APP_DIR"
-npm run build:backend
-
-# Build frontend
+# Build frontend (backend will run with tsx, no build needed)
 log_step "Building frontend..."
 cd "$APP_DIR"
 npm run build:frontend
 
-# Remove devDependencies after build (optional, saves space)
-log_info "Removing devDependencies..."
-npm prune --production
-
-# Copy backend build to deployment location
-log_step "Setting up backend deployment..."
-if [ ! -d "$APP_DIR/app/backend/dist" ]; then
-    log_error "Backend build failed - dist directory not found"
+# Verify frontend build
+log_step "Verifying frontend build..."
+if [ ! -d "$APP_DIR/app/frontend/build" ]; then
+    log_error "Frontend build failed - build directory not found"
     exit 1
 fi
 
