@@ -12,6 +12,6 @@ export const rateLimiter = rateLimit({
 
 export const strictRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5, // Strict limit for sensitive operations
+  max: process.env.NODE_ENV === 'production' ? 5 : 50, // Higher limit in dev for testing
   message: 'Too many attempts, please try again later.',
 });
