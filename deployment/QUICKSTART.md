@@ -88,9 +88,27 @@ curl https://your-domain.com
 
 Access your application at: **https://your-domain.com**
 
-## Default Login
+## Creating the First Admin User
 
-After deployment, you'll need to create the first user (admin) through the UI.
+After deployment, you need to create the first admin user. You have two options:
+
+### Option 1: Use the create-admin script (Recommended)
+
+```bash
+# On the VM
+cd /var/www/medfms
+./deployment/create-admin.sh
+```
+
+The script will prompt you for:
+- Username
+- Email
+- Full Name
+- PIN (4-8 digits)
+
+### Option 2: Seed with development database
+
+See the "Database Seeding" section below.
 
 ## Quick Commands
 
