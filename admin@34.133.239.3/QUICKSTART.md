@@ -108,36 +108,6 @@ cd /var/www/medfms && ./deployment/deploy.sh
 cp /var/www/medfms/data/db/database.sqlite ~/backup_$(date +%Y%m%d).sqlite
 ```
 
-## Database Seeding (Optional)
-
-If you want to seed the production database with your development data:
-
-### On Your Local Machine:
-
-```bash
-# Export development database
-cd /path/to/MedFMS
-./deployment/export-dev-db.sh
-
-# This creates a backup in deployment/backups/
-
-# Upload to VM
-scp deployment/backups/dev_database_*.sqlite admin@your-vm-ip:/tmp/
-```
-
-### On the VM:
-
-```bash
-# Seed the database
-cd /var/www/medfms
-./deployment/seed-db.sh /tmp/dev_database_*.sqlite
-
-# Or use the latest backup from deployment/backups/
-./deployment/seed-db.sh latest
-```
-
-⚠️ **Warning**: This will replace the production database. Make sure you have a backup!
-
 ## Troubleshooting
 
 ### Application Not Starting
@@ -182,7 +152,7 @@ Internet → nginx (443) → SvelteKit Frontend (5173)
 ├── data/
 │   └── db/                # SQLite database
 ├── deployment/            # Deployment scripts
-└── ecosystem.config.cjs   # PM2 configuration
+└── ecosystem.config.js    # PM2 configuration
 
 /var/log/medfms/           # Application logs
 /var/backups/medfms/       # Database backups

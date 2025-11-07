@@ -66,3 +66,6 @@ public/uploads/
 data_eng/
 *.csv
 test-*.js
+
+# Deployment backups
+deployment/backups/
