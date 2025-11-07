@@ -1,4 +1,7 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+// Use relative URL in production, localhost in development
+const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+  ? '/api'  // Production: use relative URL (nginx will proxy)
+  : 'http://localhost:3000/api';  // Development: direct to backend
 
 interface LoginRequest {
   username: string;
