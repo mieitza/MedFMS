@@ -111,27 +111,24 @@ else
     fi
 fi
 
-# Install backend dependencies
-log_step "Installing backend dependencies..."
-cd "$APP_DIR/app/backend"
+# Install all dependencies from root (handles workspaces)
+log_step "Installing dependencies..."
+cd "$APP_DIR"
 npm ci
 
 # Build backend
-log_info "Building backend..."
-npm run build
+log_step "Building backend..."
+cd "$APP_DIR"
+npm run build:backend
+
+# Build frontend
+log_step "Building frontend..."
+cd "$APP_DIR"
+npm run build:frontend
 
 # Remove devDependencies after build (optional, saves space)
 log_info "Removing devDependencies..."
 npm prune --production
-
-# Install frontend dependencies
-log_step "Installing frontend dependencies..."
-cd "$APP_DIR/app/frontend"
-npm ci
-
-# Build frontend
-log_info "Building frontend..."
-npm run build
 
 # Copy backend build to deployment location
 log_step "Setting up backend deployment..."
