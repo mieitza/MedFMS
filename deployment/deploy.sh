@@ -41,8 +41,16 @@ log_step() {
 # Load environment variables if .env.production exists
 if [ -f "$APP_DIR/deployment/.env.production" ]; then
     log_info "Loading environment variables..."
+    # Use a safer method to load env file (grep to remove comments and empty lines)
     set -a
-    source "$APP_DIR/deployment/.env.production"
+    while IFS='=' read -r key value; do
+        # Skip comments and empty lines
+        if [[ ! "$key" =~ ^# && -n "$key" ]]; then
+            # Remove leading/trailing whitespace and quotes from value
+            value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+            export "$key=$value"
+        fi
+    done < <(grep -v '^[[:space:]]*#' "$APP_DIR/deployment/.env.production" | grep -v '^[[:space:]]*$')
     set +a
 fi
 
