@@ -122,16 +122,7 @@
       importing = true;
       importResult = null;
 
-      const response = await fetch('http://localhost:3000/api/fuel/import/uta', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ transactions: parsedData })
-      });
-
-      const result = await response.json();
+      const result = await api.post('/fuel/import/uta', { transactions: parsedData });
 
       if (result.success) {
         importResult = result;
