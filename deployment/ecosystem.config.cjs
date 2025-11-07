@@ -26,8 +26,7 @@ module.exports = {
     },
     {
       name: 'medfms-frontend',
-      script: 'node',
-      args: './app/frontend/build/index.js',
+      script: './app/frontend/build/index.js',
       instances: 1,
       exec_mode: 'fork',
       autorestart: true,
