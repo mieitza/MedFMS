@@ -23,6 +23,12 @@ const app = express();
 const PORT = process.env.SERVER_PORT || 3000;
 const HOST = process.env.SERVER_HOST || 'localhost';
 
+// Trust proxy when behind nginx/reverse proxy
+// This is needed for rate limiting and proper IP detection
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', true);
+}
+
 // Initialize database
 await initDatabase();
 
@@ -31,7 +37,11 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false
 }));
 app.use(cors({
-  origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:5173', 'http://localhost:4173'],
+  origin: process.env.CORS_ORIGINS?.split(',') || (
+    process.env.NODE_ENV === 'production'
+      ? [process.env.ORIGIN || 'https://medfms.cognitcube.com']
+      : ['http://localhost:5173', 'http://localhost:4173']
+  ),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
