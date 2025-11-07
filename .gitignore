@@ -60,3 +60,9 @@ public/uploads/
 *.pid
 *.seed
 *.pid.lock
+
+# Test and development files
+*.cjs
+data_eng/
+*.csv
+test-*.js
