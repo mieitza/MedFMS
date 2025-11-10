@@ -239,6 +239,15 @@
 	}
 
 	async function approveTransaction(id) {
+		// Find the transaction to check if it's already approved
+		const transaction = fuelTransactions.find(t => t.id === id);
+		if (transaction?.approved) {
+			alert('This transaction is already approved. Please refresh the page to see the latest status.');
+			await loadTransactions();
+			await loadTotalPendingCount();
+			return;
+		}
+
 		if (!confirm($_('fuel.messages.approveConfirm'))) return;
 
 		try {
@@ -250,7 +259,15 @@
 			}
 		} catch (error) {
 			console.error('Error approving transaction:', error);
-			alert($_('fuel.messages.approveFailed'));
+			// Show the actual error message from the backend
+			const errorMessage = error.message || $_('fuel.messages.approveFailed');
+			if (errorMessage.includes('already approved')) {
+				alert('This transaction is already approved. Refreshing the list...');
+				await loadTransactions();
+				await loadTotalPendingCount();
+			} else {
+				alert(errorMessage);
+			}
 		}
 	}
 
