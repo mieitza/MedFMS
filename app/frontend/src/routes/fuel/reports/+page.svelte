@@ -613,44 +613,44 @@
         <!-- Report Title -->
         <div class="bg-white p-6 rounded-lg shadow border">
           <h1 class="text-3xl font-bold text-gray-900 mb-2">
-            FUEL USAGE ANALYSIS REPORT
+            {$_('fuel.reports.fleet.pageTitle')}
           </h1>
-          <p class="text-lg text-gray-700">UTA Fuel Card Export</p>
+          <p class="text-lg text-gray-700">{$_('fuel.reports.fleet.subtitle')}</p>
           <p class="text-sm text-gray-500 mt-2">
-            Report Generated: {new Date().toLocaleString()} | Data Period: {getDateParams().startDate} - {getDateParams().endDate}
+            {$_('fuel.reports.fleet.reportGenerated')}: {new Date().toLocaleString()} | {$_('fuel.reports.fleet.dataPeriod')}: {getDateParams().startDate} - {getDateParams().endDate}
           </p>
         </div>
 
         <!-- Executive Summary -->
         <div class="bg-white p-6 rounded-lg shadow border">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">EXECUTIVE SUMMARY</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">{$_('fuel.reports.fleet.executiveSummary')}</h2>
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <div>
-              <p class="text-sm text-gray-600 mb-1">Total Transactions</p>
+              <p class="text-sm text-gray-600 mb-1">{$_('fuel.reports.fleet.transactions')}</p>
               <p class="text-2xl font-bold text-gray-900">{reportData.totalTransactions.toLocaleString()}</p>
             </div>
             <div>
-              <p class="text-sm text-gray-600 mb-1">Total Cost</p>
+              <p class="text-sm text-gray-600 mb-1">{$_('fuel.reports.fleet.totalCost')}</p>
               <p class="text-2xl font-bold text-gray-900">{reportData.totalFuelCost.toFixed(2)} RON</p>
             </div>
             <div>
-              <p class="text-sm text-gray-600 mb-1">Total Fuel/Products</p>
-              <p class="text-2xl font-bold text-gray-900">{reportData.totalFuelVolume.toFixed(2)} units</p>
+              <p class="text-sm text-gray-600 mb-1">{$_('fuel.reports.fleet.totalFuelProducts')}</p>
+              <p class="text-2xl font-bold text-gray-900">{reportData.totalFuelVolume.toFixed(2)} {$_('fuel.reports.fleet.units')}</p>
             </div>
             <div>
-              <p class="text-sm text-gray-600 mb-1">Unique Vehicles</p>
+              <p class="text-sm text-gray-600 mb-1">{$_('fuel.reports.fleet.uniqueVehicles')}</p>
               <p class="text-2xl font-bold text-gray-900">{fleetReportData.uniqueVehicles}</p>
             </div>
             <div>
-              <p class="text-sm text-gray-600 mb-1">Unique Fuel Stations</p>
+              <p class="text-sm text-gray-600 mb-1">{$_('fuel.reports.fleet.uniqueFuelStations')}</p>
               <p class="text-2xl font-bold text-gray-900">{fleetReportData.uniqueStations}</p>
             </div>
             <div>
-              <p class="text-sm text-gray-600 mb-1">Avg Cost per Transaction</p>
+              <p class="text-sm text-gray-600 mb-1">{$_('fuel.reports.fleet.avgCostPerTransaction')}</p>
               <p class="text-2xl font-bold text-gray-900">{fleetReportData.avgCostPerTransaction.toFixed(2)} RON</p>
             </div>
             <div>
-              <p class="text-sm text-gray-600 mb-1">Avg Cost per Vehicle</p>
+              <p class="text-sm text-gray-600 mb-1">{$_('fuel.reports.fleet.avgCostPerVehicle')}</p>
               <p class="text-2xl font-bold text-gray-900">{fleetReportData.avgCostPerVehicle.toFixed(2)} RON</p>
             </div>
           </div>
@@ -658,17 +658,17 @@
 
         <!-- Cost Breakdown by Product Type -->
         <div class="bg-white p-6 rounded-lg shadow border">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">COST BREAKDOWN BY PRODUCT TYPE</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">{$_('fuel.reports.fleet.costBreakdownByProduct')}</h2>
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Type</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Transactions</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Cost (RON)</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">% of Total</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Avg Cost/Unit</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.productType')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.transactions')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.quantity')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.totalCostRON')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.percentOfTotal')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.avgCostPerUnit')}</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -689,17 +689,17 @@
 
         <!-- Top 20 Vehicles by Cost -->
         <div class="bg-white p-6 rounded-lg shadow border">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">TOP 20 VEHICLES BY COST</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">{$_('fuel.reports.fleet.top20VehiclesByCost')}</h2>
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vehicle Reg</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Transactions</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Cost (RON)</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Quantity</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Primary Fuel Type</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.rank')}</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.vehicleReg')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.transactions')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.totalCostRON')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.quantity')}</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.primaryFuelType')}</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -720,16 +720,16 @@
 
         <!-- Top 15 Fuel Stations by Usage -->
         <div class="bg-white p-6 rounded-lg shadow border">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">TOP 15 FUEL STATIONS BY USAGE</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">{$_('fuel.reports.fleet.top15StationsByUsage')}</h2>
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Station Name</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Transactions</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Cost (RON)</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Quantity</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.rank')}</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.stationName')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.transactions')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.totalCostRON')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.quantity')}</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -749,16 +749,16 @@
 
         <!-- Daily Usage Summary -->
         <div class="bg-white p-6 rounded-lg shadow border">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">DAILY USAGE SUMMARY</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">{$_('fuel.reports.fleet.dailyUsageSummary')}</h2>
           <div class="overflow-x-auto max-h-96">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50 sticky top-0">
                 <tr>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Transactions</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dată</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.transactions')}</th>
                   <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Cost (RON)</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Avg Cost/Transaction</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.quantity')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.avgCostTransaction')}</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -778,17 +778,17 @@
 
         <!-- Vehicle Efficiency Analysis -->
         <div class="bg-white p-6 rounded-lg shadow border">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">VEHICLE EFFICIENCY ANALYSIS (Top 10 by Quantity)</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">{$_('fuel.reports.fleet.vehicleEfficiencyAnalysis')}</h2>
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rank</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vehicle</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Fuel (L)</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total Cost (RON)</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Avg Cost/Liter</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Transactions</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.rank')}</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vehicul</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.totalFuelL')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.totalCostRON')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.avgCostPerLiter')}</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{$_('fuel.reports.fleet.transactions')}</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -809,38 +809,38 @@
 
         <!-- Cost Distribution Statistics -->
         <div class="bg-white p-6 rounded-lg shadow border">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">COST DISTRIBUTION STATISTICS</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">{$_('fuel.reports.fleet.costDistributionStats')}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">By Product Category</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">{$_('fuel.reports.fleet.byProductCategory')}</h3>
               <div class="space-y-3">
                 <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-                  <span class="text-sm font-medium text-gray-700">Fuel Products</span>
+                  <span class="text-sm font-medium text-gray-700">{$_('fuel.reports.fleet.fuelProducts')}</span>
                   <span class="text-lg font-bold text-gray-900">{fleetReportData.fuelProductsCost.toFixed(2)} RON ({((fleetReportData.fuelProductsCost / reportData.totalFuelCost) * 100).toFixed(1)}%)</span>
                 </div>
                 <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-                  <span class="text-sm font-medium text-gray-700">Services & Other</span>
+                  <span class="text-sm font-medium text-gray-700">{$_('fuel.reports.fleet.servicesOther')}</span>
                   <span class="text-lg font-bold text-gray-900">{fleetReportData.servicesOtherCost.toFixed(2)} RON ({((fleetReportData.servicesOtherCost / reportData.totalFuelCost) * 100).toFixed(1)}%)</span>
                 </div>
               </div>
             </div>
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Cost Per Vehicle Statistics</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">{$_('fuel.reports.fleet.costPerVehicleStats')}</h3>
               <div class="space-y-3">
                 {#if fleetReportData.highestCostVehicle}
                   <div class="p-3 bg-gray-50 rounded">
-                    <p class="text-sm text-gray-600">Highest Cost Vehicle</p>
+                    <p class="text-sm text-gray-600">{$_('fuel.reports.fleet.highestCostVehicle')}</p>
                     <p class="text-lg font-bold text-gray-900">{fleetReportData.highestCostVehicle.vehicleReg} - {fleetReportData.highestCostVehicle.totalCost.toFixed(2)} RON</p>
                   </div>
                 {/if}
                 {#if fleetReportData.lowestCostVehicle}
                   <div class="p-3 bg-gray-50 rounded">
-                    <p class="text-sm text-gray-600">Lowest Cost Vehicle</p>
+                    <p class="text-sm text-gray-600">{$_('fuel.reports.fleet.lowestCostVehicle')}</p>
                     <p class="text-lg font-bold text-gray-900">{fleetReportData.lowestCostVehicle.vehicleReg} - {fleetReportData.lowestCostVehicle.totalCost.toFixed(2)} RON</p>
                   </div>
                 {/if}
                 <div class="p-3 bg-gray-50 rounded">
-                  <p class="text-sm text-gray-600">Median Cost per Vehicle</p>
+                  <p class="text-sm text-gray-600">{$_('fuel.reports.fleet.medianCostPerVehicle')}</p>
                   <p class="text-lg font-bold text-gray-900">{fleetReportData.medianCostPerVehicle.toFixed(2)} RON</p>
                 </div>
               </div>
@@ -850,31 +850,31 @@
 
         <!-- Key Insights & Recommendations -->
         <div class="bg-white p-6 rounded-lg shadow border">
-          <h2 class="text-2xl font-bold text-gray-900 mb-6">KEY INSIGHTS & RECOMMENDATIONS</h2>
+          <h2 class="text-2xl font-bold text-gray-900 mb-6">{$_('fuel.reports.fleet.keyInsights')}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Fuel Consumption Patterns</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">{$_('fuel.reports.fleet.fuelConsumptionPatterns')}</h3>
               <div class="space-y-2 text-sm">
-                <p><span class="font-medium">Primary Fuel:</span> {fleetReportData.primaryFuel} ({fleetReportData.primaryFuelQuantity?.toFixed(0) || 0} L)</p>
-                <p><span class="font-medium">Average Daily Transactions:</span> {fleetReportData.avgDailyTransactions.toFixed(1)}</p>
-                <p><span class="font-medium">Average Daily Cost:</span> {fleetReportData.avgDailyCost.toFixed(2)} RON</p>
+                <p><span class="font-medium">{$_('fuel.reports.fleet.primaryFuel')}:</span> {fleetReportData.primaryFuel} ({fleetReportData.primaryFuelQuantity?.toFixed(0) || 0} L)</p>
+                <p><span class="font-medium">{$_('fuel.reports.fleet.avgDailyTransactions')}:</span> {fleetReportData.avgDailyTransactions.toFixed(1)}</p>
+                <p><span class="font-medium">{$_('fuel.reports.fleet.avgDailyCost')}:</span> {fleetReportData.avgDailyCost.toFixed(2)} RON</p>
               </div>
             </div>
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">Recommendations</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">{$_('fuel.reports.fleet.recommendations')}</h3>
               <ul class="space-y-2 text-sm list-disc list-inside text-gray-700">
-                <li>Monitor high-cost vehicles for maintenance or efficiency issues</li>
-                <li>Consider fuel cards with better rates at frequently used stations</li>
-                <li>Implement fuel consumption tracking per vehicle</li>
-                <li>Review vignette and service expenses for optimization</li>
-                <li>{fleetReportData.uniqueStations} unique stations used - consider negotiating volume discounts</li>
+                <li>{$_('fuel.reports.fleet.recommendation1')}</li>
+                <li>{$_('fuel.reports.fleet.recommendation2')}</li>
+                <li>{$_('fuel.reports.fleet.recommendation3')}</li>
+                <li>{$_('fuel.reports.fleet.recommendation4')}</li>
+                <li>{$_('fuel.reports.fleet.recommendation5', { values: { count: fleetReportData.uniqueStations } })}</li>
               </ul>
             </div>
           </div>
         </div>
 
         <div class="text-center py-6 text-gray-500 text-sm">
-          End of Report
+          {$_('fuel.reports.fleet.endOfReport')}
         </div>
       </div>
     {:else}
