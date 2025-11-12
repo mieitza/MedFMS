@@ -20,8 +20,8 @@ const createUserSchema = z.object({
   pin: z.string().min(4).max(8),
   fullName: z.string().min(1).max(100),
   role: z.enum(['admin', 'manager', 'operator', 'viewer']),
-  departmentId: z.number().positive().optional(),
-  locationId: z.number().positive().optional(),
+  departmentId: z.number().positive().nullable().optional(),
+  locationId: z.number().positive().nullable().optional(),
   phoneNumber: z.string().optional(),
   active: z.boolean().optional()
 });

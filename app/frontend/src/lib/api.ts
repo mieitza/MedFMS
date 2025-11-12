@@ -22,6 +22,31 @@ interface LoginResponse {
   };
 }
 
+// Helper function to handle 401 errors globally
+function handle401Error() {
+  if (typeof window !== 'undefined') {
+    // Clear authentication data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+
+    // Redirect to login page
+    window.location.href = '/login';
+  }
+}
+
+// Enhanced fetch wrapper that handles 401 errors automatically
+async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const response = await fetch(url, options);
+
+  // If we get a 401, clear auth and redirect to login
+  if (response.status === 401) {
+    handle401Error();
+    throw new Error('Authentication required. Redirecting to login...');
+  }
+
+  return response;
+}
+
 export const api = {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -1328,7 +1353,7 @@ export const api = {
   },
 
   async createUser(userData) {
-    const response = await fetch(`${API_BASE_URL}/users`, {
+    const response = await apiFetch(`${API_BASE_URL}/users`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(userData),
@@ -1336,7 +1361,7 @@ export const api = {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to create user');
+      throw new Error(error.error?.message || error.message || 'Failed to create user');
     }
 
     return response.json();

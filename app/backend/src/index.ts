@@ -81,19 +81,23 @@ app.use('/', authRoutes);
 // API routes
 app.use('/api', router);
 
-// Health check endpoint - MUST be before the catch-all frontend route!
+// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve SvelteKit frontend in production
-if (process.env.NODE_ENV === 'production') {
-  const frontendPath = join(__dirname, '../../frontend/build');
-  app.use(express.static(frontendPath));
-  app.get('*', (req, res) => {
-    res.sendFile(join(frontendPath, 'index.html'));
-  });
-}
+// NOTE: Frontend is served by a separate medfms-frontend PM2 process on port 5173
+// Nginx routes frontend requests to that port and API requests to this backend (port 3000)
+// The following code is commented out to prevent the backend from serving frontend files
+//
+// // Serve SvelteKit frontend in production
+// if (process.env.NODE_ENV === 'production') {
+//   const frontendPath = join(__dirname, '../../frontend/build');
+//   app.use(express.static(frontendPath));
+//   app.get('*', (req, res) => {
+//     res.sendFile(join(frontendPath, 'index.html'));
+//   });
+// }
 
 // Error handling
 app.use(errorHandler);

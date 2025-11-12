@@ -67,6 +67,17 @@ export const authenticate = async (
       return next(error);
     }
     console.error('Authentication error:', error);
+
+    // Handle JWT-specific errors
+    if (error instanceof Error) {
+      if (error.name === 'JsonWebTokenError') {
+        return next(new AppError('Invalid token format. Please log out and log in again.', 401));
+      }
+      if (error.name === 'TokenExpiredError') {
+        return next(new AppError('Token expired. Please log in again.', 401));
+      }
+    }
+
     next(new AppError('Invalid authentication token', 401));
   }
 };
