@@ -11,6 +11,7 @@ import documentRoutes from './documents.js';
 import reportRoutes from './reports.js';
 import adminRoutes from './admin.js';
 import dashboardRoutes from './dashboard.js';
+import vehicleInventoryRoutes from './vehicleInventory.js';
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.use('/drivers', driverRoutes);
 router.use('/fuel', fuelRoutes);
 router.use('/maintenance', maintenanceRoutes);
 router.use('/materials', materialRoutes);
+router.use('/vehicle-inventory', vehicleInventoryRoutes);
 router.use('/system', systemRoutes);
 router.use('/documents', documentRoutes);
 router.use('/reports', reportRoutes);
@@ -39,6 +41,7 @@ router.get('/docs', (req, res) => {
       fuel: '/api/fuel',
       maintenance: '/api/maintenance',
       materials: '/api/materials',
+      vehicleInventory: '/api/vehicle-inventory',
       system: '/api/system',
       documents: '/api/documents',
       reports: '/api/reports',

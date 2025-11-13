@@ -1307,11 +1307,11 @@ export const api = {
     return response.json();
   },
 
-  async completeTransferRequest(id, qualityCheckNotes = null, transferredQuantity = null) {
+  async completeTransferRequest(id, qualityCheckNotes = null, transferredQuantity = null, additionalData = {}) {
     const response = await fetch(`${API_BASE_URL}/materials/transfer-requests/${id}/complete`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({ qualityCheckNotes, transferredQuantity }),
+      body: JSON.stringify({ qualityCheckNotes, transferredQuantity, ...additionalData }),
     });
 
     if (!response.ok) {
@@ -1658,6 +1658,201 @@ export const api = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to change PIN');
+    }
+
+    return response.json();
+  },
+
+  // ===== VEHICLE INVENTORY API =====
+
+  // Categories
+  async getVehicleInventoryCategories() {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/categories`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch vehicle inventory categories');
+    }
+
+    return response.json();
+  },
+
+  async createVehicleInventoryCategory(categoryData) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/categories`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(categoryData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create vehicle inventory category');
+    }
+
+    return response.json();
+  },
+
+  // Items
+  async getVehicleInventoryItems(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.search) queryParams.append('search', params.search);
+    if (params.categoryId) queryParams.append('categoryId', params.categoryId.toString());
+
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/items?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch vehicle inventory items');
+    }
+
+    return response.json();
+  },
+
+  async getVehicleInventoryItemById(id) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/items/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch vehicle inventory item');
+    }
+
+    return response.json();
+  },
+
+  async createVehicleInventoryItem(itemData) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/items`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(itemData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create vehicle inventory item');
+    }
+
+    return response.json();
+  },
+
+  async updateVehicleInventoryItem(id, itemData) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/items/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(itemData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update vehicle inventory item');
+    }
+
+    return response.json();
+  },
+
+  async deleteVehicleInventoryItem(id) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/items/${id}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete vehicle inventory item');
+    }
+
+    return response.json();
+  },
+
+  // Assignments
+  async getVehicleInventoryAssignments(vehicleId, params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.status) queryParams.append('status', params.status);
+
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/vehicles/${vehicleId}/assignments?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch vehicle inventory assignments');
+    }
+
+    return response.json();
+  },
+
+  async getVehicleInventoryAssignmentById(id) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/assignments/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch vehicle inventory assignment');
+    }
+
+    return response.json();
+  },
+
+  async createVehicleInventoryAssignment(assignmentData) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/assignments`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(assignmentData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create vehicle inventory assignment');
+    }
+
+    return response.json();
+  },
+
+  async updateVehicleInventoryAssignment(id, assignmentData) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/assignments/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(assignmentData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update vehicle inventory assignment');
+    }
+
+    return response.json();
+  },
+
+  async removeVehicleInventoryAssignment(id) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/assignments/${id}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to remove vehicle inventory assignment');
+    }
+
+    return response.json();
+  },
+
+  // Inspections
+  async getVehicleInventoryInspections(assignmentId) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/assignments/${assignmentId}/inspections`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch vehicle inventory inspections');
+    }
+
+    return response.json();
+  },
+
+  async createVehicleInventoryInspection(inspectionData) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/inspections`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(inspectionData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create vehicle inventory inspection');
     }
 
     return response.json();

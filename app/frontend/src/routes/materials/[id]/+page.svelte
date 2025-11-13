@@ -47,66 +47,77 @@
     shelfLocation: '',
   };
 
-  // Data table columns for transactions
-  const transactionColumns = [
+  // Data table columns for transactions - using reactive declaration
+  $: transactionColumns = [
     {
       key: 'transactionType',
       label: $_('materials.transactions.type'),
       sortable: true,
-      render: (row) => {
+      render: (value, row) => {
         const typeMap = {
           entry: `<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">${$_('materials.transactions.types.entry')}</span>`,
           exit: `<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">${$_('materials.transactions.types.exit')}</span>`,
           transfer: `<span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">${$_('materials.transactions.types.transfer')}</span>`
         };
-        return typeMap[row.transactionType] || row.transactionType;
+        return typeMap[row?.transactionType || value] || value || '-';
       }
     },
     {
       key: 'quantity',
       label: $_('materials.transactions.quantity'),
       sortable: true,
-      render: (row) => {
-        const sign = row.transactionType === 'exit' ? '-' : '+';
-        return `${sign}${parseFloat(row.quantity).toFixed(2)}`;
+      render: (value, row) => {
+        const quantity = parseFloat(value || row?.quantity || 0);
+        const sign = (row?.transactionType || row) === 'exit' ? '-' : '+';
+        return `${sign}${quantity.toFixed(2)}`;
       }
     },
     {
       key: 'unitPrice',
       label: $_('materials.transactions.unitPrice'),
       sortable: true,
-      render: (row) => row.unitPrice ? `${parseFloat(row.unitPrice).toFixed(2)} RON` : '-'
+      render: (value, row) => {
+        const price = value || row?.unitPrice;
+        return price ? `${parseFloat(price).toFixed(2)} RON` : '-';
+      }
     },
     {
       key: 'totalAmount',
       label: $_('materials.transactions.totalAmount'),
       sortable: true,
-      render: (row) => row.totalAmount ? `${parseFloat(row.totalAmount).toFixed(2)} RON` : '-'
+      render: (value, row) => {
+        const amount = value || row?.totalAmount;
+        return amount ? `${parseFloat(amount).toFixed(2)} RON` : '-';
+      }
     },
     {
       key: 'transactionDate',
       label: $_('materials.transactions.date'),
       sortable: true,
-      render: (row) => new Date(row.transactionDate).toLocaleDateString()
+      render: (value, row) => {
+        const date = value || row?.transactionDate;
+        return date ? new Date(date).toLocaleDateString() : '-';
+      }
     },
     {
       key: 'invoiceNumber',
       label: $_('materials.transactions.invoiceNumber'),
       sortable: true,
-      render: (row) => row.invoiceNumber || '-'
+      render: (value, row) => (value || row?.invoiceNumber) || '-'
     },
     {
       key: 'description',
       label: $_('materials.transactions.description'),
       sortable: false,
-      render: (row) => row.description || '-'
+      render: (value, row) => (value || row?.description) || '-'
     },
     {
       key: 'approved',
       label: $_('materials.transactions.status'),
       sortable: true,
-      render: (row) => {
-        return row.approved
+      render: (value, row) => {
+        const approved = value !== undefined ? value : row?.approved;
+        return approved
           ? `<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">${$_('materials.transactions.approved')}</span>`
           : `<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">${$_('materials.transactions.pending')}</span>`;
       }

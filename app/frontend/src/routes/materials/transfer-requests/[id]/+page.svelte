@@ -8,20 +8,33 @@
 	let transferRequest = null;
 	let warehouses = [];
 	let materials = [];
+	let vehicles = [];
+	let vehicleInventoryItems = [];
+	let employees = [];
 	let loading = true;
 	let saving = false;
 	let error = '';
 	let success = '';
 
 	let formData = {
+		transferType: 'warehouse-to-warehouse',
 		sourceWarehouseId: null,
 		destinationWarehouseId: null,
+		destinationVehicleId: null,
+		destinationEmployeeId: null,
 		materialId: null,
+		vehicleInventoryItemId: null,
 		quantity: '',
 		priority: 3,
 		requiredByDate: '',
 		reason: '',
-		notes: ''
+		notes: '',
+		autoApprove: false,
+		// For warehouse-to-vehicle transfers
+		serialNumber: '',
+		batchNumber: '',
+		condition: 'good',
+		location: ''
 	};
 
 	$: requestId = $page.params.id;
@@ -38,18 +51,37 @@
 		}
 
 		await loadData();
+
+		// If new request, check for query params to pre-populate form
+		if (isNewRequest) {
+			const transferType = $page.url.searchParams.get('transferType');
+			const vehicleId = $page.url.searchParams.get('vehicleId');
+			const materialId = $page.url.searchParams.get('materialId');
+			const warehouseId = $page.url.searchParams.get('warehouseId');
+
+			if (transferType) formData.transferType = transferType;
+			if (vehicleId) formData.destinationVehicleId = parseInt(vehicleId);
+			if (materialId) formData.materialId = parseInt(materialId);
+			if (warehouseId) formData.sourceWarehouseId = parseInt(warehouseId);
+		}
 	});
 
 	async function loadData() {
 		try {
-			// Load warehouses and materials for dropdowns
-			const [warehousesRes, materialsRes] = await Promise.all([
+			// Load all required data for dropdowns
+			const [warehousesRes, materialsRes, vehiclesRes, vehicleItemsRes, employeesRes] = await Promise.all([
 				api.getWarehouses(),
-				api.getMaterials({ limit: 1000 })
+				api.getMaterials({ limit: 1000 }),
+				api.getVehicles({ limit: 1000 }),
+				api.getVehicleInventoryItems(),
+				api.getDrivers({ limit: 1000 }) // Using drivers as employees for now
 			]);
 
 			warehouses = warehousesRes.data || [];
 			materials = materialsRes.data || [];
+			vehicles = vehiclesRes.data || [];
+			vehicleInventoryItems = vehicleItemsRes.data || [];
+			employees = employeesRes.data || [];
 
 			if (!isNewRequest) {
 				// Load transfer request details
@@ -59,16 +91,25 @@
 				// Populate form with existing data
 				if (transferRequest.transferRequest) {
 					formData = {
+						transferType: transferRequest.transferRequest.transferType || 'warehouse-to-warehouse',
 						sourceWarehouseId: transferRequest.transferRequest.sourceWarehouseId,
 						destinationWarehouseId: transferRequest.transferRequest.destinationWarehouseId,
+						destinationVehicleId: transferRequest.transferRequest.destinationVehicleId,
+						destinationEmployeeId: transferRequest.transferRequest.destinationEmployeeId,
 						materialId: transferRequest.transferRequest.materialId,
+						vehicleInventoryItemId: transferRequest.transferRequest.vehicleInventoryItemId,
 						quantity: transferRequest.transferRequest.quantity,
 						priority: transferRequest.transferRequest.priority || 3,
 						requiredByDate: transferRequest.transferRequest.requiredByDate
 							? new Date(transferRequest.transferRequest.requiredByDate).toISOString().split('T')[0]
 							: '',
 						reason: transferRequest.transferRequest.reason || '',
-						notes: transferRequest.transferRequest.notes || ''
+						notes: transferRequest.transferRequest.notes || '',
+						autoApprove: transferRequest.transferRequest.autoApprove || false,
+						serialNumber: '',
+						batchNumber: '',
+						condition: 'good',
+						location: ''
 					};
 				}
 			}
@@ -86,18 +127,28 @@
 
 		try {
 			const requestData = {
-				...formData,
+				transferType: formData.transferType,
+				sourceWarehouseId: formData.sourceWarehouseId,
+				destinationWarehouseId: formData.transferType === 'warehouse-to-warehouse' ? formData.destinationWarehouseId : null,
+				destinationVehicleId: (formData.transferType === 'warehouse-to-vehicle' || formData.transferType === 'vehicle-to-warehouse') ? formData.destinationVehicleId : null,
+				destinationEmployeeId: formData.transferType === 'warehouse-to-employee' ? formData.destinationEmployeeId : null,
+				materialId: formData.materialId,
+				vehicleInventoryItemId: (formData.transferType === 'warehouse-to-vehicle' || formData.transferType === 'vehicle-to-warehouse') ? formData.vehicleInventoryItemId : null,
 				quantity: parseFloat(formData.quantity),
-				requiredByDate: formData.requiredByDate || null
+				priority: formData.priority,
+				requiredByDate: formData.requiredByDate || null,
+				reason: formData.reason,
+				notes: formData.notes,
+				autoApprove: formData.autoApprove
 			};
 
 			if (isNewRequest) {
 				await api.createTransferRequest(requestData);
-				success = 'Transfer request created successfully';
+				success = $_('materials.transferRequests.messages.createSuccess');
 				setTimeout(() => goto('/materials/transfer-requests'), 1500);
 			} else {
 				await api.updateTransferRequest(requestId, requestData);
-				success = 'Transfer request updated successfully';
+				success = $_('materials.transferRequests.messages.updateSuccess');
 				await loadData();
 			}
 		} catch (err) {
@@ -108,11 +159,11 @@
 	}
 
 	async function handleApprove() {
-		if (!confirm('Are you sure you want to approve this transfer request?')) return;
+		if (!confirm($_('materials.transferRequests.confirmations.approve'))) return;
 
 		try {
 			await api.approveTransferRequest(requestId);
-			success = 'Transfer request approved';
+			success = $_('materials.transferRequests.messages.approveSuccess');
 			await loadData();
 		} catch (err) {
 			error = err.message;
@@ -120,12 +171,12 @@
 	}
 
 	async function handleReject() {
-		const reason = prompt('Please enter rejection reason:');
+		const reason = prompt($_('materials.transferRequests.confirmations.reject'));
 		if (!reason) return;
 
 		try {
 			await api.rejectTransferRequest(requestId, reason);
-			success = 'Transfer request rejected';
+			success = $_('materials.transferRequests.messages.rejectSuccess');
 			await loadData();
 		} catch (err) {
 			error = err.message;
@@ -133,11 +184,11 @@
 	}
 
 	async function handleMarkInTransit() {
-		if (!confirm('Mark this transfer as in transit?')) return;
+		if (!confirm($_('materials.transferRequests.confirmations.markInTransit'))) return;
 
 		try {
 			await api.updateTransferRequestStatus(requestId, 'in_transit');
-			success = 'Transfer marked as in transit';
+			success = $_('materials.transferRequests.messages.markInTransitSuccess');
 			await loadData();
 		} catch (err) {
 			error = err.message;
@@ -145,12 +196,21 @@
 	}
 
 	async function handleComplete() {
-		const qualityCheck = confirm('Did the items pass quality check?');
-		const qualityNotes = qualityCheck ? prompt('Quality check notes (optional):') : null;
+		const qualityCheck = confirm($_('materials.transferRequests.confirmations.qualityCheckPass'));
+		const qualityNotes = qualityCheck ? prompt($_('materials.transferRequests.confirmations.qualityCheckNotes')) : null;
+
+		// For warehouse-to-vehicle transfers, prompt for additional fields
+		let additionalData = {};
+		if (transferRequest.transferRequest.transferType === 'warehouse-to-vehicle') {
+			const serialNumber = prompt($_('materials.transferRequests.serialNumber') + ':') || '';
+			const batchNumber = prompt($_('materials.transferRequests.batchNumber') + ':') || '';
+			const location = prompt($_('materials.transferRequests.location') + ':') || '';
+			additionalData = { serialNumber, batchNumber, location, condition: 'good' };
+		}
 
 		try {
-			await api.completeTransferRequest(requestId, qualityNotes);
-			success = 'Transfer completed successfully';
+			await api.completeTransferRequest(requestId, qualityNotes, null, additionalData);
+			success = $_('materials.transferRequests.messages.completeSuccess');
 			await loadData();
 		} catch (err) {
 			error = err.message;
@@ -158,11 +218,11 @@
 	}
 
 	async function handleDelete() {
-		if (!confirm('Are you sure you want to delete this transfer request?')) return;
+		if (!confirm($_('materials.transferRequests.confirmations.delete'))) return;
 
 		try {
 			await api.deleteTransferRequest(requestId);
-			success = 'Transfer request deleted';
+			success = $_('materials.transferRequests.messages.deleteSuccess');
 			setTimeout(() => goto('/materials/transfer-requests'), 1500);
 		} catch (err) {
 			error = err.message;
@@ -171,12 +231,12 @@
 
 	function getStatusBadge(status) {
 		const statusLabels = {
-			'pending': 'Pending',
-			'approved': 'Approved',
-			'rejected': 'Rejected',
-			'in_transit': 'In Transit',
-			'completed': 'Completed',
-			'cancelled': 'Cancelled'
+			'pending': $_('materials.transferRequests.statuses.pending'),
+			'approved': $_('materials.transferRequests.statuses.approved'),
+			'rejected': $_('materials.transferRequests.statuses.rejected'),
+			'in_transit': $_('materials.transferRequests.statuses.inTransit'),
+			'completed': $_('materials.transferRequests.statuses.completed'),
+			'cancelled': $_('materials.transferRequests.statuses.cancelled')
 		};
 		const colorMap = {
 			'pending': 'bg-yellow-100 text-yellow-800',
@@ -191,7 +251,7 @@
 </script>
 
 <svelte:head>
-	<title>{isNewRequest ? 'New' : 'View'} Transfer Request - {$_('common.appName')}</title>
+	<title>{isNewRequest ? $_('materials.transferRequests.new') : $_('materials.transferRequests.view')} {$_('materials.transferRequests.title')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -205,11 +265,11 @@
 						<ol class="flex items-center space-x-2 text-sm">
 							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li><a href="/materials" class="text-gray-500 hover:text-gray-700">Materials</a></li>
+							<li><a href="/materials" class="text-gray-500 hover:text-gray-700">{$_('materials.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li><a href="/materials/transfer-requests" class="text-gray-500 hover:text-gray-700">Transfer Requests</a></li>
+							<li><a href="/materials/transfer-requests" class="text-gray-500 hover:text-gray-700">{$_('materials.transferRequests.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li class="text-gray-900 font-medium">{isNewRequest ? 'New' : transferRequest?.transferRequest?.requestNumber || 'Loading...'}</li>
+							<li class="text-gray-900 font-medium">{isNewRequest ? $_('materials.transferRequests.new') : transferRequest?.transferRequest?.requestNumber || $_('materials.transferRequests.loading')}</li>
 						</ol>
 					</nav>
 				</div>
@@ -218,7 +278,7 @@
 						<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
 						</svg>
-						Back to List
+						{$_('materials.transferRequests.backToList')}
 					</a>
 				</div>
 			</div>
@@ -243,7 +303,7 @@
 									{transferRequest.transferRequest.requestNumber}
 								</h2>
 								<p class="mt-1 text-sm text-gray-500">
-									Created {new Date(transferRequest.transferRequest.createdAt).toLocaleString()}
+									{$_('materials.transferRequests.created')} {new Date(transferRequest.transferRequest.createdAt).toLocaleString()}
 								</p>
 							</div>
 							<div class="flex items-center space-x-2">
@@ -271,10 +331,45 @@
 				<div class="px-6 py-6">
 					<form on:submit|preventDefault={handleSave} class="space-y-6">
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+							<!-- Transfer Type -->
+							<div>
+								<label for="transferType" class="block text-sm font-medium text-gray-700">
+									{$_('materials.transferRequests.transferType')} *
+								</label>
+								<select
+									id="transferType"
+									bind:value={formData.transferType}
+									disabled={!isEditable}
+									required
+									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+								>
+									<option value="warehouse-to-warehouse">{$_('materials.transferRequests.types.warehouse-to-warehouse')}</option>
+									<option value="warehouse-to-vehicle">{$_('materials.transferRequests.types.warehouse-to-vehicle')}</option>
+									<option value="vehicle-to-warehouse">{$_('materials.transferRequests.types.vehicle-to-warehouse')}</option>
+									<option value="warehouse-to-employee">{$_('materials.transferRequests.types.warehouse-to-employee')}</option>
+								</select>
+							</div>
+
+							<!-- Auto-Approve -->
+							<div class="flex items-center h-full">
+								<label class="flex items-center space-x-2 cursor-pointer">
+									<input
+										type="checkbox"
+										bind:checked={formData.autoApprove}
+										disabled={!isEditable}
+										class="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+									/>
+									<div>
+										<div class="text-sm font-medium text-gray-700">{$_('materials.transferRequests.autoApprove')}</div>
+										<div class="text-xs text-gray-500">{$_('materials.transferRequests.autoApproveHelp')}</div>
+									</div>
+								</label>
+							</div>
+
 							<!-- Source Warehouse -->
 							<div>
 								<label for="sourceWarehouseId" class="block text-sm font-medium text-gray-700">
-									Source Warehouse *
+									{$_('materials.transferRequests.sourceWarehouse')} *
 								</label>
 								<select
 									id="sourceWarehouseId"
@@ -283,36 +378,80 @@
 									required
 									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
 								>
-									<option value={null}>Select warehouse...</option>
+									<option value={null}>{$_('materials.transferRequests.selectWarehouse')}</option>
 									{#each warehouses as warehouse}
 										<option value={warehouse.id}>{warehouse.warehouseName} ({warehouse.warehouseCode})</option>
 									{/each}
 								</select>
 							</div>
 
-							<!-- Destination Warehouse -->
-							<div>
-								<label for="destinationWarehouseId" class="block text-sm font-medium text-gray-700">
-									Destination Warehouse *
-								</label>
-								<select
-									id="destinationWarehouseId"
-									bind:value={formData.destinationWarehouseId}
-									disabled={!isEditable}
-									required
-									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-								>
-									<option value={null}>Select warehouse...</option>
-									{#each warehouses as warehouse}
-										<option value={warehouse.id}>{warehouse.warehouseName} ({warehouse.warehouseCode})</option>
-									{/each}
-								</select>
-							</div>
+							<!-- Destination Warehouse (only for warehouse-to-warehouse) -->
+							{#if formData.transferType === 'warehouse-to-warehouse'}
+								<div>
+									<label for="destinationWarehouseId" class="block text-sm font-medium text-gray-700">
+										{$_('materials.transferRequests.destinationWarehouse')} *
+									</label>
+									<select
+										id="destinationWarehouseId"
+										bind:value={formData.destinationWarehouseId}
+										disabled={!isEditable}
+										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+									>
+										<option value={null}>{$_('materials.transferRequests.selectWarehouse')}</option>
+										{#each warehouses as warehouse}
+											<option value={warehouse.id}>{warehouse.warehouseName} ({warehouse.warehouseCode})</option>
+										{/each}
+									</select>
+								</div>
+							{/if}
+
+							<!-- Destination Vehicle (for vehicle-related transfers) -->
+							{#if formData.transferType === 'warehouse-to-vehicle' || formData.transferType === 'vehicle-to-warehouse'}
+								<div>
+									<label for="destinationVehicleId" class="block text-sm font-medium text-gray-700">
+										{$_('materials.transferRequests.destinationVehicle')} *
+									</label>
+									<select
+										id="destinationVehicleId"
+										bind:value={formData.destinationVehicleId}
+										disabled={!isEditable}
+										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+									>
+										<option value={null}>{$_('materials.transferRequests.selectVehicle')}</option>
+										{#each vehicles as vehicle}
+											<option value={vehicle.id}>{vehicle.licensePlate} - {vehicle.make} {vehicle.model}</option>
+										{/each}
+									</select>
+								</div>
+							{/if}
+
+							<!-- Destination Employee (for employee transfers) -->
+							{#if formData.transferType === 'warehouse-to-employee'}
+								<div>
+									<label for="destinationEmployeeId" class="block text-sm font-medium text-gray-700">
+										{$_('materials.transferRequests.destinationEmployee')} *
+									</label>
+									<select
+										id="destinationEmployeeId"
+										bind:value={formData.destinationEmployeeId}
+										disabled={!isEditable}
+										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+									>
+										<option value={null}>{$_('materials.transferRequests.selectEmployee')}</option>
+										{#each employees as employee}
+											<option value={employee.id}>{employee.fullName} ({employee.employeeNumber})</option>
+										{/each}
+									</select>
+								</div>
+							{/if}
 
 							<!-- Material -->
 							<div>
 								<label for="materialId" class="block text-sm font-medium text-gray-700">
-									Material *
+									{$_('materials.transferRequests.material')} *
 								</label>
 								<select
 									id="materialId"
@@ -321,17 +460,38 @@
 									required
 									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
 								>
-									<option value={null}>Select material...</option>
+									<option value={null}>{$_('materials.transferRequests.selectMaterial')}</option>
 									{#each materials as material}
 										<option value={material.id}>{material.materialName} ({material.materialCode})</option>
 									{/each}
 								</select>
 							</div>
 
+							<!-- Vehicle Inventory Item (for vehicle-related transfers) -->
+							{#if formData.transferType === 'warehouse-to-vehicle' || formData.transferType === 'vehicle-to-warehouse'}
+								<div>
+									<label for="vehicleInventoryItemId" class="block text-sm font-medium text-gray-700">
+										{$_('materials.transferRequests.vehicleInventoryItem')} *
+									</label>
+									<select
+										id="vehicleInventoryItemId"
+										bind:value={formData.vehicleInventoryItemId}
+										disabled={!isEditable}
+										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+									>
+										<option value={null}>{$_('materials.transferRequests.selectVehicleItem')}</option>
+										{#each vehicleInventoryItems as item}
+											<option value={item.id}>{item.itemName} ({item.itemCode})</option>
+										{/each}
+									</select>
+								</div>
+							{/if}
+
 							<!-- Quantity -->
 							<div>
 								<label for="quantity" class="block text-sm font-medium text-gray-700">
-									Quantity *
+									{$_('materials.transferRequests.quantity')} *
 								</label>
 								<input
 									type="number"
@@ -348,7 +508,7 @@
 							<!-- Priority -->
 							<div>
 								<label for="priority" class="block text-sm font-medium text-gray-700">
-									Priority *
+									{$_('materials.transferRequests.priority')} *
 								</label>
 								<select
 									id="priority"
@@ -357,18 +517,18 @@
 									required
 									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
 								>
-									<option value={1}>1 - Urgent</option>
-									<option value={2}>2 - High</option>
-									<option value={3}>3 - Normal</option>
-									<option value={4}>4 - Low</option>
-									<option value={5}>5 - Very Low</option>
+									<option value={1}>1 - {$_('materials.transferRequests.priorities.urgent')}</option>
+									<option value={2}>2 - {$_('materials.transferRequests.priorities.high')}</option>
+									<option value={3}>3 - {$_('materials.transferRequests.priorities.normal')}</option>
+									<option value={4}>4 - {$_('materials.transferRequests.priorities.low')}</option>
+									<option value={5}>5 - {$_('materials.transferRequests.priorities.optional')}</option>
 								</select>
 							</div>
 
 							<!-- Required By Date -->
 							<div>
 								<label for="requiredByDate" class="block text-sm font-medium text-gray-700">
-									Required By Date
+									{$_('materials.transferRequests.requiredByDate')}
 								</label>
 								<input
 									type="date"
@@ -383,7 +543,7 @@
 						<!-- Reason -->
 						<div>
 							<label for="reason" class="block text-sm font-medium text-gray-700">
-								Reason
+								{$_('materials.transferRequests.reason')}
 							</label>
 							<textarea
 								id="reason"
@@ -397,7 +557,7 @@
 						<!-- Notes -->
 						<div>
 							<label for="notes" class="block text-sm font-medium text-gray-700">
-								Notes
+								{$_('materials.transferRequests.notes')}
 							</label>
 							<textarea
 								id="notes"
@@ -419,27 +579,27 @@
 												<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 											</svg>
 										{/if}
-										{isNewRequest ? 'Create Request' : 'Save Changes'}
+										{isNewRequest ? $_('materials.transferRequests.createRequest') : $_('materials.transferRequests.saveChanges')}
 									</button>
 								{/if}
 
 								{#if !isNewRequest}
 									{#if canApprove}
 										<button type="button" on:click={handleApprove} class="btn btn-success">
-											Approve
+											{$_('materials.transferRequests.approve')}
 										</button>
 										<button type="button" on:click={handleReject} class="btn btn-danger">
-											Reject
+											{$_('materials.transferRequests.reject')}
 										</button>
 									{/if}
 									{#if canApprove}
 										<button type="button" on:click={handleMarkInTransit} class="btn btn-info">
-											Mark In Transit
+											{$_('materials.transferRequests.markInTransit')}
 										</button>
 									{/if}
 									{#if canComplete}
 										<button type="button" on:click={handleComplete} class="btn btn-success">
-											Complete Transfer
+											{$_('materials.transferRequests.completeTransfer')}
 										</button>
 									{/if}
 								{/if}
@@ -447,7 +607,7 @@
 
 							{#if !isNewRequest && transferRequest?.transferRequest?.status === 'pending'}
 								<button type="button" on:click={handleDelete} class="btn btn-danger">
-									Delete
+									{$_('materials.transferRequests.delete')}
 								</button>
 							{/if}
 						</div>
@@ -456,7 +616,7 @@
 					<!-- Audit Trail -->
 					{#if !isNewRequest && transferRequest}
 						<div class="mt-8 pt-8 border-t">
-							<h3 class="text-lg font-medium text-gray-900 mb-4">Transfer History</h3>
+							<h3 class="text-lg font-medium text-gray-900 mb-4">{$_('materials.transferRequests.transferHistory')}</h3>
 							<div class="space-y-4">
 								{#if transferRequest.transferRequest.requestedDate}
 									<div class="flex items-start">
@@ -466,7 +626,7 @@
 											</svg>
 										</div>
 										<div class="ml-3">
-											<p class="text-sm font-medium text-gray-900">Request Created</p>
+											<p class="text-sm font-medium text-gray-900">{$_('materials.transferRequests.requestCreated')}</p>
 											<p class="text-sm text-gray-500">{new Date(transferRequest.transferRequest.requestedDate).toLocaleString()}</p>
 										</div>
 									</div>
@@ -479,7 +639,7 @@
 											</svg>
 										</div>
 										<div class="ml-3">
-											<p class="text-sm font-medium text-gray-900">Approved</p>
+											<p class="text-sm font-medium text-gray-900">{$_('materials.transferRequests.approved')}</p>
 											<p class="text-sm text-gray-500">{new Date(transferRequest.transferRequest.approvedDate).toLocaleString()}</p>
 										</div>
 									</div>
@@ -493,7 +653,7 @@
 											</svg>
 										</div>
 										<div class="ml-3">
-											<p class="text-sm font-medium text-gray-900">Transfer Started</p>
+											<p class="text-sm font-medium text-gray-900">{$_('materials.transferRequests.transferStarted')}</p>
 											<p class="text-sm text-gray-500">{new Date(transferRequest.transferRequest.transferDate).toLocaleString()}</p>
 										</div>
 									</div>
@@ -506,10 +666,10 @@
 											</svg>
 										</div>
 										<div class="ml-3">
-											<p class="text-sm font-medium text-gray-900">Transfer Completed</p>
+											<p class="text-sm font-medium text-gray-900">{$_('materials.transferRequests.transferCompleted')}</p>
 											<p class="text-sm text-gray-500">{new Date(transferRequest.transferRequest.completedDate).toLocaleString()}</p>
 											{#if transferRequest.transferRequest.qualityCheckNotes}
-												<p class="text-sm text-gray-600 mt-1">Quality Check: {transferRequest.transferRequest.qualityCheckNotes}</p>
+												<p class="text-sm text-gray-600 mt-1">{$_('materials.transferRequests.qualityCheck')}: {transferRequest.transferRequest.qualityCheckNotes}</p>
 											{/if}
 										</div>
 									</div>
@@ -522,8 +682,8 @@
 											</svg>
 										</div>
 										<div class="ml-3">
-											<p class="text-sm font-medium text-gray-900">Rejected</p>
-											<p class="text-sm text-gray-600 mt-1">Reason: {transferRequest.transferRequest.rejectionReason}</p>
+											<p class="text-sm font-medium text-gray-900">{$_('materials.transferRequests.rejected')}</p>
+											<p class="text-sm text-gray-600 mt-1">{$_('materials.transferRequests.reason')}: {transferRequest.transferRequest.rejectionReason}</p>
 										</div>
 									</div>
 								{/if}

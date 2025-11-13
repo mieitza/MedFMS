@@ -8,6 +8,7 @@
 	import VehicleForm from '$lib/components/VehicleForm.svelte';
 	import DocumentManager from '$lib/components/DocumentManager.svelte';
 	import PhotoManager from '$lib/components/PhotoManager.svelte';
+	import VehicleInventoryManager from '$lib/components/VehicleInventoryManager.svelte';
 
 	let vehicle = null;
 	let loading = true;
@@ -380,6 +381,11 @@
 						</div>
 					</div>
 				</div>
+			</div>
+
+			<!-- Vehicle Inventory -->
+			<div class="mt-8">
+				<VehicleInventoryManager vehicleId={vehicle.id} />
 			</div>
 
 			<!-- Document and Photo Management -->

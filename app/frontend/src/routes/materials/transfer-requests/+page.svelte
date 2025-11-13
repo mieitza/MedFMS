@@ -16,52 +16,52 @@
 	$: columns = [
 		{
 			key: 'transferRequest.requestNumber',
-			label: 'Request Number',
+			label: $_('materials.transferRequests.requestNumber'),
 			sortable: true,
 			width: '150px',
 			render: (value, row) => `<span class="font-semibold text-primary-600">${row.transferRequest?.requestNumber || 'N/A'}</span>`
 		},
 		{
 			key: 'sourceWarehouse.warehouseName',
-			label: 'Source Warehouse',
+			label: $_('materials.transferRequests.sourceWarehouse'),
 			sortable: true,
 			width: '180px',
 			render: (value, row) => row.sourceWarehouse?.warehouseName || 'N/A'
 		},
 		{
 			key: 'destinationWarehouse.warehouseName',
-			label: 'Destination Warehouse',
+			label: $_('materials.transferRequests.destinationWarehouse'),
 			sortable: true,
 			width: '180px',
 			render: (value, row) => row.destinationWarehouse?.warehouseName || 'N/A'
 		},
 		{
 			key: 'material.materialName',
-			label: 'Material',
+			label: $_('materials.transferRequests.material'),
 			sortable: true,
 			width: '200px',
 			render: (value, row) => row.material?.materialName || 'N/A'
 		},
 		{
 			key: 'transferRequest.quantity',
-			label: 'Quantity',
+			label: $_('materials.transferRequests.quantity'),
 			sortable: true,
 			width: '100px',
 			render: (value) => value || 'N/A'
 		},
 		{
 			key: 'transferRequest.status',
-			label: 'Status',
+			label: $_('materials.transferRequests.status'),
 			sortable: true,
 			width: '120px',
 			render: (value) => {
 				const statusLabels = {
-					'pending': 'Pending',
-					'approved': 'Approved',
-					'rejected': 'Rejected',
-					'in_transit': 'In Transit',
-					'completed': 'Completed',
-					'cancelled': 'Cancelled'
+					'pending': $_('materials.transferRequests.statuses.pending'),
+					'approved': $_('materials.transferRequests.statuses.approved'),
+					'rejected': $_('materials.transferRequests.statuses.rejected'),
+					'in_transit': $_('materials.transferRequests.statuses.inTransit'),
+					'completed': $_('materials.transferRequests.statuses.completed'),
+					'cancelled': $_('materials.transferRequests.statuses.cancelled')
 				};
 				const colorMap = {
 					'pending': 'bg-yellow-100 text-yellow-800',
@@ -78,7 +78,7 @@
 		},
 		{
 			key: 'transferRequest.priority',
-			label: 'Priority',
+			label: $_('materials.transferRequests.priority'),
 			sortable: true,
 			width: '100px',
 			render: (value) => {
@@ -95,7 +95,7 @@
 		},
 		{
 			key: 'transferRequest.requestedDate',
-			label: 'Requested Date',
+			label: $_('materials.transferRequests.requestedDate'),
 			sortable: true,
 			width: '150px',
 			render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A'
@@ -161,7 +161,7 @@
 </script>
 
 <svelte:head>
-	<title>Warehouse Transfer Requests - {$_('common.appName')}</title>
+	<title>{$_('materials.transferRequests.pageTitle')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -175,9 +175,9 @@
 						<ol class="flex items-center space-x-2 text-sm">
 							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li><a href="/materials" class="text-gray-500 hover:text-gray-700">Materials</a></li>
+							<li><a href="/materials" class="text-gray-500 hover:text-gray-700">{$_('materials.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li class="text-gray-900 font-medium">Transfer Requests</li>
+							<li class="text-gray-900 font-medium">{$_('materials.transferRequests.title')}</li>
 						</ol>
 					</nav>
 				</div>
@@ -186,7 +186,7 @@
 						<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
 						</svg>
-						New Transfer Request
+						{$_('materials.transferRequests.newRequest')}
 					</button>
 				</div>
 			</div>
@@ -203,7 +203,7 @@
 			{currentPage}
 			{pageSize}
 			{totalItems}
-			title="Transfer Requests"
+			title={$_('materials.transferRequests.title')}
 			showSearch={true}
 			showPagination={true}
 			showExport={true}

@@ -1,0 +1,481 @@
+import { Router } from 'express';
+import { z } from 'zod';
+import { getDb } from '../db/index.js';
+import {
+  vehicleInventoryCategories,
+  vehicleInventoryItems,
+  vehicleInventoryAssignments,
+  vehicleInventoryInspections
+} from '../db/schema/vehicleInventory.js';
+import { vehicles } from '../db/schema/vehicles.js';
+import { eq, and, desc, or, like } from 'drizzle-orm';
+import { authenticate, authorize } from '../middleware/auth.js';
+import { AppError } from '../middleware/errorHandler.js';
+
+const router = Router();
+
+// Apply authentication to all routes
+router.use(authenticate);
+
+// Validation schemas
+const categorySchema = z.object({
+  categoryCode: z.string().min(1).max(50),
+  categoryName: z.string().min(1).max(100),
+  description: z.string().optional(),
+  requiresExpiration: z.boolean().optional(),
+  requiresSerialNumber: z.boolean().optional(),
+});
+
+const itemSchema = z.object({
+  itemCode: z.string().min(1).max(50),
+  itemName: z.string().min(1).max(100),
+  categoryId: z.number().positive(),
+  description: z.string().optional(),
+  manufacturer: z.string().optional(),
+  model: z.string().optional(),
+  unitOfMeasure: z.string().optional(),
+  minQuantity: z.number().optional(),
+  maxQuantity: z.number().optional(),
+  standardPrice: z.number().optional(),
+  requiresExpiration: z.boolean().optional(),
+  requiresSerialNumber: z.boolean().optional(),
+  requiresCertification: z.boolean().optional(),
+});
+
+const assignmentSchema = z.object({
+  vehicleId: z.number().positive(),
+  itemId: z.number().positive(),
+  serialNumber: z.string().optional(),
+  batchNumber: z.string().optional(),
+  quantity: z.number().positive().optional(),
+  condition: z.enum(['excellent', 'good', 'fair', 'poor', 'damaged']).optional(),
+  status: z.enum(['active', 'expired', 'damaged', 'removed', 'maintenance']).optional(),
+  purchaseDate: z.number().optional(),
+  purchasePrice: z.number().optional(),
+  supplierId: z.number().optional(),
+  assignmentDate: z.number().optional(),
+  expirationDate: z.number().optional(),
+  manufactureDate: z.number().optional(),
+  lastInspectionDate: z.number().optional(),
+  nextInspectionDate: z.number().optional(),
+  certificationNumber: z.string().optional(),
+  certificationDate: z.number().optional(),
+  certificationExpiryDate: z.number().optional(),
+  location: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const inspectionSchema = z.object({
+  assignmentId: z.number().positive(),
+  inspectionDate: z.number(),
+  inspectorId: z.number().optional(),
+  inspectionType: z.enum(['routine', 'emergency', 'certification', 'repair']),
+  condition: z.enum(['excellent', 'good', 'fair', 'poor', 'damaged']),
+  notes: z.string().optional(),
+  issuesFound: z.string().optional(),
+  actionTaken: z.string().optional(),
+  nextInspectionDate: z.number().optional(),
+  passed: z.boolean().optional(),
+});
+
+// ===== CATEGORIES =====
+
+// Get all categories
+router.get('/categories', async (req, res, next) => {
+  try {
+    const db = getDb();
+    const results = await db
+      .select()
+      .from(vehicleInventoryCategories)
+      .where(eq(vehicleInventoryCategories.active, true))
+      .orderBy(vehicleInventoryCategories.categoryName);
+
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Create category
+router.post('/categories', authorize('admin', 'manager'), async (req, res, next) => {
+  try {
+    const data = categorySchema.parse(req.body);
+    const db = getDb();
+
+    const result = await db.insert(vehicleInventoryCategories).values(data).returning();
+
+    res.status(201).json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ===== ITEMS =====
+
+// Get all items
+router.get('/items', async (req, res, next) => {
+  try {
+    const search = req.query.search as string;
+    const categoryId = req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined;
+
+    const db = getDb();
+    let query = db
+      .select({
+        item: vehicleInventoryItems,
+        category: vehicleInventoryCategories
+      })
+      .from(vehicleInventoryItems)
+      .leftJoin(vehicleInventoryCategories, eq(vehicleInventoryItems.categoryId, vehicleInventoryCategories.id))
+      .where(eq(vehicleInventoryItems.active, true));
+
+    if (search) {
+      query = query.where(
+        and(
+          eq(vehicleInventoryItems.active, true),
+          or(
+            like(vehicleInventoryItems.itemCode, `%${search}%`),
+            like(vehicleInventoryItems.itemName, `%${search}%`)
+          )
+        )
+      );
+    }
+
+    if (categoryId) {
+      query = query.where(
+        and(
+          eq(vehicleInventoryItems.active, true),
+          eq(vehicleInventoryItems.categoryId, categoryId)
+        )
+      );
+    }
+
+    const results = await query.orderBy(vehicleInventoryItems.itemName);
+
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get item by ID
+router.get('/items/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const db = getDb();
+
+    const [result] = await db
+      .select({
+        item: vehicleInventoryItems,
+        category: vehicleInventoryCategories
+      })
+      .from(vehicleInventoryItems)
+      .leftJoin(vehicleInventoryCategories, eq(vehicleInventoryItems.categoryId, vehicleInventoryCategories.id))
+      .where(and(eq(vehicleInventoryItems.id, id), eq(vehicleInventoryItems.active, true)))
+      .limit(1);
+
+    if (!result) {
+      throw new AppError('Item not found', 404);
+    }
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Create item
+router.post('/items', authorize('admin', 'manager'), async (req, res, next) => {
+  try {
+    const data = itemSchema.parse(req.body);
+    const db = getDb();
+
+    const result = await db.insert(vehicleInventoryItems).values(data).returning();
+
+    res.status(201).json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update item
+router.put('/items/:id', authorize('admin', 'manager'), async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const data = itemSchema.partial().parse(req.body);
+    const db = getDb();
+
+    const result = await db
+      .update(vehicleInventoryItems)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(vehicleInventoryItems.id, id))
+      .returning();
+
+    if (result.length === 0) {
+      throw new AppError('Item not found', 404);
+    }
+
+    res.json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Delete item (soft delete)
+router.delete('/items/:id', authorize('admin'), async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const db = getDb();
+
+    const result = await db
+      .update(vehicleInventoryItems)
+      .set({ active: false, updatedAt: new Date() })
+      .where(eq(vehicleInventoryItems.id, id))
+      .returning();
+
+    if (result.length === 0) {
+      throw new AppError('Item not found', 404);
+    }
+
+    res.json({
+      success: true,
+      message: 'Item deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ===== ASSIGNMENTS =====
+
+// Get assignments for a vehicle
+router.get('/vehicles/:vehicleId/assignments', async (req, res, next) => {
+  try {
+    const vehicleId = parseInt(req.params.vehicleId);
+    const status = req.query.status as string;
+
+    const db = getDb();
+    let query = db
+      .select({
+        assignment: vehicleInventoryAssignments,
+        item: vehicleInventoryItems,
+        category: vehicleInventoryCategories
+      })
+      .from(vehicleInventoryAssignments)
+      .leftJoin(vehicleInventoryItems, eq(vehicleInventoryAssignments.itemId, vehicleInventoryItems.id))
+      .leftJoin(vehicleInventoryCategories, eq(vehicleInventoryItems.categoryId, vehicleInventoryCategories.id))
+      .where(
+        and(
+          eq(vehicleInventoryAssignments.vehicleId, vehicleId),
+          eq(vehicleInventoryAssignments.active, true)
+        )
+      );
+
+    if (status) {
+      query = query.where(
+        and(
+          eq(vehicleInventoryAssignments.vehicleId, vehicleId),
+          eq(vehicleInventoryAssignments.active, true),
+          eq(vehicleInventoryAssignments.status, status)
+        )
+      );
+    }
+
+    const results = await query.orderBy(vehicleInventoryItems.itemName);
+
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get assignment by ID
+router.get('/assignments/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const db = getDb();
+
+    const [result] = await db
+      .select({
+        assignment: vehicleInventoryAssignments,
+        item: vehicleInventoryItems,
+        category: vehicleInventoryCategories,
+        vehicle: vehicles
+      })
+      .from(vehicleInventoryAssignments)
+      .leftJoin(vehicleInventoryItems, eq(vehicleInventoryAssignments.itemId, vehicleInventoryItems.id))
+      .leftJoin(vehicleInventoryCategories, eq(vehicleInventoryItems.categoryId, vehicleInventoryCategories.id))
+      .leftJoin(vehicles, eq(vehicleInventoryAssignments.vehicleId, vehicles.id))
+      .where(and(eq(vehicleInventoryAssignments.id, id), eq(vehicleInventoryAssignments.active, true)))
+      .limit(1);
+
+    if (!result) {
+      throw new AppError('Assignment not found', 404);
+    }
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Create assignment
+router.post('/assignments', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
+  try {
+    const data = assignmentSchema.parse(req.body);
+    const db = getDb();
+
+    const userId = (req as any).user?.id;
+
+    const result = await db.insert(vehicleInventoryAssignments).values({
+      ...data,
+      createdBy: userId
+    }).returning();
+
+    res.status(201).json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update assignment
+router.put('/assignments/:id', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const data = assignmentSchema.partial().parse(req.body);
+    const db = getDb();
+
+    const userId = (req as any).user?.id;
+
+    const result = await db
+      .update(vehicleInventoryAssignments)
+      .set({ ...data, updatedAt: new Date(), updatedBy: userId })
+      .where(eq(vehicleInventoryAssignments.id, id))
+      .returning();
+
+    if (result.length === 0) {
+      throw new AppError('Assignment not found', 404);
+    }
+
+    res.json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Remove assignment (soft delete)
+router.delete('/assignments/:id', authorize('admin', 'manager'), async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const db = getDb();
+
+    const result = await db
+      .update(vehicleInventoryAssignments)
+      .set({
+        active: false,
+        status: 'removed',
+        removalDate: Date.now(),
+        updatedAt: new Date()
+      })
+      .where(eq(vehicleInventoryAssignments.id, id))
+      .returning();
+
+    if (result.length === 0) {
+      throw new AppError('Assignment not found', 404);
+    }
+
+    res.json({
+      success: true,
+      message: 'Assignment removed successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ===== INSPECTIONS =====
+
+// Get inspections for an assignment
+router.get('/assignments/:assignmentId/inspections', async (req, res, next) => {
+  try {
+    const assignmentId = parseInt(req.params.assignmentId);
+    const db = getDb();
+
+    const results = await db
+      .select()
+      .from(vehicleInventoryInspections)
+      .where(eq(vehicleInventoryInspections.assignmentId, assignmentId))
+      .orderBy(desc(vehicleInventoryInspections.inspectionDate));
+
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Create inspection
+router.post('/inspections', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
+  try {
+    const data = inspectionSchema.parse(req.body);
+    const db = getDb();
+
+    const userId = (req as any).user?.id;
+
+    const result = await db.insert(vehicleInventoryInspections).values({
+      ...data,
+      createdBy: userId
+    }).returning();
+
+    // Update the assignment's last inspection date
+    await db
+      .update(vehicleInventoryAssignments)
+      .set({
+        lastInspectionDate: data.inspectionDate,
+        nextInspectionDate: data.nextInspectionDate,
+        condition: data.condition,
+        updatedAt: new Date()
+      })
+      .where(eq(vehicleInventoryAssignments.id, data.assignmentId));
+
+    res.status(201).json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+export default router;

@@ -10,3 +10,4 @@ export * from './system';
 export * from './documents';
 export * from './reference';
 export * from './audit';
+export * from './vehicleInventory';

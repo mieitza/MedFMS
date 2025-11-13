@@ -30,42 +30,76 @@
 
 	let warehouses = [];
 
-	// Priority options
-	const priorityOptions = [
-		{ value: '', label: 'All Priorities' },
-		{ value: 1, label: 'Priority 1 (Highest)' },
-		{ value: 2, label: 'Priority 2' },
-		{ value: 3, label: 'Priority 3' },
-		{ value: 4, label: 'Priority 4' },
-		{ value: 5, label: 'Priority 5 (Lowest)' }
+	// Priority options - using reactive declarations for translations
+	$: priorityOptions = [
+		{ value: '', label: $_('materials.transferRequests.approvals.allPriorities') },
+		{ value: 1, label: $_('materials.transferRequests.priorities.highest') },
+		{ value: 2, label: $_('materials.transferRequests.priorities.priority2') },
+		{ value: 3, label: $_('materials.transferRequests.priorities.priority3') },
+		{ value: 4, label: $_('materials.transferRequests.priorities.priority4') },
+		{ value: 5, label: $_('materials.transferRequests.priorities.lowest') }
 	];
 
 	// Data table columns
 	$: columns = [
 		{
 			key: 'transferRequest.requestNumber',
-			label: 'Request #',
+			label: $_('materials.transferRequests.requestNumber'),
 			sortable: true,
 			width: '140px',
 			render: (value, row) => `<span class="font-semibold text-primary-600">${row?.transferRequest?.requestNumber || 'N/A'}</span>`
 		},
 		{
+			key: 'transferRequest.transferType',
+			label: $_('materials.transferRequests.transferType'),
+			sortable: true,
+			width: '180px',
+			render: (value, row) => {
+				const type = row?.transferRequest?.transferType || 'warehouse-to-warehouse';
+				const typeLabels = {
+					'warehouse-to-warehouse': $_('materials.transferRequests.types.warehouse-to-warehouse'),
+					'warehouse-to-vehicle': $_('materials.transferRequests.types.warehouse-to-vehicle'),
+					'vehicle-to-warehouse': $_('materials.transferRequests.types.vehicle-to-warehouse'),
+					'warehouse-to-employee': $_('materials.transferRequests.types.warehouse-to-employee')
+				};
+				return typeLabels[type] || type;
+			}
+		},
+		{
 			key: 'sourceWarehouse.warehouseName',
-			label: 'Source',
+			label: $_('materials.transferRequests.source'),
 			sortable: true,
 			width: '180px',
 			render: (value, row) => row?.sourceWarehouse?.warehouseName || 'N/A'
 		},
 		{
-			key: 'destinationWarehouse.warehouseName',
-			label: 'Destination',
-			sortable: true,
+			key: 'destination',
+			label: $_('materials.transferRequests.destination'),
+			sortable: false,
 			width: '180px',
-			render: (value, row) => row?.destinationWarehouse?.warehouseName || 'N/A'
+			render: (value, row) => {
+				const type = row?.transferRequest?.transferType || 'warehouse-to-warehouse';
+				if (type === 'warehouse-to-warehouse') {
+					return row?.destinationWarehouse?.warehouseName || 'N/A';
+				} else if (type === 'warehouse-to-vehicle' || type === 'vehicle-to-warehouse') {
+					const vehicleData = row?.destinationVehicle;
+					if (vehicleData) {
+						return `${vehicleData.licensePlate} - ${vehicleData.make} ${vehicleData.model}`;
+					}
+					return 'N/A';
+				} else if (type === 'warehouse-to-employee') {
+					const employeeData = row?.destinationEmployee;
+					if (employeeData) {
+						return employeeData.fullName || employeeData.username || 'N/A';
+					}
+					return 'N/A';
+				}
+				return 'N/A';
+			}
 		},
 		{
 			key: 'material.materialName',
-			label: 'Material',
+			label: $_('materials.transferRequests.material'),
 			sortable: true,
 			width: '200px',
 			render: (value, row) => {
@@ -76,7 +110,7 @@
 		},
 		{
 			key: 'transferRequest.quantity',
-			label: 'Quantity',
+			label: $_('materials.transferRequests.quantity'),
 			sortable: true,
 			width: '100px',
 			render: (value, row) => {
@@ -87,17 +121,17 @@
 		},
 		{
 			key: 'transferRequest.priority',
-			label: 'Priority',
+			label: $_('materials.transferRequests.priority'),
 			sortable: true,
 			width: '100px',
 			render: (value, row) => {
 				const priority = row?.transferRequest?.priority || 3;
 				const priorityLabels = {
-					1: { label: 'Urgent', class: 'bg-red-100 text-red-800' },
-					2: { label: 'High', class: 'bg-orange-100 text-orange-800' },
-					3: { label: 'Normal', class: 'bg-blue-100 text-blue-800' },
-					4: { label: 'Low', class: 'bg-green-100 text-green-800' },
-					5: { label: 'Optional', class: 'bg-gray-100 text-gray-800' }
+					1: { label: $_('materials.transferRequests.priorities.urgent'), class: 'bg-red-100 text-red-800' },
+					2: { label: $_('materials.transferRequests.priorities.high'), class: 'bg-orange-100 text-orange-800' },
+					3: { label: $_('materials.transferRequests.priorities.normal'), class: 'bg-blue-100 text-blue-800' },
+					4: { label: $_('materials.transferRequests.priorities.low'), class: 'bg-green-100 text-green-800' },
+					5: { label: $_('materials.transferRequests.priorities.optional'), class: 'bg-gray-100 text-gray-800' }
 				};
 				const p = priorityLabels[priority] || priorityLabels[3];
 				return `<span class="px-2 py-1 text-xs font-medium rounded-full ${p.class}">${p.label}</span>`;
@@ -105,14 +139,14 @@
 		},
 		{
 			key: 'transferRequest.requestedDate',
-			label: 'Requested',
+			label: $_('materials.transferRequests.requested'),
 			sortable: true,
 			width: '110px',
 			render: (value, row) => row?.transferRequest?.requestedDate ? new Date(row?.transferRequest?.requestedDate).toLocaleDateString() : '-'
 		},
 		{
 			key: 'transferRequest.requiredByDate',
-			label: 'Required By',
+			label: $_('materials.transferRequests.requiredBy'),
 			sortable: true,
 			width: '110px',
 			render: (value, row) => row?.transferRequest?.requiredByDate ? new Date(row?.transferRequest?.requiredByDate).toLocaleDateString() : '-'
@@ -210,12 +244,12 @@
 		// Validate approved quantity if provided
 		const approvedQty = approvedQuantity ? parseFloat(approvedQuantity) : null;
 		if (approvedQty !== null && (isNaN(approvedQty) || approvedQty <= 0)) {
-			alert('Please enter a valid approved quantity');
+			alert($_('materials.transferRequests.approvals.invalidQuantity'));
 			return;
 		}
 
 		if (approvedQty !== null && approvedQty > selectedRequest.transferRequest?.quantity) {
-			if (!confirm('Approved quantity is higher than requested quantity. Continue?')) {
+			if (!confirm($_('materials.transferRequests.approvals.quantityHigherConfirm'))) {
 				return;
 			}
 		}
@@ -229,10 +263,10 @@
 			);
 			showApprovalModal = false;
 			await loadTransferRequests();
-			alert('Transfer request approved successfully');
+			alert($_('materials.transferRequests.approvals.approveSuccess'));
 		} catch (error) {
 			console.error('Error approving transfer request:', error);
-			alert('Failed to approve transfer request: ' + error.message);
+			alert($_('materials.transferRequests.approvals.approveFailed') + ': ' + error.message);
 		} finally {
 			isApproving = false;
 		}
@@ -240,7 +274,7 @@
 
 	async function handleReject() {
 		if (!selectedRequest || !approvalNotes.trim()) {
-			alert('Please provide a reason for rejection');
+			alert($_('materials.transferRequests.approvals.provideRejectionReason'));
 			return;
 		}
 
@@ -249,10 +283,10 @@
 			await api.rejectTransferRequest(selectedRequest.transferRequest?.id, approvalNotes);
 			showApprovalModal = false;
 			await loadTransferRequests();
-			alert('Transfer request rejected');
+			alert($_('materials.transferRequests.approvals.rejectSuccess'));
 		} catch (error) {
 			console.error('Error rejecting transfer request:', error);
-			alert('Failed to reject transfer request: ' + error.message);
+			alert($_('materials.transferRequests.approvals.rejectFailed') + ': ' + error.message);
 		} finally {
 			isApproving = false;
 		}
@@ -266,7 +300,7 @@
 </script>
 
 <svelte:head>
-	<title>Transfer Request Approvals - {$_('common.appName')}</title>
+	<title>{$_('materials.transferRequests.approvals.pageTitle')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -280,11 +314,11 @@
 						<ol class="flex items-center space-x-2 text-sm">
 							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li><a href="/materials" class="text-gray-500 hover:text-gray-700">Materials</a></li>
+							<li><a href="/materials" class="text-gray-500 hover:text-gray-700">{$_('materials.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li><a href="/materials/transfer-requests" class="text-gray-500 hover:text-gray-700">Transfer Requests</a></li>
+							<li><a href="/materials/transfer-requests" class="text-gray-500 hover:text-gray-700">{$_('materials.transferRequests.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li class="text-gray-900 font-medium">Approvals</li>
+							<li class="text-gray-900 font-medium">{$_('materials.transferRequests.approvals.title')}</li>
 						</ol>
 					</nav>
 				</div>
@@ -296,7 +330,7 @@
 						<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
 						</svg>
-						Back to Transfer Requests
+						{$_('materials.transferRequests.approvals.backToTransferRequests')}
 					</a>
 				</div>
 			</div>
@@ -308,10 +342,10 @@
 
 		<!-- Filters -->
 		<div class="bg-white p-6 rounded-lg shadow border mb-6">
-			<h3 class="text-lg font-semibold mb-4">Filters</h3>
+			<h3 class="text-lg font-semibold mb-4">{$_('materials.transferRequests.approvals.filters')}</h3>
 			<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+					<label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.transferRequests.priority')}</label>
 					<select
 						bind:value={filters.priority}
 						class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -323,12 +357,12 @@
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Source Warehouse</label>
+					<label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.transferRequests.sourceWarehouse')}</label>
 					<select
 						bind:value={filters.sourceWarehouseId}
 						class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
-						<option value={null}>All Warehouses</option>
+						<option value={null}>{$_('materials.transferRequests.approvals.allWarehouses')}</option>
 						{#each warehouses as warehouse}
 							<option value={warehouse.id}>{warehouse.warehouseName}</option>
 						{/each}
@@ -336,12 +370,12 @@
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Destination Warehouse</label>
+					<label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.transferRequests.destinationWarehouse')}</label>
 					<select
 						bind:value={filters.destinationWarehouseId}
 						class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
-						<option value={null}>All Warehouses</option>
+						<option value={null}>{$_('materials.transferRequests.approvals.allWarehouses')}</option>
 						{#each warehouses as warehouse}
 							<option value={warehouse.id}>{warehouse.warehouseName}</option>
 						{/each}
@@ -353,13 +387,13 @@
 						on:click={handleFilter}
 						class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
 					>
-						Apply Filters
+						{$_('materials.transferRequests.approvals.applyFilters')}
 					</button>
 					<button
 						on:click={resetFilters}
 						class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
 					>
-						Reset
+						{$_('materials.transferRequests.approvals.reset')}
 					</button>
 				</div>
 			</div>
@@ -374,13 +408,13 @@
 			{currentPage}
 			{pageSize}
 			{totalItems}
-			title="Pending Transfer Request Approvals"
+			title={$_('materials.transferRequests.approvals.pendingApprovals')}
 			showSearch={true}
 			showPagination={true}
 			showExport={true}
 			actions={[
-				{ key: 'approve', label: 'Approve', condition: () => true, class: 'bg-green-600 hover:bg-green-700 text-white' },
-				{ key: 'reject', label: 'Reject', condition: () => true, class: 'bg-red-600 hover:bg-red-700 text-white' }
+				{ key: 'approve', label: $_('materials.transferRequests.approvals.approve'), condition: () => true, class: 'bg-green-600 hover:bg-green-700 text-white' },
+				{ key: 'reject', label: $_('materials.transferRequests.approvals.reject'), condition: () => true, class: 'bg-red-600 hover:bg-red-700 text-white' }
 			]}
 			on:search={handleSearch}
 			on:pagechange={handlePageChange}
@@ -392,62 +426,62 @@
 </div>
 
 <!-- Approval Modal -->
-<Modal bind:open={showApprovalModal} title="Review Transfer Request" on:close={() => showApprovalModal = false}>
+<Modal bind:open={showApprovalModal} title={$_('materials.transferRequests.approvals.reviewRequest')} on:close={() => showApprovalModal = false}>
 	{#if selectedRequest}
 		<div class="space-y-4">
 			<!-- Transfer Request Details -->
 			<div class="bg-gray-50 p-4 rounded-lg">
-				<h4 class="font-medium text-gray-900 mb-2">Transfer Request Details</h4>
+				<h4 class="font-medium text-gray-900 mb-2">{$_('materials.transferRequests.approvals.requestDetails')}</h4>
 				<div class="grid grid-cols-2 gap-4 text-sm">
 					<div>
-						<span class="font-medium">Request Number: </span>
+						<span class="font-medium">{$_('materials.transferRequests.requestNumber')}: </span>
 						{selectedRequest.transferRequest?.requestNumber || 'N/A'}
 					</div>
 					<div>
-						<span class="font-medium">Status: </span>
+						<span class="font-medium">{$_('materials.transferRequests.status')}: </span>
 						<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
 							{selectedRequest.transferRequest?.status || 'N/A'}
 						</span>
 					</div>
 					<div>
-						<span class="font-medium">Source Warehouse: </span>
+						<span class="font-medium">{$_('materials.transferRequests.sourceWarehouse')}: </span>
 						{selectedRequest.sourceWarehouse?.warehouseName}
 					</div>
 					<div>
-						<span class="font-medium">Destination Warehouse: </span>
+						<span class="font-medium">{$_('materials.transferRequests.destinationWarehouse')}: </span>
 						{selectedRequest.destinationWarehouse?.warehouseName}
 					</div>
 					<div class="col-span-2">
-						<span class="font-medium">Material: </span>
+						<span class="font-medium">{$_('materials.transferRequests.material')}: </span>
 						{selectedRequest.material?.materialName} ({selectedRequest.material?.materialCode})
 					</div>
 					<div>
-						<span class="font-medium">Requested Quantity: </span>
+						<span class="font-medium">{$_('materials.transferRequests.approvals.requestedQuantity')}: </span>
 						{selectedRequest.transferRequest?.quantity} {selectedRequest.material?.unit || ''}
 					</div>
 					<div>
-						<span class="font-medium">Priority: </span>
-						{['', 'Urgent', 'High', 'Normal', 'Low', 'Optional'][selectedRequest.transferRequest?.priority || 3]}
+						<span class="font-medium">{$_('materials.transferRequests.priority')}: </span>
+						{['', $_('materials.transferRequests.priorities.urgent'), $_('materials.transferRequests.priorities.high'), $_('materials.transferRequests.priorities.normal'), $_('materials.transferRequests.priorities.low'), $_('materials.transferRequests.priorities.optional')][selectedRequest.transferRequest?.priority || 3]}
 					</div>
 					<div>
-						<span class="font-medium">Requested Date: </span>
+						<span class="font-medium">{$_('materials.transferRequests.requestedDate')}: </span>
 						{selectedRequest.transferRequest?.requestedDate ? new Date(selectedRequest.transferRequest?.requestedDate).toLocaleDateString() : 'N/A'}
 					</div>
 					{#if selectedRequest.transferRequest?.requiredByDate}
 						<div>
-							<span class="font-medium">Required By: </span>
+							<span class="font-medium">{$_('materials.transferRequests.requiredBy')}: </span>
 							{new Date(selectedRequest.transferRequest?.requiredByDate).toLocaleDateString()}
 						</div>
 					{/if}
 					{#if selectedRequest.transferRequest?.reason}
 						<div class="col-span-2">
-							<span class="font-medium">Reason: </span>
+							<span class="font-medium">{$_('materials.transferRequests.approvals.reason')}: </span>
 							{selectedRequest.transferRequest?.reason}
 						</div>
 					{/if}
 					{#if selectedRequest.transferRequest?.notes}
 						<div class="col-span-2">
-							<span class="font-medium">Notes: </span>
+							<span class="font-medium">{$_('materials.transferRequests.approvals.notes')}: </span>
 							{selectedRequest.transferRequest?.notes}
 						</div>
 					{/if}
@@ -456,14 +490,14 @@
 
 			<!-- Current Stock Information -->
 			<div class="bg-blue-50 p-4 rounded-lg">
-				<h4 class="font-medium text-gray-900 mb-2">Stock Information</h4>
+				<h4 class="font-medium text-gray-900 mb-2">{$_('materials.transferRequests.approvals.stockInformation')}</h4>
 				<div class="grid grid-cols-2 gap-4 text-sm">
 					<div>
-						<span class="font-medium">Source Warehouse Stock: </span>
+						<span class="font-medium">{$_('materials.transferRequests.approvals.sourceWarehouseStock')}: </span>
 						{selectedRequest.material?.quantity || 0} {selectedRequest.material?.unit || ''}
 					</div>
 					<div>
-						<span class="font-medium">Min Stock Level: </span>
+						<span class="font-medium">{$_('materials.transferRequests.approvals.minStockLevel')}: </span>
 						{selectedRequest.material?.minStock || 'N/A'}
 					</div>
 				</div>
@@ -472,8 +506,8 @@
 			<!-- Approval Section -->
 			<div>
 				<label class="block text-sm font-medium text-gray-700 mb-1">
-					Approved Quantity (optional)
-					<span class="text-gray-500 font-normal"> - Leave empty to approve full requested quantity</span>
+					{$_('materials.transferRequests.approvals.approvedQuantity')}
+					<span class="text-gray-500 font-normal"> - {$_('materials.transferRequests.approvals.approvedQuantityHint')}</span>
 				</label>
 				<input
 					type="number"
@@ -488,14 +522,14 @@
 			<!-- Notes Section -->
 			<div>
 				<label class="block text-sm font-medium text-gray-700 mb-1">
-					Approval/Rejection Notes
-					<span class="text-red-500">* (Required for rejection)</span>
+					{$_('materials.transferRequests.approvals.approvalNotes')}
+					<span class="text-red-500">{$_('materials.transferRequests.approvals.approvalNotesRequired')}</span>
 				</label>
 				<textarea
 					bind:value={approvalNotes}
 					rows="4"
 					class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					placeholder="Add notes about your decision (required for rejection, optional for approval)"
+					placeholder={$_('materials.transferRequests.approvals.approvalNotesPlaceholder')}
 				></textarea>
 			</div>
 
@@ -507,7 +541,7 @@
 					class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
 					disabled={isApproving}
 				>
-					Cancel
+					{$_('materials.transferRequests.approvals.cancel')}
 				</button>
 				<button
 					type="button"
@@ -515,7 +549,7 @@
 					disabled={isApproving || !approvalNotes.trim()}
 					class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
 				>
-					{isApproving ? 'Processing...' : 'Reject'}
+					{isApproving ? $_('materials.transferRequests.approvals.processing') : $_('materials.transferRequests.approvals.reject')}
 				</button>
 				<button
 					type="button"
@@ -523,7 +557,7 @@
 					disabled={isApproving}
 					class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
 				>
-					{isApproving ? 'Processing...' : 'Approve'}
+					{isApproving ? $_('materials.transferRequests.approvals.processing') : $_('materials.transferRequests.approvals.approve')}
 				</button>
 			</div>
 		</div>
