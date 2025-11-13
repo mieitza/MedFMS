@@ -16,6 +16,7 @@
 	let uploadPreview = null;
 	let selectedDocument = null;
 	let documentPreviewUrl = null;
+	let documentThumbnails = {}; // Map of document ID to blob URL for image thumbnails
 	let uploadData = {
 		documentName: '',
 		categoryId: '',
@@ -32,14 +33,42 @@
 	async function loadDocuments() {
 		loading = true;
 		try {
+			// Clean up old thumbnail URLs
+			Object.values(documentThumbnails).forEach(url => {
+				if (url) URL.revokeObjectURL(url);
+			});
+			documentThumbnails = {};
+
 			const response = await api.getDocuments(entityType, entityId);
 			documents = response.data || [];
+
+			// Load thumbnails for image documents
+			await loadDocumentThumbnails();
 		} catch (error) {
 			console.error('Failed to load documents:', error);
 			documents = [];
 		} finally {
 			loading = false;
 		}
+	}
+
+	async function loadDocumentThumbnails() {
+		// Load thumbnails only for image documents
+		const imageDocuments = documents.filter(doc => doc.mimeType.startsWith('image/'));
+
+		await Promise.all(
+			imageDocuments.map(async (document) => {
+				try {
+					const blob = await api.downloadDocument(document.id);
+					documentThumbnails[document.id] = URL.createObjectURL(blob);
+				} catch (error) {
+					console.error(`Failed to load thumbnail for document ${document.id}:`, error);
+					documentThumbnails[document.id] = null;
+				}
+			})
+		);
+		// Trigger reactivity
+		documentThumbnails = documentThumbnails;
 	}
 
 	async function loadCategories() {
@@ -250,13 +279,20 @@
 					<div class="flex items-center space-x-3">
 						{#if document.mimeType.startsWith('image/')}
 							<div class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-								<img
-									src={`${api.API_BASE_URL}/documents/${document.id}/preview`}
-									alt={document.documentName}
-									class="w-full h-full object-cover"
-									loading="lazy"
-									on:error={(e) => e.target.parentElement.innerHTML = '<span class="text-2xl flex items-center justify-center w-full h-full">🖼️</span>'}
-								/>
+								{#if documentThumbnails[document.id]}
+									<img
+										src={documentThumbnails[document.id]}
+										alt={document.documentName}
+										class="w-full h-full object-cover"
+										loading="lazy"
+									/>
+								{:else if documentThumbnails[document.id] === null}
+									<span class="text-2xl flex items-center justify-center w-full h-full">🖼️</span>
+								{:else}
+									<div class="w-full h-full flex items-center justify-center">
+										<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+									</div>
+								{/if}
 							</div>
 						{:else}
 							<div class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded flex items-center justify-center">

@@ -12,7 +12,9 @@
 	let showUploadModal = false;
 	let showViewModal = false;
 	let selectedPhoto = null;
+	let selectedPhotoUrl = null;
 	let uploadFile = null;
+	let photoThumbnails = {}; // Map of photo ID to blob URL
 	let uploadData = {
 		photoName: '',
 		description: '',
@@ -26,14 +28,40 @@
 	async function loadPhotos() {
 		loading = true;
 		try {
+			// Clean up old thumbnail URLs
+			Object.values(photoThumbnails).forEach(url => {
+				if (url) URL.revokeObjectURL(url);
+			});
+			photoThumbnails = {};
+
 			const response = await api.getPhotos(entityType, entityId);
 			photos = response.data || [];
+
+			// Load thumbnails for all photos
+			await loadPhotoThumbnails();
 		} catch (error) {
 			console.error('Failed to load photos:', error);
 			photos = [];
 		} finally {
 			loading = false;
 		}
+	}
+
+	async function loadPhotoThumbnails() {
+		// Load thumbnails in parallel
+		await Promise.all(
+			photos.map(async (photo) => {
+				try {
+					const blob = await api.downloadPhoto(photo.id);
+					photoThumbnails[photo.id] = URL.createObjectURL(blob);
+				} catch (error) {
+					console.error(`Failed to load thumbnail for photo ${photo.id}:`, error);
+					photoThumbnails[photo.id] = null;
+				}
+			})
+		);
+		// Trigger reactivity
+		photoThumbnails = photoThumbnails;
 	}
 
 	function handleFileSelect(event) {
@@ -92,9 +120,24 @@
 		}
 	}
 
-	function handlePhotoClick(photo) {
-		selectedPhoto = photo;
-		showViewModal = true;
+	async function handlePhotoClick(photo) {
+		try {
+			selectedPhoto = photo;
+
+			// Load full resolution photo
+			const blob = await api.downloadPhoto(photo.id);
+
+			// Clean up previous URL
+			if (selectedPhotoUrl) {
+				URL.revokeObjectURL(selectedPhotoUrl);
+			}
+
+			selectedPhotoUrl = URL.createObjectURL(blob);
+			showViewModal = true;
+		} catch (error) {
+			console.error('Failed to load photo:', error);
+			alert('Failed to load photo. Please try again.');
+		}
 	}
 
 	function resetUploadForm() {
@@ -117,6 +160,10 @@
 
 	function closeViewModal() {
 		showViewModal = false;
+		if (selectedPhotoUrl) {
+			URL.revokeObjectURL(selectedPhotoUrl);
+			selectedPhotoUrl = null;
+		}
 		selectedPhoto = null;
 	}
 
@@ -165,12 +212,18 @@
 			{#each photos as photo}
 				<div class="relative group cursor-pointer" on:click={() => handlePhotoClick(photo)}>
 					<div class="aspect-square bg-gray-200 rounded-lg overflow-hidden">
-						<img
-							src={api.getPhotoUrl(photo.id)}
-							alt={photo.photoName}
-							class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-							loading="lazy"
-						/>
+						{#if photoThumbnails[photo.id]}
+							<img
+								src={photoThumbnails[photo.id]}
+								alt={photo.photoName}
+								class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+								loading="lazy"
+							/>
+						{:else}
+							<div class="w-full h-full flex items-center justify-center bg-gray-100">
+								<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+							</div>
+						{/if}
 					</div>
 					{#if photo.isPrimary}
 						<div class="absolute top-2 left-2">
@@ -307,11 +360,17 @@
 	{#if selectedPhoto}
 		<div class="space-y-4">
 			<div class="flex justify-center">
-				<img
-					src={api.getPhotoUrl(selectedPhoto.id)}
-					alt={selectedPhoto.photoName}
-					class="max-w-full max-h-96 object-contain rounded-lg"
-				/>
+				{#if selectedPhotoUrl}
+					<img
+						src={selectedPhotoUrl}
+						alt={selectedPhoto.photoName}
+						class="max-w-full max-h-96 object-contain rounded-lg"
+					/>
+				{:else}
+					<div class="flex items-center justify-center h-64">
+						<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+					</div>
+				{/if}
 			</div>
 
 			<div class="space-y-2">
