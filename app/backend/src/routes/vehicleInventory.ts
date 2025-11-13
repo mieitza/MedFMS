@@ -5,7 +5,8 @@ import {
   vehicleInventoryCategories,
   vehicleInventoryItems,
   vehicleInventoryAssignments,
-  vehicleInventoryInspections
+  vehicleInventoryInspections,
+  vehicleInventoryDispensing
 } from '../db/schema/vehicleInventory.js';
 import { vehicles } from '../db/schema/vehicles.js';
 import { eq, and, desc, or, like } from 'drizzle-orm';
@@ -76,6 +77,28 @@ const inspectionSchema = z.object({
   actionTaken: z.string().optional(),
   nextInspectionDate: z.number().optional(),
   passed: z.boolean().optional(),
+});
+
+const dispensingSchema = z.object({
+  assignmentId: z.number().positive(),
+  vehicleId: z.number().positive(),
+  dispensedBy: z.number().positive(),
+  dispensedDate: z.number(),
+  quantityDispensed: z.number().positive(),
+  patientName: z.string().optional(),
+  patientId: z.string().optional(),
+  patientAge: z.number().optional(),
+  patientGender: z.string().optional(),
+  incidentType: z.string().optional(),
+  incidentLocation: z.string().optional(),
+  incidentDescription: z.string().optional(),
+  diagnosis: z.string().optional(),
+  symptoms: z.string().optional(),
+  treatmentNotes: z.string().optional(),
+  dispatchNumber: z.string().optional(),
+  missionId: z.number().optional(),
+  reason: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 // ===== CATEGORIES =====
@@ -472,6 +495,143 @@ router.post('/inspections', authorize('admin', 'manager', 'operator'), async (re
     res.status(201).json({
       success: true,
       data: result[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ===== DISPENSING =====
+
+// Get dispensing records for a vehicle
+router.get('/vehicles/:vehicleId/dispensing', async (req, res, next) => {
+  try {
+    const vehicleId = parseInt(req.params.vehicleId);
+    const db = getDb();
+
+    const results = await db
+      .select({
+        dispensing: vehicleInventoryDispensing,
+        assignment: vehicleInventoryAssignments,
+        item: vehicleInventoryItems,
+        category: vehicleInventoryCategories
+      })
+      .from(vehicleInventoryDispensing)
+      .leftJoin(vehicleInventoryAssignments, eq(vehicleInventoryDispensing.assignmentId, vehicleInventoryAssignments.id))
+      .leftJoin(vehicleInventoryItems, eq(vehicleInventoryAssignments.itemId, vehicleInventoryItems.id))
+      .leftJoin(vehicleInventoryCategories, eq(vehicleInventoryItems.categoryId, vehicleInventoryCategories.id))
+      .where(eq(vehicleInventoryDispensing.vehicleId, vehicleId))
+      .orderBy(desc(vehicleInventoryDispensing.dispensedDate));
+
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get dispensing records for an assignment
+router.get('/assignments/:assignmentId/dispensing', async (req, res, next) => {
+  try {
+    const assignmentId = parseInt(req.params.assignmentId);
+    const db = getDb();
+
+    const results = await db
+      .select()
+      .from(vehicleInventoryDispensing)
+      .where(eq(vehicleInventoryDispensing.assignmentId, assignmentId))
+      .orderBy(desc(vehicleInventoryDispensing.dispensedDate));
+
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Create dispensing record (dispense item to patient)
+router.post('/dispensing', authorize('admin', 'manager', 'operator', 'driver'), async (req, res, next) => {
+  try {
+    const data = dispensingSchema.parse(req.body);
+    const db = getDb();
+
+    const userId = (req as any).user?.id;
+
+    // Get the current assignment to check available quantity
+    const [assignment] = await db
+      .select()
+      .from(vehicleInventoryAssignments)
+      .where(eq(vehicleInventoryAssignments.id, data.assignmentId))
+      .limit(1);
+
+    if (!assignment) {
+      throw new AppError('Assignment not found', 404);
+    }
+
+    if (assignment.quantity < data.quantityDispensed) {
+      throw new AppError('Insufficient quantity available', 400);
+    }
+
+    // Create dispensing record
+    const result = await db.insert(vehicleInventoryDispensing).values({
+      ...data,
+      createdBy: userId
+    }).returning();
+
+    // Update assignment quantity
+    const newQuantity = assignment.quantity - data.quantityDispensed;
+    await db
+      .update(vehicleInventoryAssignments)
+      .set({
+        quantity: newQuantity,
+        status: newQuantity === 0 ? 'removed' : assignment.status,
+        updatedAt: new Date(),
+        updatedBy: userId
+      })
+      .where(eq(vehicleInventoryAssignments.id, data.assignmentId));
+
+    res.status(201).json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get dispensing record by ID
+router.get('/dispensing/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const db = getDb();
+
+    const [result] = await db
+      .select({
+        dispensing: vehicleInventoryDispensing,
+        assignment: vehicleInventoryAssignments,
+        item: vehicleInventoryItems,
+        category: vehicleInventoryCategories,
+        vehicle: vehicles
+      })
+      .from(vehicleInventoryDispensing)
+      .leftJoin(vehicleInventoryAssignments, eq(vehicleInventoryDispensing.assignmentId, vehicleInventoryAssignments.id))
+      .leftJoin(vehicleInventoryItems, eq(vehicleInventoryAssignments.itemId, vehicleInventoryItems.id))
+      .leftJoin(vehicleInventoryCategories, eq(vehicleInventoryItems.categoryId, vehicleInventoryCategories.id))
+      .leftJoin(vehicles, eq(vehicleInventoryDispensing.vehicleId, vehicles.id))
+      .where(eq(vehicleInventoryDispensing.id, id))
+      .limit(1);
+
+    if (!result) {
+      throw new AppError('Dispensing record not found', 404);
+    }
+
+    res.json({
+      success: true,
+      data: result
     });
   } catch (error) {
     next(error);

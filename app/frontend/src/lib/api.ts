@@ -1883,6 +1883,57 @@ export const api = {
 
     return response.json();
   },
+
+  // Dispensing
+  async getVehicleDispensingHistory(vehicleId) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/vehicles/${vehicleId}/dispensing`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch vehicle dispensing history');
+    }
+
+    return response.json();
+  },
+
+  async getAssignmentDispensingHistory(assignmentId) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/assignments/${assignmentId}/dispensing`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch assignment dispensing history');
+    }
+
+    return response.json();
+  },
+
+  async dispenseInventoryItem(dispensingData) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/dispensing`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(dispensingData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to dispense inventory item');
+    }
+
+    return response.json();
+  },
+
+  async getDispensingRecordById(id) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/dispensing/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch dispensing record');
+    }
+
+    return response.json();
+  },
 };
 
 export default api;

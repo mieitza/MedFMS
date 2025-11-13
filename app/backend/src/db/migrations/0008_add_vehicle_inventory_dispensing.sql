@@ -1,0 +1,27 @@
+-- Add vehicle inventory dispensing table for tracking medical supply dispensing to patients
+CREATE TABLE `vehicle_inventory_dispensing` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`assignment_id` integer NOT NULL,
+	`vehicle_id` integer NOT NULL,
+	`dispensed_by` integer NOT NULL,
+	`dispensed_date` integer NOT NULL,
+	`quantity_dispensed` integer NOT NULL,
+	`patient_name` text,
+	`patient_id` text,
+	`patient_age` integer,
+	`patient_gender` text,
+	`incident_type` text,
+	`incident_location` text,
+	`incident_description` text,
+	`diagnosis` text,
+	`symptoms` text,
+	`treatment_notes` text,
+	`dispatch_number` text,
+	`mission_id` integer,
+	`reason` text,
+	`notes` text,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`created_by` integer,
+	FOREIGN KEY (`assignment_id`) REFERENCES `vehicle_inventory_assignments`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles`(`id`) ON UPDATE no action ON DELETE no action
+);

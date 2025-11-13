@@ -98,6 +98,43 @@ export const vehicleInventoryInspections = sqliteTable('vehicle_inventory_inspec
   createdBy: integer('created_by'),
 });
 
+// Track dispensing of medical supplies to patients
+export const vehicleInventoryDispensing = sqliteTable('vehicle_inventory_dispensing', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  assignmentId: integer('assignment_id').notNull().references(() => vehicleInventoryAssignments.id),
+  vehicleId: integer('vehicle_id').notNull().references(() => vehicles.id),
+  dispensedBy: integer('dispensed_by').notNull(), // User ID of driver/medic
+  dispensedDate: integer('dispensed_date', { mode: 'timestamp' }).notNull(),
+  quantityDispensed: integer('quantity_dispensed').notNull(),
+
+  // Patient information
+  patientName: text('patient_name'),
+  patientId: text('patient_id'), // National ID or patient record number
+  patientAge: integer('patient_age'),
+  patientGender: text('patient_gender'),
+
+  // Incident information
+  incidentType: text('incident_type'), // emergency, routine, transfer, etc.
+  incidentLocation: text('incident_location'),
+  incidentDescription: text('incident_description'),
+
+  // Medical information
+  diagnosis: text('diagnosis'),
+  symptoms: text('symptoms'),
+  treatmentNotes: text('treatment_notes'),
+
+  // Dispatch/mission reference
+  dispatchNumber: text('dispatch_number'),
+  missionId: integer('mission_id'),
+
+  // Additional tracking
+  reason: text('reason'),
+  notes: text('notes'),
+
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdBy: integer('created_by'),
+});
+
 export type VehicleInventoryCategory = typeof vehicleInventoryCategories.$inferSelect;
 export type NewVehicleInventoryCategory = typeof vehicleInventoryCategories.$inferInsert;
 export type VehicleInventoryItem = typeof vehicleInventoryItems.$inferSelect;
@@ -106,3 +143,5 @@ export type VehicleInventoryAssignment = typeof vehicleInventoryAssignments.$inf
 export type NewVehicleInventoryAssignment = typeof vehicleInventoryAssignments.$inferInsert;
 export type VehicleInventoryInspection = typeof vehicleInventoryInspections.$inferSelect;
 export type NewVehicleInventoryInspection = typeof vehicleInventoryInspections.$inferInsert;
+export type VehicleInventoryDispensing = typeof vehicleInventoryDispensing.$inferSelect;
+export type NewVehicleInventoryDispensing = typeof vehicleInventoryDispensing.$inferInsert;
