@@ -28,7 +28,14 @@
 		departmentId: '',
 		driverId: '',
 		odometer: '',
-		description: ''
+		description: '',
+		// ANMDM Authorization fields
+		anmdmAuthNumber: '',
+		anmdmAuthType: '',
+		anmdmIssueDate: '',
+		anmdmExpiryDate: '',
+		anmdmIssuingAuthority: '',
+		anmdmNotes: ''
 	};
 
 	let filteredModels = [];
@@ -51,7 +58,14 @@
 				departmentId: vehicle.departmentId?.toString() || '',
 				driverId: vehicle.driverId?.toString() || '',
 				odometer: vehicle.odometer || '',
-				description: vehicle.description || ''
+				description: vehicle.description || '',
+				// ANMDM Authorization fields
+				anmdmAuthNumber: vehicle.anmdmAuthNumber || '',
+				anmdmAuthType: vehicle.anmdmAuthType || '',
+				anmdmIssueDate: vehicle.anmdmIssueDate ? new Date(vehicle.anmdmIssueDate).toISOString().split('T')[0] : '',
+				anmdmExpiryDate: vehicle.anmdmExpiryDate ? new Date(vehicle.anmdmExpiryDate).toISOString().split('T')[0] : '',
+				anmdmIssuingAuthority: vehicle.anmdmIssuingAuthority || '',
+				anmdmNotes: vehicle.anmdmNotes || ''
 			};
 			updateFilteredModels();
 		}
@@ -405,6 +419,97 @@
 				class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 				placeholder={$_('vehicles.placeholders.description')}
 			></textarea>
+		</div>
+
+		<!-- ANMDM Authorization Section -->
+		<div class="mt-8">
+			<h4 class="text-md font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+				{$_('vehicles.sections.anmdmAuth')}
+			</h4>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<!-- Authorization Number -->
+				<div>
+					<label for="anmdmAuthNumber" class="block text-sm font-medium text-gray-700 mb-1">
+						{$_('vehicles.anmdmAuthNumber')}
+					</label>
+					<input
+						id="anmdmAuthNumber"
+						type="text"
+						bind:value={formData.anmdmAuthNumber}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+						placeholder={$_('vehicles.placeholders.anmdmAuthNumber')}
+					/>
+				</div>
+
+				<!-- Authorization Type -->
+				<div>
+					<label for="anmdmAuthType" class="block text-sm font-medium text-gray-700 mb-1">
+						{$_('vehicles.anmdmAuthType')}
+					</label>
+					<input
+						id="anmdmAuthType"
+						type="text"
+						bind:value={formData.anmdmAuthType}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+						placeholder={$_('vehicles.placeholders.anmdmAuthType')}
+					/>
+				</div>
+
+				<!-- Issue Date -->
+				<div>
+					<label for="anmdmIssueDate" class="block text-sm font-medium text-gray-700 mb-1">
+						{$_('vehicles.anmdmIssueDate')}
+					</label>
+					<input
+						id="anmdmIssueDate"
+						type="date"
+						bind:value={formData.anmdmIssueDate}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+					/>
+				</div>
+
+				<!-- Expiry Date -->
+				<div>
+					<label for="anmdmExpiryDate" class="block text-sm font-medium text-gray-700 mb-1">
+						{$_('vehicles.anmdmExpiryDate')}
+					</label>
+					<input
+						id="anmdmExpiryDate"
+						type="date"
+						bind:value={formData.anmdmExpiryDate}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+					/>
+				</div>
+
+				<!-- Issuing Authority -->
+				<div class="md:col-span-2">
+					<label for="anmdmIssuingAuthority" class="block text-sm font-medium text-gray-700 mb-1">
+						{$_('vehicles.anmdmIssuingAuthority')}
+					</label>
+					<input
+						id="anmdmIssuingAuthority"
+						type="text"
+						bind:value={formData.anmdmIssuingAuthority}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+						placeholder={$_('vehicles.placeholders.anmdmIssuingAuthority')}
+					/>
+				</div>
+
+				<!-- Notes -->
+				<div class="md:col-span-2">
+					<label for="anmdmNotes" class="block text-sm font-medium text-gray-700 mb-1">
+						{$_('vehicles.anmdmNotes')}
+					</label>
+					<textarea
+						id="anmdmNotes"
+						bind:value={formData.anmdmNotes}
+						rows="3"
+						class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+						placeholder={$_('vehicles.placeholders.anmdmNotes')}
+					></textarea>
+				</div>
+			</div>
 		</div>
 
 		<!-- Form Actions -->

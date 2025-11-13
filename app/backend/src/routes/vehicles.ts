@@ -28,6 +28,13 @@ const vehicleSchema = z.object({
   driverId: z.number().optional(),
   odometer: z.number().min(0).optional(),
   description: z.string().optional(),
+  // ANMDM Authorization fields
+  anmdmAuthNumber: z.string().optional(),
+  anmdmAuthType: z.string().optional(),
+  anmdmIssueDate: z.string().optional(), // Will be converted to timestamp
+  anmdmExpiryDate: z.string().optional(), // Will be converted to timestamp
+  anmdmIssuingAuthority: z.string().optional(),
+  anmdmNotes: z.string().optional(),
 });
 
 // Get all vehicles with pagination and search
@@ -222,9 +229,18 @@ router.put('/:id', authorize('admin', 'manager', 'operator'), async (req, res, n
 
     const db = getDb();
 
+    // Convert ANMDM date strings to timestamps if provided
+    const updateData: any = { ...data };
+    if (data.anmdmIssueDate) {
+      updateData.anmdmIssueDate = new Date(data.anmdmIssueDate);
+    }
+    if (data.anmdmExpiryDate) {
+      updateData.anmdmExpiryDate = new Date(data.anmdmExpiryDate);
+    }
+
     const result = await db.update(vehicles)
       .set({
-        ...data,
+        ...updateData,
         updatedAt: new Date()
       })
       .where(eq(vehicles.id, id))

@@ -36,6 +36,13 @@ export const vehicles = sqliteTable('vehicles', {
   customField10: real('custom_field_10'),
   customField11: text('custom_field_11'), // Reference field
   customField12: text('custom_field_12'), // Reference field
+  // ANMDM Authorization (aviz) fields
+  anmdmAuthNumber: text('anmdm_auth_number'),
+  anmdmAuthType: text('anmdm_auth_type'),
+  anmdmIssueDate: integer('anmdm_issue_date', { mode: 'timestamp' }),
+  anmdmExpiryDate: integer('anmdm_expiry_date', { mode: 'timestamp' }),
+  anmdmIssuingAuthority: text('anmdm_issuing_authority'),
+  anmdmNotes: text('anmdm_notes'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });

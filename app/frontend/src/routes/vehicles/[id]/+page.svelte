@@ -208,6 +208,27 @@
 		};
 		return colorMap[statusName] || 'bg-gray-100 text-gray-800';
 	}
+
+	function formatAnmdmDate(date) {
+		if (!date) return $_('vehicles.notRecorded');
+		return new Date(date).toLocaleDateString();
+	}
+
+	function getAnmdmExpiryStatus() {
+		if (!vehicle?.anmdmExpiryDate) return null;
+
+		const expiryDate = new Date(vehicle.anmdmExpiryDate);
+		const now = new Date();
+		const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+
+		if (daysUntilExpiry < 0) {
+			return { status: 'expired', color: 'bg-red-100 text-red-800 border-red-200', message: $_('vehicles.anmdmExpired') };
+		} else if (daysUntilExpiry <= 30) {
+			return { status: 'expiring', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', message: $_('vehicles.anmdmExpiringSoon') };
+		} else {
+			return { status: 'valid', color: 'bg-green-100 text-green-800 border-green-200', message: $_('vehicles.anmdmValid') };
+		}
+	}
 </script>
 
 <svelte:head>
@@ -381,6 +402,71 @@
 						</div>
 					</div>
 				</div>
+			</div>
+
+			<!-- ANMDM Authorization Section -->
+			<div class="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+				<div class="flex justify-between items-start mb-4">
+					<h3 class="text-lg font-semibold text-gray-900">{$_('vehicles.sections.anmdmAuth')}</h3>
+					{#if getAnmdmExpiryStatus()}
+						<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border {getAnmdmExpiryStatus().color}">
+							{getAnmdmExpiryStatus().message}
+						</span>
+					{/if}
+				</div>
+
+				{#if vehicle.anmdmAuthNumber || vehicle.anmdmAuthType || vehicle.anmdmIssueDate || vehicle.anmdmExpiryDate}
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						{#if vehicle.anmdmAuthNumber}
+							<div>
+								<label class="block text-sm font-medium text-gray-500">{$_('vehicles.anmdmAuthNumber')}</label>
+								<p class="mt-1 text-sm text-gray-900 font-medium">{vehicle.anmdmAuthNumber}</p>
+							</div>
+						{/if}
+
+						{#if vehicle.anmdmAuthType}
+							<div>
+								<label class="block text-sm font-medium text-gray-500">{$_('vehicles.anmdmAuthType')}</label>
+								<p class="mt-1 text-sm text-gray-900">{vehicle.anmdmAuthType}</p>
+							</div>
+						{/if}
+
+						{#if vehicle.anmdmIssueDate}
+							<div>
+								<label class="block text-sm font-medium text-gray-500">{$_('vehicles.anmdmIssueDate')}</label>
+								<p class="mt-1 text-sm text-gray-900">{formatAnmdmDate(vehicle.anmdmIssueDate)}</p>
+							</div>
+						{/if}
+
+						{#if vehicle.anmdmExpiryDate}
+							<div>
+								<label class="block text-sm font-medium text-gray-500">{$_('vehicles.anmdmExpiryDate')}</label>
+								<p class="mt-1 text-sm text-gray-900">{formatAnmdmDate(vehicle.anmdmExpiryDate)}</p>
+							</div>
+						{/if}
+
+						{#if vehicle.anmdmIssuingAuthority}
+							<div>
+								<label class="block text-sm font-medium text-gray-500">{$_('vehicles.anmdmIssuingAuthority')}</label>
+								<p class="mt-1 text-sm text-gray-900">{vehicle.anmdmIssuingAuthority}</p>
+							</div>
+						{/if}
+
+						{#if vehicle.anmdmNotes}
+							<div class="md:col-span-2 lg:col-span-3">
+								<label class="block text-sm font-medium text-gray-500">{$_('vehicles.anmdmNotes')}</label>
+								<p class="mt-1 text-sm text-gray-900">{vehicle.anmdmNotes}</p>
+							</div>
+						{/if}
+					</div>
+				{:else}
+					<div class="text-center py-8 text-gray-500">
+						<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+						</svg>
+						<p class="mt-2 text-sm">{$_('vehicles.notRecorded')}</p>
+					</div>
+				{/if}
 			</div>
 
 			<!-- Vehicle Inventory -->

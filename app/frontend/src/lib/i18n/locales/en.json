@@ -324,7 +324,8 @@
       "technicalInfo": "Technical Information",
       "purchaseInfo": "Purchase Information",
       "insuranceInfo": "Insurance Information",
-      "assignmentInfo": "Assignment Information"
+      "assignmentInfo": "Assignment Information",
+      "anmdmAuth": "ANMDM Authorization"
     },
     "placeholders": {
       "vehicleCode": "Enter vehicle code",
@@ -345,7 +346,11 @@
       "selectStatus": "Select status",
       "selectLocation": "Select location",
       "selectDepartment": "Select department",
-      "selectDriver": "Select driver"
+      "selectDriver": "Select driver",
+      "anmdmAuthNumber": "Enter authorization number",
+      "anmdmAuthType": "Enter authorization type",
+      "anmdmIssuingAuthority": "Enter issuing authority",
+      "anmdmNotes": "Enter notes"
     },
     "messages": {
       "requiredFields": "Please fill in all required fields",
@@ -427,7 +432,16 @@
         "removeFailed": "Failed to remove inventory item",
         "inspectionFailed": "Failed to record inspection"
       }
-    }
+    },
+    "anmdmAuthNumber": "ANMDM Authorization Number",
+    "anmdmAuthType": "Authorization Type",
+    "anmdmIssueDate": "Issue Date",
+    "anmdmExpiryDate": "Expiry Date",
+    "anmdmIssuingAuthority": "Issuing Authority",
+    "anmdmNotes": "ANMDM Notes",
+    "anmdmExpired": "Authorization expired",
+    "anmdmExpiringSoon": "Authorization expiring soon",
+    "anmdmValid": "Authorization valid"
   },
   "fuel": {
     "title": "Fuel Management",
@@ -1080,13 +1094,12 @@
         "reject": "Reject"
       },
       "modal": {
-        "title": "Work Order Approval",
+        "title": "Title:",
         "workOrderDetails": "Work Order Details",
         "workOrderNumber": "Work Order #:",
         "vehicle": "Vehicle:",
         "maintenanceType": "Maintenance Type:",
         "priority": "Priority:",
-        "title": "Title:",
         "description": "Description:",
         "estimatedCost": "Estimated Cost:",
         "scheduledDate": "Scheduled Date:",
