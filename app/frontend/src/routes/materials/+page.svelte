@@ -67,37 +67,37 @@
       key: 'materialCode',
       label: $_('materials.materialCode'),
       sortable: true,
-      render: (row) => (row && row.materialCode) || 'N/A'
+      render: (value, row) => value || 'N/A'
     },
     {
       key: 'materialName',
       label: $_('materials.materialName'),
       sortable: true,
-      render: (row) => (row && row.materialName) || 'N/A'
+      render: (value, row) => value || 'N/A'
     },
     {
       key: 'currentStock',
       label: $_('materials.currentStock'),
       sortable: true,
-      render: (row) => parseFloat((row && row.currentStock) || 0).toFixed(2)
+      render: (value, row) => parseFloat(value || 0).toFixed(2)
     },
     {
       key: 'criticalLevel',
       label: $_('materials.criticalLevel'),
       sortable: true,
-      render: (row) => parseFloat((row && row.criticalLevel) || 0).toFixed(2)
+      render: (value, row) => parseFloat(value || 0).toFixed(2)
     },
     {
       key: 'standardPrice',
       label: $_('materials.standardPrice'),
       sortable: true,
-      render: (row) => (row && row.standardPrice) ? `${parseFloat(row.standardPrice).toFixed(2)} RON` : '-'
+      render: (value, row) => value ? `${parseFloat(value).toFixed(2)} RON` : '-'
     },
     {
       key: 'stockStatus',
       label: $_('materials.stockStatus'),
       sortable: false,
-      render: (row) => {
+      render: (value, row) => {
         if (!row) return '<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">N/A</span>';
         const stock = parseFloat(row.currentStock || 0);
         const critical = parseFloat(row.criticalLevel || 0);
@@ -114,15 +114,15 @@
       key: 'createdAt',
       label: $_('materials.created'),
       sortable: true,
-      render: (row) => (row && row.createdAt) ? new Date(row.createdAt).toLocaleDateString() : 'N/A'
+      render: (value, row) => value ? new Date(value).toLocaleDateString() : 'N/A'
     },
     {
       key: 'actions',
       label: $_('materials.actions'),
       sortable: false,
-      render: (row) => `
+      render: (value, row) => `
         <div class="flex gap-2">
-          <button onclick="viewMaterial(${(row && row.id) || 0})" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+          <button onclick="viewMaterial(${row?.id || 0})" class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
             ${$_('materials.viewDetails')}
           </button>
         </div>
@@ -411,6 +411,24 @@
           </nav>
         </div>
         <div class="flex items-center space-x-4">
+          <a
+            href="/materials/transfer-requests"
+            class="btn btn-secondary"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+            </svg>
+            Transfer Requests
+          </a>
+          <a
+            href="/materials/transfer-requests/approvals"
+            class="btn btn-secondary"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Approvals
+          </a>
           <button
             on:click={openWarehouseModal}
             class="btn btn-secondary"

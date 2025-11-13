@@ -1140,6 +1140,200 @@ export const api = {
     return response.json();
   },
 
+  // Material Units APIs
+  async getMaterialUnits(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.active !== undefined) queryParams.append('active', params.active.toString());
+
+    const response = await fetch(`${API_BASE_URL}/materials/units?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch material units');
+    }
+
+    return response.json();
+  },
+
+  async createMaterialUnit(unitData) {
+    const response = await fetch(`${API_BASE_URL}/materials/units`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(unitData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create material unit');
+    }
+
+    return response.json();
+  },
+
+  async updateMaterialUnit(id, unitData) {
+    const response = await fetch(`${API_BASE_URL}/materials/units/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(unitData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update material unit');
+    }
+
+    return response.json();
+  },
+
+  // Warehouse Transfer Request APIs
+  async getTransferRequests(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.search) queryParams.append('search', params.search);
+    if (params.status) queryParams.append('status', params.status);
+    if (params.priority) queryParams.append('priority', params.priority.toString());
+    if (params.sourceWarehouseId) queryParams.append('sourceWarehouseId', params.sourceWarehouseId.toString());
+    if (params.destinationWarehouseId) queryParams.append('destinationWarehouseId', params.destinationWarehouseId.toString());
+    if (params.materialId) queryParams.append('materialId', params.materialId.toString());
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/materials/transfer-requests?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch transfer requests');
+    }
+
+    return response.json();
+  },
+
+  async getTransferRequestsForApproval(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+
+    const response = await fetch(`${API_BASE_URL}/materials/transfer-requests/pending-approval?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch transfer requests for approval');
+    }
+
+    return response.json();
+  },
+
+  async getTransferRequestById(id) {
+    const response = await fetch(`${API_BASE_URL}/materials/transfer-requests/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch transfer request');
+    }
+
+    return response.json();
+  },
+
+  async createTransferRequest(requestData) {
+    const response = await fetch(`${API_BASE_URL}/materials/transfer-requests`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(requestData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create transfer request');
+    }
+
+    return response.json();
+  },
+
+  async updateTransferRequest(id, requestData) {
+    const response = await fetch(`${API_BASE_URL}/materials/transfer-requests/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(requestData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update transfer request');
+    }
+
+    return response.json();
+  },
+
+  async updateTransferRequestStatus(id, status, notes) {
+    const response = await fetch(`${API_BASE_URL}/materials/transfer-requests/${id}/status`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ status, notes }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update transfer request status');
+    }
+
+    return response.json();
+  },
+
+  async approveTransferRequest(id, notes = '', approvedQuantity = null) {
+    const response = await fetch(`${API_BASE_URL}/materials/transfer-requests/${id}/approve`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ notes, approvedQuantity }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to approve transfer request');
+    }
+
+    return response.json();
+  },
+
+  async rejectTransferRequest(id, rejectionReason) {
+    const response = await fetch(`${API_BASE_URL}/materials/transfer-requests/${id}/reject`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ rejectionReason }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to reject transfer request');
+    }
+
+    return response.json();
+  },
+
+  async completeTransferRequest(id, qualityCheckNotes = null, transferredQuantity = null) {
+    const response = await fetch(`${API_BASE_URL}/materials/transfer-requests/${id}/complete`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ qualityCheckNotes, transferredQuantity }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to complete transfer request');
+    }
+
+    return response.json();
+  },
+
+  async deleteTransferRequest(id) {
+    const response = await fetch(`${API_BASE_URL}/materials/transfer-requests/${id}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete transfer request');
+    }
+
+    return response.json();
+  },
+
   // Reports API
   async getFleetOverviewReport(params = {}) {
     const queryParams = new URLSearchParams();

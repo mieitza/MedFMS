@@ -21,6 +21,7 @@ export const materials = sqliteTable('materials', {
   serialNumber: text('serial_number'),
   shelfLocation: text('shelf_location'),
   warehouseId: integer('warehouse_id'),
+  expirationDate: integer('expiration_date', { mode: 'timestamp' }),
   active: integer('active', { mode: 'boolean' }).notNull().default(true),
   // Custom fields
   customField1: text('custom_field_1'),
@@ -74,9 +75,79 @@ export const materialTransactions = sqliteTable('material_transactions', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
+// Material units (for customizable unit labels)
+export const materialUnits = sqliteTable('material_units', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  unitCode: text('unit_code').notNull().unique(),
+  unitName: text('unit_name').notNull(),
+  unitNamePlural: text('unit_name_plural'),
+  abbreviation: text('abbreviation').notNull(),
+  description: text('description'),
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+// Warehouse transfer requests (similar to maintenance work orders)
+export const warehouseTransferRequests = sqliteTable('warehouse_transfer_requests', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  requestNumber: text('request_number').notNull().unique(),
+
+  // Source and destination
+  sourceWarehouseId: integer('source_warehouse_id').notNull().references(() => warehouses.id),
+  destinationWarehouseId: integer('destination_warehouse_id').notNull().references(() => warehouses.id),
+  materialId: integer('material_id').notNull().references(() => materials.id),
+
+  // Request details
+  quantity: real('quantity').notNull(),
+  requestedQuantity: real('requested_quantity'),
+  approvedQuantity: real('approved_quantity'),
+  transferredQuantity: real('transferred_quantity'),
+
+  // Status workflow
+  status: text('status').notNull().default('pending'), // pending, approved, rejected, in_transit, completed, cancelled
+  priority: integer('priority').notNull().default(3), // 1=urgent, 2=high, 3=normal, 4=low
+
+  // Dates
+  requestedDate: integer('requested_date', { mode: 'timestamp' }).notNull(),
+  requiredByDate: integer('required_by_date', { mode: 'timestamp' }),
+  approvedDate: integer('approved_date', { mode: 'timestamp' }),
+  transferDate: integer('transfer_date', { mode: 'timestamp' }),
+  completedDate: integer('completed_date', { mode: 'timestamp' }),
+
+  // Request information
+  reason: text('reason'),
+  notes: text('notes'),
+
+  // Approval workflow
+  requestedBy: integer('requested_by').notNull(),
+  approvedBy: integer('approved_by'),
+  rejectedBy: integer('rejected_by'),
+  rejectionReason: text('rejection_reason'),
+
+  // Transfer information
+  transferredBy: integer('transferred_by'),
+  receivedBy: integer('received_by'),
+  receivedDate: integer('received_date', { mode: 'timestamp' }),
+
+  // Quality check
+  qualityCheck: integer('quality_check', { mode: 'boolean' }).default(false),
+  qualityCheckBy: integer('quality_check_by'),
+  qualityCheckDate: integer('quality_check_date', { mode: 'timestamp' }),
+  qualityCheckNotes: text('quality_check_notes'),
+
+  // Tracking
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
 export type Material = typeof materials.$inferSelect;
 export type NewMaterial = typeof materials.$inferInsert;
 export type Warehouse = typeof warehouses.$inferSelect;
 export type NewWarehouse = typeof warehouses.$inferInsert;
 export type MaterialTransaction = typeof materialTransactions.$inferSelect;
 export type NewMaterialTransaction = typeof materialTransactions.$inferInsert;
+export type MaterialUnit = typeof materialUnits.$inferSelect;
+export type NewMaterialUnit = typeof materialUnits.$inferInsert;
+export type WarehouseTransferRequest = typeof warehouseTransferRequests.$inferSelect;
+export type NewWarehouseTransferRequest = typeof warehouseTransferRequests.$inferInsert;
