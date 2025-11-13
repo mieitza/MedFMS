@@ -1778,6 +1778,32 @@ export const api = {
     return response.json();
   },
 
+  // Get materials currently in vehicle from unified transfer system
+  async getVehicleMaterials(vehicleId) {
+    const response = await fetch(`${API_BASE_URL}/materials/vehicles/${vehicleId}/materials`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch vehicle materials');
+    }
+
+    return response.json();
+  },
+
+  // Get materials currently assigned to employee from unified transfer system
+  async getEmployeeMaterials(employeeId) {
+    const response = await fetch(`${API_BASE_URL}/materials/employees/${employeeId}/materials`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch employee materials');
+    }
+
+    return response.json();
+  },
+
   async getVehicleInventoryAssignmentById(id) {
     const response = await fetch(`${API_BASE_URL}/vehicle-inventory/assignments/${id}`, {
       headers: this.getAuthHeaders(),

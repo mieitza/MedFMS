@@ -95,7 +95,8 @@ export const warehouseTransferRequests = sqliteTable('warehouse_transfer_request
 
   // Transfer type and source
   transferType: text('transfer_type').notNull().default('warehouse-to-warehouse'), // warehouse-to-warehouse, warehouse-to-vehicle, warehouse-to-employee, vehicle-to-warehouse
-  sourceWarehouseId: integer('source_warehouse_id').notNull().references(() => warehouses.id),
+  sourceWarehouseId: integer('source_warehouse_id').references(() => warehouses.id),
+  sourceVehicleId: integer('source_vehicle_id'),
 
   // Destination (only one should be set based on transferType)
   destinationWarehouseId: integer('destination_warehouse_id').references(() => warehouses.id),
@@ -104,7 +105,7 @@ export const warehouseTransferRequests = sqliteTable('warehouse_transfer_request
 
   // Material and vehicle inventory item reference
   materialId: integer('material_id').notNull().references(() => materials.id),
-  vehicleInventoryItemId: integer('vehicle_inventory_item_id'), // For warehouse-to-vehicle transfers
+  vehicleInventoryItemId: integer('vehicle_inventory_item_id'), // For vehicle-to-warehouse returns only
 
   // Request details
   quantity: real('quantity').notNull(),

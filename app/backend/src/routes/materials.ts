@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { getDb } from '../db/index.js';
 import { materials, materialTransactions, warehouses, warehouseTransferRequests, materialUnits } from '../db/schema/materials.js';
+import { vehicles } from '../db/schema/vehicles.js';
+import { users } from '../db/schema/users.js';
 import { eq, like, or, sql, desc, and, gte, lte } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/sqlite-core';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth.js';
@@ -334,12 +336,13 @@ router.put('/units/:id', authorize('admin'), async (req, res, next) => {
 
 const transferRequestSchema = z.object({
   transferType: z.enum(['warehouse-to-warehouse', 'warehouse-to-vehicle', 'warehouse-to-employee', 'vehicle-to-warehouse']).default('warehouse-to-warehouse'),
-  sourceWarehouseId: z.number().positive(),
-  destinationWarehouseId: z.number().positive().optional(),
-  destinationVehicleId: z.number().positive().optional(),
-  destinationEmployeeId: z.number().positive().optional(),
+  sourceWarehouseId: z.number().positive().nullable().optional(),
+  sourceVehicleId: z.number().positive().nullable().optional(),
+  destinationWarehouseId: z.number().positive().nullable().optional(),
+  destinationVehicleId: z.number().positive().nullable().optional(),
+  destinationEmployeeId: z.number().positive().nullable().optional(),
   materialId: z.number().positive(),
-  vehicleInventoryItemId: z.number().positive().optional(), // Required for vehicle transfers
+  vehicleInventoryItemId: z.number().positive().nullable().optional(), // Required for vehicle-to-warehouse (returns)
   quantity: z.number().positive(),
   requestedQuantity: z.number().positive().optional(),
   priority: z.number().min(1).max(5).default(3),
@@ -348,17 +351,34 @@ const transferRequestSchema = z.object({
   notes: z.string().optional(),
   autoApprove: z.boolean().default(false)
 }).refine((data) => {
+  // Ensure correct source based on transfer type
+  if (data.transferType === 'vehicle-to-warehouse') {
+    return !!data.sourceVehicleId;
+  } else {
+    return !!data.sourceWarehouseId;
+  }
+}, {
+  message: 'Source must match transfer type'
+}).refine((data) => {
   // Ensure at least one destination is set based on transfer type
-  if (data.transferType === 'warehouse-to-warehouse') {
+  if (data.transferType === 'warehouse-to-warehouse' || data.transferType === 'vehicle-to-warehouse') {
     return !!data.destinationWarehouseId;
-  } else if (data.transferType === 'warehouse-to-vehicle' || data.transferType === 'vehicle-to-warehouse') {
-    return !!data.destinationVehicleId && !!data.vehicleInventoryItemId;
+  } else if (data.transferType === 'warehouse-to-vehicle') {
+    return !!data.destinationVehicleId;
   } else if (data.transferType === 'warehouse-to-employee') {
     return !!data.destinationEmployeeId;
   }
   return false;
 }, {
   message: 'Destination must match transfer type'
+}).refine((data) => {
+  // Vehicle inventory item is only required for vehicle-to-warehouse (returns)
+  if (data.transferType === 'vehicle-to-warehouse') {
+    return !!data.vehicleInventoryItemId;
+  }
+  return true;
+}, {
+  message: 'Vehicle inventory item is required for vehicle-to-warehouse transfers'
 });
 
 // GET /api/materials/transfer-requests - List all transfer requests
@@ -387,6 +407,8 @@ router.get('/transfer-requests', authorize('admin', 'manager', 'operator'), asyn
       transferRequest: warehouseTransferRequests,
       sourceWarehouse: sourceWarehouse,
       destinationWarehouse: destWarehouse,
+      destinationVehicle: vehicles,
+      destinationEmployee: users,
       material: materials
     })
     .from(warehouseTransferRequests)
@@ -397,6 +419,14 @@ router.get('/transfer-requests', authorize('admin', 'manager', 'operator'), asyn
     .leftJoin(
       destWarehouse,
       eq(warehouseTransferRequests.destinationWarehouseId, destWarehouse.id)
+    )
+    .leftJoin(
+      vehicles,
+      eq(warehouseTransferRequests.destinationVehicleId, vehicles.id)
+    )
+    .leftJoin(
+      users,
+      eq(warehouseTransferRequests.destinationEmployeeId, users.id)
     )
     .leftJoin(
       materials,
@@ -457,13 +487,23 @@ router.get('/transfer-requests/pending-approval', authorize('admin', 'manager'),
     const conditions = [eq(warehouseTransferRequests.status, 'pending')];
     const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
 
+    // Create aliases for warehouses
+    const sourceWarehouse = alias(warehouses, 'source_warehouse');
+    const destWarehouse = alias(warehouses, 'dest_warehouse');
+
     const result = await db.select({
       transferRequest: warehouseTransferRequests,
-      sourceWarehouse: warehouses,
+      sourceWarehouse: sourceWarehouse,
+      destinationWarehouse: destWarehouse,
+      destinationVehicle: vehicles,
+      destinationEmployee: users,
       material: materials
     })
       .from(warehouseTransferRequests)
-      .leftJoin(warehouses, eq(warehouseTransferRequests.sourceWarehouseId, warehouses.id))
+      .leftJoin(sourceWarehouse, eq(warehouseTransferRequests.sourceWarehouseId, sourceWarehouse.id))
+      .leftJoin(destWarehouse, eq(warehouseTransferRequests.destinationWarehouseId, destWarehouse.id))
+      .leftJoin(vehicles, eq(warehouseTransferRequests.destinationVehicleId, vehicles.id))
+      .leftJoin(users, eq(warehouseTransferRequests.destinationEmployeeId, users.id))
       .leftJoin(materials, eq(warehouseTransferRequests.materialId, materials.id))
       .where(whereClause)
       .orderBy(desc(warehouseTransferRequests.priority), desc(warehouseTransferRequests.requestedDate))
@@ -832,11 +872,22 @@ router.post('/transfer-requests/:id/complete', authorize('admin', 'manager', 'op
         );
 
       // Create vehicle inventory assignment
-      const { vehicleInventoryAssignments } = await import('../db/schema/vehicleInventory.js');
+      const { vehicleInventoryAssignments, vehicleInventoryItems } = await import('../db/schema/vehicleInventory.js');
+
+      // Find the vehicle inventory item that corresponds to this material
+      // Look for a vehicleInventoryItem that has this materialId
+      const [inventoryItem] = await db.select()
+        .from(vehicleInventoryItems)
+        .where(eq(vehicleInventoryItems.materialId, existingRequest.materialId))
+        .limit(1);
+
+      if (!inventoryItem) {
+        throw new AppError('No vehicle inventory item found for this material. Please create a vehicle inventory item linked to this material first.', 400);
+      }
 
       await db.insert(vehicleInventoryAssignments).values({
         vehicleId: existingRequest.destinationVehicleId!,
-        itemId: existingRequest.vehicleInventoryItemId!,
+        itemId: inventoryItem.id,
         quantity: Math.floor(finalQuantity), // Convert to integer for quantity
         serialNumber: serialNumber || null,
         batchNumber: batchNumber || null,
@@ -1209,6 +1260,169 @@ router.delete('/:id', authorize('admin', 'manager'), async (req, res, next) => {
       message: 'Material deleted successfully'
     });
   } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/materials/vehicles/:vehicleId/materials - Get all materials currently in a vehicle
+router.get('/vehicles/:vehicleId/materials', authorize('admin', 'manager', 'operator'), async (req: AuthRequest, res, next) => {
+  try {
+    const vehicleId = parseInt(req.params.vehicleId);
+    const db = getDb();
+
+    // Get all completed warehouse-to-vehicle transfers (materials added to vehicle)
+    const transfersToVehicle = await db.select({
+      id: warehouseTransferRequests.id,
+      requestNumber: warehouseTransferRequests.requestNumber,
+      materialId: warehouseTransferRequests.materialId,
+      materialCode: materials.materialCode,
+      materialName: materials.materialName,
+      quantity: warehouseTransferRequests.transferredQuantity,
+      transferDate: warehouseTransferRequests.transferDate,
+      completedDate: warehouseTransferRequests.completedDate,
+      transferType: warehouseTransferRequests.transferType
+    })
+    .from(warehouseTransferRequests)
+    .leftJoin(materials, eq(warehouseTransferRequests.materialId, materials.id))
+    .where(
+      and(
+        eq(warehouseTransferRequests.destinationVehicleId, vehicleId),
+        eq(warehouseTransferRequests.transferType, 'warehouse-to-vehicle'),
+        eq(warehouseTransferRequests.status, 'completed')
+      )
+    )
+    .orderBy(desc(warehouseTransferRequests.completedDate));
+
+    // Get all completed vehicle-to-warehouse transfers (materials returned from vehicle)
+    const transfersFromVehicle = await db.select({
+      id: warehouseTransferRequests.id,
+      materialId: warehouseTransferRequests.materialId,
+      quantity: warehouseTransferRequests.transferredQuantity,
+      transferDate: warehouseTransferRequests.transferDate
+    })
+    .from(warehouseTransferRequests)
+    .where(
+      and(
+        eq(warehouseTransferRequests.sourceVehicleId, vehicleId),
+        eq(warehouseTransferRequests.transferType, 'vehicle-to-warehouse'),
+        eq(warehouseTransferRequests.status, 'completed')
+      )
+    );
+
+    // Calculate net quantities for each material
+    const materialQuantities = new Map<number, {
+      materialId: number;
+      materialCode: string;
+      materialName: string;
+      quantity: number;
+      lastTransferDate: Date | null;
+      requestNumber: string;
+    }>();
+
+    // Add materials from warehouse-to-vehicle transfers
+    for (const transfer of transfersToVehicle) {
+      const existing = materialQuantities.get(transfer.materialId!);
+      const quantity = Number(transfer.quantity) || 0;
+
+      if (existing) {
+        existing.quantity += quantity;
+      } else {
+        materialQuantities.set(transfer.materialId!, {
+          materialId: transfer.materialId!,
+          materialCode: transfer.materialCode || '',
+          materialName: transfer.materialName || '',
+          quantity: quantity,
+          lastTransferDate: transfer.completedDate,
+          requestNumber: transfer.requestNumber
+        });
+      }
+    }
+
+    // Subtract materials from vehicle-to-warehouse transfers (returns)
+    for (const transfer of transfersFromVehicle) {
+      const existing = materialQuantities.get(transfer.materialId!);
+      const quantity = Number(transfer.quantity) || 0;
+
+      if (existing) {
+        existing.quantity -= quantity;
+      }
+    }
+
+    // Filter out materials with zero or negative quantities
+    const activeMaterials = Array.from(materialQuantities.values())
+      .filter(m => m.quantity > 0)
+      .sort((a, b) => a.materialName.localeCompare(b.materialName));
+
+    res.json({
+      success: true,
+      data: activeMaterials
+    });
+  } catch (error) {
+    logger.error('Error fetching vehicle materials:', error);
+    next(error);
+  }
+});
+
+// Get materials currently assigned to an employee from unified transfer system
+router.get('/employees/:employeeId/materials', authorize('admin', 'manager', 'operator'), async (req: AuthRequest, res, next) => {
+  try {
+    const employeeId = parseInt(req.params.employeeId);
+    const db = getDb();
+
+    // Get all completed warehouse-to-employee transfers (materials assigned to employee)
+    const transfersToEmployee = await db.select({
+      id: warehouseTransferRequests.id,
+      requestNumber: warehouseTransferRequests.requestNumber,
+      materialId: warehouseTransferRequests.materialId,
+      materialCode: materials.materialCode,
+      materialName: materials.materialName,
+      quantity: warehouseTransferRequests.transferredQuantity,
+      transferDate: warehouseTransferRequests.transferDate,
+      completedDate: warehouseTransferRequests.completedDate,
+      transferType: warehouseTransferRequests.transferType
+    })
+    .from(warehouseTransferRequests)
+    .leftJoin(materials, eq(warehouseTransferRequests.materialId, materials.id))
+    .where(
+      and(
+        eq(warehouseTransferRequests.destinationEmployeeId, employeeId),
+        eq(warehouseTransferRequests.transferType, 'warehouse-to-employee'),
+        eq(warehouseTransferRequests.status, 'completed')
+      )
+    );
+
+    // Calculate quantities for each material
+    const materialQuantities = new Map();
+
+    // Add materials from warehouse-to-employee transfers
+    for (const transfer of transfersToEmployee) {
+      const existing = materialQuantities.get(transfer.materialId);
+      const quantity = Number(transfer.quantity) || 0;
+      if (existing) {
+        existing.quantity += quantity;
+      } else {
+        materialQuantities.set(transfer.materialId, {
+          materialId: transfer.materialId,
+          materialCode: transfer.materialCode || '',
+          materialName: transfer.materialName || '',
+          quantity: quantity,
+          lastTransferDate: transfer.completedDate,
+          requestNumber: transfer.requestNumber
+        });
+      }
+    }
+
+    // Filter out materials with zero or negative quantities
+    const activeMaterials = Array.from(materialQuantities.values())
+      .filter(m => m.quantity > 0)
+      .sort((a, b) => a.materialName.localeCompare(b.materialName));
+
+    res.json({
+      success: true,
+      data: activeMaterials
+    });
+  } catch (error) {
+    logger.error('Error fetching employee materials:', error);
     next(error);
   }
 });

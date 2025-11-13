@@ -19,6 +19,7 @@
 	let formData = {
 		transferType: 'warehouse-to-warehouse',
 		sourceWarehouseId: null,
+		sourceVehicleId: null,
 		destinationWarehouseId: null,
 		destinationVehicleId: null,
 		destinationEmployeeId: null,
@@ -128,9 +129,10 @@
 		try {
 			const requestData = {
 				transferType: formData.transferType,
-				sourceWarehouseId: formData.sourceWarehouseId,
-				destinationWarehouseId: formData.transferType === 'warehouse-to-warehouse' ? formData.destinationWarehouseId : null,
-				destinationVehicleId: (formData.transferType === 'warehouse-to-vehicle' || formData.transferType === 'vehicle-to-warehouse') ? formData.destinationVehicleId : null,
+				sourceWarehouseId: (formData.transferType === 'vehicle-to-warehouse') ? null : formData.sourceWarehouseId,
+				sourceVehicleId: (formData.transferType === 'vehicle-to-warehouse') ? formData.sourceVehicleId : null,
+				destinationWarehouseId: (formData.transferType === 'warehouse-to-warehouse' || formData.transferType === 'vehicle-to-warehouse') ? formData.destinationWarehouseId : null,
+				destinationVehicleId: (formData.transferType === 'warehouse-to-vehicle') ? formData.destinationVehicleId : null,
 				destinationEmployeeId: formData.transferType === 'warehouse-to-employee' ? formData.destinationEmployeeId : null,
 				materialId: formData.materialId,
 				vehicleInventoryItemId: (formData.transferType === 'warehouse-to-vehicle' || formData.transferType === 'vehicle-to-warehouse') ? formData.vehicleInventoryItemId : null,
@@ -366,27 +368,50 @@
 								</label>
 							</div>
 
-							<!-- Source Warehouse -->
-							<div>
-								<label for="sourceWarehouseId" class="block text-sm font-medium text-gray-700">
-									{$_('materials.transferRequests.sourceWarehouse')} *
-								</label>
-								<select
-									id="sourceWarehouseId"
-									bind:value={formData.sourceWarehouseId}
-									disabled={!isEditable}
-									required
-									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-								>
-									<option value={null}>{$_('materials.transferRequests.selectWarehouse')}</option>
-									{#each warehouses as warehouse}
-										<option value={warehouse.id}>{warehouse.warehouseName} ({warehouse.warehouseCode})</option>
-									{/each}
-								</select>
-							</div>
+							<!-- Source Warehouse (for warehouse-to-* transfers) -->
+							{#if formData.transferType === 'warehouse-to-warehouse' || formData.transferType === 'warehouse-to-vehicle' || formData.transferType === 'warehouse-to-employee'}
+								<div>
+									<label for="sourceWarehouseId" class="block text-sm font-medium text-gray-700">
+										{$_('materials.transferRequests.sourceWarehouse')} *
+									</label>
+									<select
+										id="sourceWarehouseId"
+										bind:value={formData.sourceWarehouseId}
+										disabled={!isEditable}
+										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+									>
+										<option value={null}>{$_('materials.transferRequests.selectWarehouse')}</option>
+										{#each warehouses as warehouse}
+											<option value={warehouse.id}>{warehouse.warehouseName} ({warehouse.warehouseCode})</option>
+										{/each}
+									</select>
+								</div>
+							{/if}
 
-							<!-- Destination Warehouse (only for warehouse-to-warehouse) -->
-							{#if formData.transferType === 'warehouse-to-warehouse'}
+							<!-- Source Vehicle (for vehicle-to-warehouse transfers) -->
+							{#if formData.transferType === 'vehicle-to-warehouse'}
+								<div>
+									<label for="sourceVehicleId" class="block text-sm font-medium text-gray-700">
+										{$_('materials.transferRequests.sourceVehicle')} *
+									</label>
+									<select
+										id="sourceVehicleId"
+										bind:value={formData.sourceVehicleId}
+										disabled={!isEditable}
+										required
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+									>
+										<option value={null}>{$_('materials.transferRequests.selectVehicle')}</option>
+										{#each vehicles as vehicle}
+											<option value={vehicle.id}>{vehicle.licensePlate} - {vehicle.make} {vehicle.model}</option>
+										{/each}
+									</select>
+								</div>
+							{/if}
+
+							<!-- Destination Warehouse (for warehouse-to-warehouse and vehicle-to-warehouse) -->
+							{#if formData.transferType === 'warehouse-to-warehouse' || formData.transferType === 'vehicle-to-warehouse'}
 								<div>
 									<label for="destinationWarehouseId" class="block text-sm font-medium text-gray-700">
 										{$_('materials.transferRequests.destinationWarehouse')} *
@@ -406,8 +431,8 @@
 								</div>
 							{/if}
 
-							<!-- Destination Vehicle (for vehicle-related transfers) -->
-							{#if formData.transferType === 'warehouse-to-vehicle' || formData.transferType === 'vehicle-to-warehouse'}
+							<!-- Destination Vehicle (for warehouse-to-vehicle only) -->
+							{#if formData.transferType === 'warehouse-to-vehicle'}
 								<div>
 									<label for="destinationVehicleId" class="block text-sm font-medium text-gray-700">
 										{$_('materials.transferRequests.destinationVehicle')} *
@@ -467,8 +492,8 @@
 								</select>
 							</div>
 
-							<!-- Vehicle Inventory Item (for vehicle-related transfers) -->
-							{#if formData.transferType === 'warehouse-to-vehicle' || formData.transferType === 'vehicle-to-warehouse'}
+							<!-- Vehicle Inventory Item (only for vehicle-to-warehouse returns) -->
+							{#if formData.transferType === 'vehicle-to-warehouse'}
 								<div>
 									<label for="vehicleInventoryItemId" class="block text-sm font-medium text-gray-700">
 										{$_('materials.transferRequests.vehicleInventoryItem')} *
@@ -482,7 +507,7 @@
 									>
 										<option value={null}>{$_('materials.transferRequests.selectVehicleItem')}</option>
 										{#each vehicleInventoryItems as item}
-											<option value={item.id}>{item.itemName} ({item.itemCode})</option>
+											<option value={item.id}>{item.itemName || 'Unknown'} {item.itemCode ? `(${item.itemCode})` : ''}</option>
 										{/each}
 									</select>
 								</div>

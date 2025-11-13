@@ -19,6 +19,11 @@
 	let departments = [];
 	let positions = [];
 
+	// Inventory data
+	let materials = [];
+	let loadingMaterials = true;
+	let materialsError = null;
+
 	$: driverId = $page.params.id;
 
 	onMount(async () => {
@@ -31,6 +36,7 @@
 
 		await loadDriver();
 		await loadDropdownData();
+		await loadMaterials();
 	});
 
 	async function loadDriver() {
@@ -59,6 +65,20 @@
 			positions = [];
 		} catch (error) {
 			console.error('Failed to load dropdown data:', error);
+		}
+	}
+
+	async function loadMaterials() {
+		loadingMaterials = true;
+		materialsError = null;
+		try {
+			const response = await api.getEmployeeMaterials(parseInt(driverId));
+			materials = response.data || [];
+		} catch (err) {
+			console.error('Failed to load employee materials:', err);
+			materialsError = $_('materials.messages.loadFailed');
+		} finally {
+			loadingMaterials = false;
 		}
 	}
 
@@ -314,6 +334,67 @@
 							</div>
 						</div>
 					</div>
+				</div>
+			</div>
+
+			<!-- Materials Inventory Section -->
+			<div class="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+				<div class="px-6 py-4 border-b border-gray-200">
+					<h2 class="text-xl font-semibold text-gray-900">{$_('materials.assignedMaterials')}</h2>
+				</div>
+				<div class="px-6 py-6">
+					{#if loadingMaterials}
+						<div class="flex items-center justify-center py-12">
+							<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+						</div>
+					{:else if materialsError}
+						<div class="bg-red-50 border border-red-200 rounded-md p-4">
+							<p class="text-sm text-red-700">{materialsError}</p>
+						</div>
+					{:else if materials.length === 0}
+						<div class="text-center py-12">
+							<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+							</svg>
+							<p class="mt-2 text-sm text-gray-500">{$_('materials.noMaterialsAssigned')}</p>
+						</div>
+					{:else}
+						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+							{#each materials as material}
+								<div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+									<div class="flex justify-between items-start">
+										<div class="flex-1">
+											<div class="flex items-center space-x-2 mb-2">
+												<h4 class="font-medium text-gray-900">{material.materialName}</h4>
+												<span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+													{material.materialCode}
+												</span>
+											</div>
+
+											<div class="space-y-2 text-sm text-gray-600">
+												<div class="flex items-center">
+													<span class="font-medium">{$_('materials.quantity')}:</span>
+													<span class="ml-2">{material.quantity}</span>
+												</div>
+												{#if material.lastTransferDate}
+													<div class="flex items-center">
+														<span class="font-medium">{$_('materials.lastTransfer')}:</span>
+														<span class="ml-2">{new Date(material.lastTransferDate).toLocaleDateString()}</span>
+													</div>
+												{/if}
+												{#if material.requestNumber}
+													<div class="flex items-center">
+														<span class="font-medium">{$_('materials.requestNumber')}:</span>
+														<span class="ml-2">{material.requestNumber}</span>
+													</div>
+												{/if}
+											</div>
+										</div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
 				</div>
 			</div>
 
