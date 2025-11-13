@@ -333,15 +333,32 @@ router.put('/units/:id', authorize('admin'), async (req, res, next) => {
 // ========== Warehouse Transfer Request Routes ==========
 
 const transferRequestSchema = z.object({
+  transferType: z.enum(['warehouse-to-warehouse', 'warehouse-to-vehicle', 'warehouse-to-employee', 'vehicle-to-warehouse']).default('warehouse-to-warehouse'),
   sourceWarehouseId: z.number().positive(),
-  destinationWarehouseId: z.number().positive(),
+  destinationWarehouseId: z.number().positive().optional(),
+  destinationVehicleId: z.number().positive().optional(),
+  destinationEmployeeId: z.number().positive().optional(),
   materialId: z.number().positive(),
+  vehicleInventoryItemId: z.number().positive().optional(), // Required for vehicle transfers
   quantity: z.number().positive(),
   requestedQuantity: z.number().positive().optional(),
   priority: z.number().min(1).max(5).default(3),
   requiredByDate: z.coerce.date().optional(),
   reason: z.string().optional(),
-  notes: z.string().optional()
+  notes: z.string().optional(),
+  autoApprove: z.boolean().default(false)
+}).refine((data) => {
+  // Ensure at least one destination is set based on transfer type
+  if (data.transferType === 'warehouse-to-warehouse') {
+    return !!data.destinationWarehouseId;
+  } else if (data.transferType === 'warehouse-to-vehicle' || data.transferType === 'vehicle-to-warehouse') {
+    return !!data.destinationVehicleId && !!data.vehicleInventoryItemId;
+  } else if (data.transferType === 'warehouse-to-employee') {
+    return !!data.destinationEmployeeId;
+  }
+  return false;
+}, {
+  message: 'Destination must match transfer type'
 });
 
 // GET /api/materials/transfer-requests - List all transfer requests
@@ -517,8 +534,8 @@ router.post('/transfer-requests', authorize('admin', 'manager', 'operator'), asy
     const data = transferRequestSchema.parse(req.body);
     const db = getDb();
 
-    // Validate source and destination warehouses are different
-    if (data.sourceWarehouseId === data.destinationWarehouseId) {
+    // Validate source and destination warehouses are different (for warehouse-to-warehouse transfers)
+    if (data.transferType === 'warehouse-to-warehouse' && data.sourceWarehouseId === data.destinationWarehouseId) {
       throw new AppError('Source and destination warehouses must be different', 400);
     }
 
@@ -527,15 +544,27 @@ router.post('/transfer-requests', authorize('admin', 'manager', 'operator'), asy
     const count = await db.select({ count: sql`count(*)` }).from(warehouseTransferRequests);
     const requestNumber = `TR${date}${String(Number(count[0].count) + 1).padStart(4, '0')}`;
 
-    const result = await db.insert(warehouseTransferRequests).values({
+    // Determine initial status based on auto-approval setting
+    const initialStatus = data.autoApprove ? 'approved' : 'pending';
+
+    const transferData: any = {
       ...data,
       requestNumber,
       requestedBy: req.user!.id,
       requestedDate: new Date(),
-      status: 'pending'
-    }).returning();
+      status: initialStatus
+    };
 
-    logger.info(`Transfer request created: ${requestNumber} by user ${req.user!.username}`);
+    // If auto-approved, set approval fields
+    if (data.autoApprove) {
+      transferData.approvedBy = req.user!.id;
+      transferData.approvedDate = new Date();
+      transferData.approvedQuantity = data.quantity;
+    }
+
+    const result = await db.insert(warehouseTransferRequests).values(transferData).returning();
+
+    logger.info(`Transfer request created: ${requestNumber} (${data.transferType}) by user ${req.user!.username}, status: ${initialStatus}`);
 
     res.status(201).json({
       success: true,
@@ -739,11 +768,11 @@ router.post('/transfer-requests/:id/reject', authorize('admin', 'manager'), asyn
 router.post('/transfer-requests/:id/complete', authorize('admin', 'manager', 'operator'), async (req: AuthRequest, res, next) => {
   try {
     const transferRequestId = parseInt(req.params.id);
-    const { qualityCheckNotes, transferredQuantity } = req.body;
+    const { qualityCheckNotes, transferredQuantity, condition, serialNumber, batchNumber, location } = req.body;
 
     const db = getDb();
 
-    // Check if transfer request exists and is in_transit
+    // Check if transfer request exists and is in approved or in_transit status
     const [existingRequest] = await db.select()
       .from(warehouseTransferRequests)
       .where(eq(warehouseTransferRequests.id, transferRequestId))
@@ -759,32 +788,163 @@ router.post('/transfer-requests/:id/complete', authorize('admin', 'manager', 'op
 
     const finalQuantity = transferredQuantity || existingRequest.approvedQuantity || existingRequest.quantity;
 
-    // Update material stock levels
-    // Decrease source warehouse stock
-    await db.update(materials)
-      .set({
-        currentStock: sql`${materials.currentStock} - ${finalQuantity}`,
-        updatedAt: new Date()
-      })
-      .where(
-        and(
-          eq(materials.id, existingRequest.materialId),
-          eq(materials.warehouseId, existingRequest.sourceWarehouseId)
-        )
-      );
+    // Handle different transfer types
+    if (existingRequest.transferType === 'warehouse-to-warehouse') {
+      // Original warehouse-to-warehouse logic
+      // Decrease source warehouse stock
+      await db.update(materials)
+        .set({
+          currentStock: sql`${materials.currentStock} - ${finalQuantity}`,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(materials.id, existingRequest.materialId),
+            eq(materials.warehouseId, existingRequest.sourceWarehouseId)
+          )
+        );
 
-    // Increase destination warehouse stock
-    await db.update(materials)
-      .set({
-        currentStock: sql`${materials.currentStock} + ${finalQuantity}`,
-        updatedAt: new Date()
-      })
-      .where(
-        and(
-          eq(materials.id, existingRequest.materialId),
-          eq(materials.warehouseId, existingRequest.destinationWarehouseId)
-        )
-      );
+      // Increase destination warehouse stock
+      await db.update(materials)
+        .set({
+          currentStock: sql`${materials.currentStock} + ${finalQuantity}`,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(materials.id, existingRequest.materialId),
+            eq(materials.warehouseId, existingRequest.destinationWarehouseId!)
+          )
+        );
+
+    } else if (existingRequest.transferType === 'warehouse-to-vehicle') {
+      // Decrease source warehouse stock
+      await db.update(materials)
+        .set({
+          currentStock: sql`${materials.currentStock} - ${finalQuantity}`,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(materials.id, existingRequest.materialId),
+            eq(materials.warehouseId, existingRequest.sourceWarehouseId)
+          )
+        );
+
+      // Create vehicle inventory assignment
+      const { vehicleInventoryAssignments } = await import('../db/schema/vehicleInventory.js');
+
+      await db.insert(vehicleInventoryAssignments).values({
+        vehicleId: existingRequest.destinationVehicleId!,
+        itemId: existingRequest.vehicleInventoryItemId!,
+        quantity: Math.floor(finalQuantity), // Convert to integer for quantity
+        serialNumber: serialNumber || null,
+        batchNumber: batchNumber || null,
+        condition: condition || (qualityCheckNotes ? 'good' : 'good'),
+        status: 'active',
+        assignmentDate: new Date(),
+        location: location || null,
+        notes: qualityCheckNotes || null,
+        createdBy: req.user!.id,
+        active: true
+      });
+
+      // Create material transaction for exit
+      await db.insert(materialTransactions).values({
+        transactionType: 'exit',
+        materialId: existingRequest.materialId,
+        quantity: finalQuantity,
+        transactionDate: new Date(),
+        warehouseId: existingRequest.sourceWarehouseId,
+        vehicleId: existingRequest.destinationVehicleId!,
+        description: `Transfer to vehicle (${existingRequest.requestNumber})`,
+        approved: true,
+        approvedBy: req.user!.id,
+        approvalDate: new Date(),
+        userId: req.user!.id
+      });
+
+    } else if (existingRequest.transferType === 'vehicle-to-warehouse') {
+      // Find and deactivate the vehicle inventory assignment
+      const { vehicleInventoryAssignments } = await import('../db/schema/vehicleInventory.js');
+
+      await db.update(vehicleInventoryAssignments)
+        .set({
+          status: 'removed',
+          removalDate: new Date(),
+          removalReason: 'Returned to warehouse',
+          removalNotes: qualityCheckNotes || existingRequest.notes,
+          active: false,
+          updatedBy: req.user!.id,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(vehicleInventoryAssignments.vehicleId, existingRequest.destinationVehicleId!),
+            eq(vehicleInventoryAssignments.itemId, existingRequest.vehicleInventoryItemId!),
+            eq(vehicleInventoryAssignments.active, true)
+          )
+        );
+
+      // Increase destination warehouse stock
+      await db.update(materials)
+        .set({
+          currentStock: sql`${materials.currentStock} + ${finalQuantity}`,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(materials.id, existingRequest.materialId),
+            eq(materials.warehouseId, existingRequest.destinationWarehouseId!)
+          )
+        );
+
+      // Create material transaction for entry
+      await db.insert(materialTransactions).values({
+        transactionType: 'entry',
+        materialId: existingRequest.materialId,
+        quantity: finalQuantity,
+        transactionDate: new Date(),
+        warehouseId: existingRequest.destinationWarehouseId!,
+        vehicleId: existingRequest.destinationVehicleId!,
+        description: `Return from vehicle (${existingRequest.requestNumber})`,
+        approved: true,
+        approvedBy: req.user!.id,
+        approvalDate: new Date(),
+        userId: req.user!.id
+      });
+
+    } else if (existingRequest.transferType === 'warehouse-to-employee') {
+      // Decrease source warehouse stock
+      await db.update(materials)
+        .set({
+          currentStock: sql`${materials.currentStock} - ${finalQuantity}`,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(materials.id, existingRequest.materialId),
+            eq(materials.warehouseId, existingRequest.sourceWarehouseId)
+          )
+        );
+
+      // Create material transaction for employee assignment
+      await db.insert(materialTransactions).values({
+        transactionType: 'exit',
+        materialId: existingRequest.materialId,
+        quantity: finalQuantity,
+        transactionDate: new Date(),
+        warehouseId: existingRequest.sourceWarehouseId,
+        description: `Transfer to employee (${existingRequest.requestNumber})`,
+        approved: true,
+        approvedBy: req.user!.id,
+        approvalDate: new Date(),
+        userId: req.user!.id
+      });
+
+      // TODO: Create employee inventory assignment table in future
+      logger.info(`Material transferred to employee ${existingRequest.destinationEmployeeId}`);
+    }
 
     // Update transfer request status to completed
     const [updatedRequest] = await db.update(warehouseTransferRequests)
@@ -803,7 +963,7 @@ router.post('/transfer-requests/:id/complete', authorize('admin', 'manager', 'op
       .where(eq(warehouseTransferRequests.id, transferRequestId))
       .returning();
 
-    logger.info(`Transfer request completed: ${updatedRequest.requestNumber} by ${req.user!.username}`);
+    logger.info(`Transfer request completed: ${updatedRequest.requestNumber} (${existingRequest.transferType}) by ${req.user!.username}`);
 
     res.json({
       success: true,

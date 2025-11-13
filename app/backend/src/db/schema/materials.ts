@@ -21,7 +21,7 @@ export const materials = sqliteTable('materials', {
   serialNumber: text('serial_number'),
   shelfLocation: text('shelf_location'),
   warehouseId: integer('warehouse_id'),
-  expirationDate: integer('expiration_date', { mode: 'timestamp' }),
+  expirationDate: integer('expiration_date', { mode: 'timestamp' }).notNull(), // All warehouse items require expiration date
   active: integer('active', { mode: 'boolean' }).notNull().default(true),
   // Custom fields
   customField1: text('custom_field_1'),
@@ -93,16 +93,27 @@ export const warehouseTransferRequests = sqliteTable('warehouse_transfer_request
   id: integer('id').primaryKey({ autoIncrement: true }),
   requestNumber: text('request_number').notNull().unique(),
 
-  // Source and destination
+  // Transfer type and source
+  transferType: text('transfer_type').notNull().default('warehouse-to-warehouse'), // warehouse-to-warehouse, warehouse-to-vehicle, warehouse-to-employee, vehicle-to-warehouse
   sourceWarehouseId: integer('source_warehouse_id').notNull().references(() => warehouses.id),
-  destinationWarehouseId: integer('destination_warehouse_id').notNull().references(() => warehouses.id),
+
+  // Destination (only one should be set based on transferType)
+  destinationWarehouseId: integer('destination_warehouse_id').references(() => warehouses.id),
+  destinationVehicleId: integer('destination_vehicle_id'),
+  destinationEmployeeId: integer('destination_employee_id'),
+
+  // Material and vehicle inventory item reference
   materialId: integer('material_id').notNull().references(() => materials.id),
+  vehicleInventoryItemId: integer('vehicle_inventory_item_id'), // For warehouse-to-vehicle transfers
 
   // Request details
   quantity: real('quantity').notNull(),
   requestedQuantity: real('requested_quantity'),
   approvedQuantity: real('approved_quantity'),
   transferredQuantity: real('transferred_quantity'),
+
+  // Auto-approval setting
+  autoApprove: integer('auto_approve', { mode: 'boolean' }).notNull().default(false),
 
   // Status workflow
   status: text('status').notNull().default('pending'), // pending, approved, rejected, in_transit, completed, cancelled
