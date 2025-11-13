@@ -11,7 +11,11 @@
 	let categories = [];
 	let loading = false;
 	let showUploadModal = false;
+	let showViewerModal = false;
 	let uploadFile = null;
+	let uploadPreview = null;
+	let selectedDocument = null;
+	let documentPreviewUrl = null;
 	let uploadData = {
 		documentName: '',
 		categoryId: '',
@@ -55,6 +59,26 @@
 			if (!uploadData.documentName) {
 				uploadData.documentName = file.name.replace(/\.[^/.]+$/, '');
 			}
+
+			// Generate preview for images and PDFs
+			generateUploadPreview(file);
+		}
+	}
+
+	function generateUploadPreview(file) {
+		// Clear previous preview
+		if (uploadPreview) {
+			URL.revokeObjectURL(uploadPreview);
+		}
+		uploadPreview = null;
+
+		// Generate preview for images
+		if (file.type.startsWith('image/')) {
+			uploadPreview = URL.createObjectURL(file);
+		}
+		// For PDFs, we'll show a placeholder (actual preview requires PDF.js)
+		else if (file.type === 'application/pdf') {
+			uploadPreview = 'pdf-placeholder';
 		}
 	}
 
@@ -85,6 +109,24 @@
 			alert('Failed to upload document. Please try again.');
 		} finally {
 			loading = false;
+		}
+	}
+
+	async function handleView(document) {
+		try {
+			selectedDocument = document;
+			const blob = await api.downloadDocument(document.id);
+
+			// Clean up previous URL
+			if (documentPreviewUrl) {
+				URL.revokeObjectURL(documentPreviewUrl);
+			}
+
+			documentPreviewUrl = URL.createObjectURL(blob);
+			showViewerModal = true;
+		} catch (error) {
+			console.error('Failed to load document:', error);
+			alert('Failed to load document. Please try again.');
 		}
 	}
 
@@ -119,6 +161,13 @@
 
 	function resetUploadForm() {
 		uploadFile = null;
+
+		// Clean up preview URL
+		if (uploadPreview && uploadPreview !== 'pdf-placeholder') {
+			URL.revokeObjectURL(uploadPreview);
+		}
+		uploadPreview = null;
+
 		uploadData = {
 			documentName: '',
 			categoryId: '',
@@ -135,6 +184,15 @@
 	function closeUploadModal() {
 		showUploadModal = false;
 		resetUploadForm();
+	}
+
+	function closeViewerModal() {
+		showViewerModal = false;
+		if (documentPreviewUrl) {
+			URL.revokeObjectURL(documentPreviewUrl);
+			documentPreviewUrl = null;
+		}
+		selectedDocument = null;
 	}
 
 	function formatFileSize(bytes) {
@@ -188,9 +246,23 @@
 	{:else}
 		<div class="space-y-3">
 			{#each documents as document}
-				<div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+				<div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer" on:click={() => handleView(document)}>
 					<div class="flex items-center space-x-3">
-						<span class="text-2xl">{getFileIcon(document.mimeType)}</span>
+						{#if document.mimeType.startsWith('image/')}
+							<div class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
+								<img
+									src={`${api.API_BASE_URL}/documents/${document.id}/preview`}
+									alt={document.documentName}
+									class="w-full h-full object-cover"
+									loading="lazy"
+									on:error={(e) => e.target.parentElement.innerHTML = '<span class="text-2xl flex items-center justify-center w-full h-full">🖼️</span>'}
+								/>
+							</div>
+						{:else}
+							<div class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded flex items-center justify-center">
+								<span class="text-3xl">{getFileIcon(document.mimeType)}</span>
+							</div>
+						{/if}
 						<div>
 							<div class="font-medium text-gray-900">{document.documentName}</div>
 							<div class="text-sm text-gray-500">
@@ -210,7 +282,17 @@
 					</div>
 					<div class="flex items-center space-x-2">
 						<button
-							on:click={() => handleDownload(document)}
+							on:click|stopPropagation={() => handleView(document)}
+							class="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded"
+							title="View"
+						>
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+							</svg>
+						</button>
+						<button
+							on:click|stopPropagation={() => handleDownload(document)}
 							class="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded"
 							title="Download"
 						>
@@ -219,7 +301,7 @@
 							</svg>
 						</button>
 						<button
-							on:click={() => handleDelete(document)}
+							on:click|stopPropagation={() => handleDelete(document)}
 							class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
 							title="Delete"
 						>
@@ -250,12 +332,26 @@
 				id="document-file-input"
 				type="file"
 				on:change={handleFileSelect}
-				class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+				class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm font:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
 				accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp"
 			/>
 			{#if uploadFile}
-				<div class="mt-2 text-sm text-gray-600">
-					Selected: {uploadFile.name} ({formatFileSize(uploadFile.size)})
+				<div class="mt-3">
+					<div class="text-sm text-gray-600 mb-2">
+						Selected: {uploadFile.name} ({formatFileSize(uploadFile.size)})
+					</div>
+					{#if uploadPreview && uploadPreview !== 'pdf-placeholder'}
+						<div class="mt-2 border border-gray-200 rounded-lg overflow-hidden">
+							<img src={uploadPreview} alt="Preview" class="max-w-full h-auto max-h-64 mx-auto" />
+						</div>
+					{:else if uploadPreview === 'pdf-placeholder'}
+						<div class="mt-2 border border-gray-200 rounded-lg p-4 bg-gray-50 flex items-center justify-center">
+							<div class="text-center">
+								<span class="text-4xl">📄</span>
+								<p class="text-sm text-gray-600 mt-2">PDF document selected</p>
+							</div>
+						</div>
+					{/if}
 				</div>
 			{/if}
 		</div>
@@ -348,3 +444,96 @@
 		</button>
 	</svelte:fragment>
 </Modal>
+
+<!-- Document Viewer Modal -->
+{#if selectedDocument}
+	<Modal
+		open={showViewerModal}
+		title={selectedDocument.documentName}
+		size="xl"
+		on:close={closeViewerModal}
+	>
+		<div class="space-y-4">
+			<!-- Document metadata -->
+			<div class="bg-gray-50 p-4 rounded-lg">
+				<dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+					<div>
+						<dt class="font-medium text-gray-500">Category</dt>
+						<dd class="text-gray-900">{selectedDocument.categoryName || 'Uncategorized'}</dd>
+					</div>
+					<div>
+						<dt class="font-medium text-gray-500">File Size</dt>
+						<dd class="text-gray-900">{formatFileSize(selectedDocument.fileSize)}</dd>
+					</div>
+					<div>
+						<dt class="font-medium text-gray-500">Uploaded</dt>
+						<dd class="text-gray-900">{formatDate(selectedDocument.createdAt)}</dd>
+					</div>
+					{#if selectedDocument.expiryDate}
+						<div>
+							<dt class="font-medium text-gray-500">Expires</dt>
+							<dd class="text-orange-600">{formatDate(selectedDocument.expiryDate)}</dd>
+						</div>
+					{/if}
+					{#if selectedDocument.description}
+						<div class="col-span-2">
+							<dt class="font-medium text-gray-500">Description</dt>
+							<dd class="text-gray-900">{selectedDocument.description}</dd>
+						</div>
+					{/if}
+				</dl>
+			</div>
+
+			<!-- Document preview -->
+			<div class="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+				{#if documentPreviewUrl}
+					{#if selectedDocument.mimeType.startsWith('image/')}
+						<img
+							src={documentPreviewUrl}
+							alt={selectedDocument.documentName}
+							class="max-w-full h-auto max-h-[70vh] mx-auto"
+						/>
+					{:else if selectedDocument.mimeType === 'application/pdf'}
+						<iframe
+							src={documentPreviewUrl}
+							title={selectedDocument.documentName}
+							class="w-full h-[70vh]"
+						></iframe>
+					{:else if selectedDocument.mimeType.includes('text/')}
+						<iframe
+							src={documentPreviewUrl}
+							title={selectedDocument.documentName}
+							class="w-full h-[70vh] bg-white"
+						></iframe>
+					{:else}
+						<div class="p-12 text-center">
+							<span class="text-6xl">{getFileIcon(selectedDocument.mimeType)}</span>
+							<p class="mt-4 text-gray-600">Preview not available for this file type</p>
+							<p class="text-sm text-gray-500 mt-2">Click download to view the file</p>
+						</div>
+					{/if}
+				{:else}
+					<div class="flex items-center justify-center h-64">
+						<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+					</div>
+				{/if}
+			</div>
+		</div>
+
+		<svelte:fragment slot="footer">
+			<button
+				type="button"
+				class="btn btn-secondary"
+				on:click={() => handleDownload(selectedDocument)}
+			>
+				<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+				</svg>
+				Download
+			</button>
+			<button type="button" class="btn btn-primary" on:click={closeViewerModal}>
+				Close
+			</button>
+		</svelte:fragment>
+	</Modal>
+{/if}
