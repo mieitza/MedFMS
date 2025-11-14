@@ -79,7 +79,7 @@
   <!-- Header -->
   <div class="mb-6">
     <div class="flex items-center mb-2">
-      <button on:click={() => goto('/dashboard')} class="text-gray-600 hover:text-gray-900 mr-4">
+      <button on:click={() => goto('/warehouse/reports')} class="text-gray-600 hover:text-gray-900 mr-4">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>

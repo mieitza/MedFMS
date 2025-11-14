@@ -429,6 +429,15 @@
             </svg>
             {$_('materials.transferRequests.approvals.title')}
           </a>
+          <a
+            href="/warehouse/reports"
+            class="btn bg-green-600 hover:bg-green-700 text-white"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            {$_('reports.warehouse.title')}
+          </a>
           <button
             on:click={openWarehouseModal}
             class="btn btn-secondary"
