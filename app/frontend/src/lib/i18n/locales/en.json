@@ -130,7 +130,39 @@
     "referenceData": "Reference Data",
     "addNew": "Add New",
     "manageItems": "Manage {items} in the system",
-    "loadingData": "Loading data..."
+    "loadingData": "Loading data...",
+    "materialUnits": {
+      "title": "Material Units of Measure",
+      "add": "Add Unit",
+      "edit": "Edit Unit",
+      "delete": "Delete Unit",
+      "unitCode": "Unit Code",
+      "unitName": "Unit Name",
+      "abbreviation": "Abbreviation",
+      "description": "Description",
+      "active": "Active",
+      "inactive": "Inactive",
+      "status": "Status",
+      "actions": "Actions",
+      "noUnits": "No units of measure",
+      "addFirst": "Add first unit",
+      "deleteConfirm": "Are you sure you want to delete this unit of measure?",
+      "messages": {
+        "loadFailed": "Failed to load units of measure",
+        "createSuccess": "Unit created successfully",
+        "createFailed": "Failed to create unit",
+        "updateSuccess": "Unit updated successfully",
+        "updateFailed": "Failed to update unit",
+        "deleteSuccess": "Unit deleted successfully",
+        "deleteFailed": "Failed to delete unit"
+      },
+      "placeholders": {
+        "unitCode": "e.g., KG",
+        "unitName": "e.g., Kilogram",
+        "abbreviation": "e.g., kg",
+        "description": "Optional description"
+      }
+    }
   },
   "users": {
     "title": "User Management",

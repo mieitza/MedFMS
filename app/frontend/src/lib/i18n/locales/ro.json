@@ -130,7 +130,39 @@
     "referenceData": "Date de Referință",
     "addNew": "Adaugă Nou",
     "manageItems": "Gestionați {items} în sistem",
-    "loadingData": "Se încarcă datele..."
+    "loadingData": "Se încarcă datele...",
+    "materialUnits": {
+      "title": "Unități de Măsură Materiale",
+      "add": "Adaugă Unitate",
+      "edit": "Editează Unitate",
+      "delete": "Șterge Unitate",
+      "unitCode": "Cod Unitate",
+      "unitName": "Denumire Unitate",
+      "abbreviation": "Abreviere",
+      "description": "Descriere",
+      "active": "Activ",
+      "inactive": "Inactiv",
+      "status": "Status",
+      "actions": "Acțiuni",
+      "noUnits": "Nu există unități de măsură",
+      "addFirst": "Adaugă prima unitate",
+      "deleteConfirm": "Sigur doriți să ștergeți această unitate de măsură?",
+      "messages": {
+        "loadFailed": "Nu s-au putut încărca unitățile de măsură",
+        "createSuccess": "Unitate creată cu succes",
+        "createFailed": "Nu s-a putut crea unitatea",
+        "updateSuccess": "Unitate actualizată cu succes",
+        "updateFailed": "Nu s-a putut actualiza unitatea",
+        "deleteSuccess": "Unitate ștearsă cu succes",
+        "deleteFailed": "Nu s-a putut șterge unitatea"
+      },
+      "placeholders": {
+        "unitCode": "ex: KG",
+        "unitName": "ex: Kilogram",
+        "abbreviation": "ex: kg",
+        "description": "Descriere opțională"
+      }
+    }
   },
   "users": {
     "title": "Gestionare Utilizatori",
