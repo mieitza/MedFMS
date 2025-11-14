@@ -64,11 +64,13 @@
 	}
 
 	async function loadDocumentThumbnails() {
-		// Load thumbnails only for image documents
-		const imageDocuments = documents.filter(doc => doc.mimeType.startsWith('image/'));
+		// Load thumbnails for image documents and PDFs
+		const previewableDocuments = documents.filter(doc =>
+			doc.mimeType.startsWith('image/') || doc.mimeType === 'application/pdf'
+		);
 
 		await Promise.all(
-			imageDocuments.map(async (document) => {
+			previewableDocuments.map(async (document) => {
 				try {
 					const blob = await api.downloadDocument(document.id);
 					documentThumbnails[document.id] = URL.createObjectURL(blob);
@@ -338,11 +340,36 @@
 	}
 
 	function getFileIcon(mimeType) {
+		// Images
 		if (mimeType.startsWith('image/')) return '🖼️';
+
+		// Documents
 		if (mimeType.includes('pdf')) return '📄';
-		if (mimeType.includes('word')) return '📝';
-		if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return '📊';
-		if (mimeType.includes('text')) return '📃';
+		if (mimeType.includes('word') || mimeType.includes('msword') ||
+		    mimeType.includes('officedocument.wordprocessing')) return '📝';
+		if (mimeType.includes('excel') || mimeType.includes('spreadsheet') ||
+		    mimeType.includes('officedocument.spreadsheet')) return '📊';
+		if (mimeType.includes('powerpoint') || mimeType.includes('presentation') ||
+		    mimeType.includes('officedocument.presentation')) return '📽️';
+
+		// Text files
+		if (mimeType.includes('text/')) return '📃';
+
+		// Archives
+		if (mimeType.includes('zip') || mimeType.includes('rar') ||
+		    mimeType.includes('7z') || mimeType.includes('tar') ||
+		    mimeType.includes('gz')) return '🗜️';
+
+		// Media
+		if (mimeType.startsWith('video/')) return '🎥';
+		if (mimeType.startsWith('audio/')) return '🎵';
+
+		// Code
+		if (mimeType.includes('json') || mimeType.includes('xml') ||
+		    mimeType.includes('javascript') || mimeType.includes('html') ||
+		    mimeType.includes('css')) return '💻';
+
+		// Default
 		return '📁';
 	}
 
@@ -394,6 +421,18 @@
 									/>
 								{:else if documentThumbnails[document.id] === null}
 									<span class="text-2xl flex items-center justify-center w-full h-full">🖼️</span>
+								{:else}
+									<div class="w-full h-full flex items-center justify-center">
+										<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+									</div>
+								{/if}
+							</div>
+						{:else if document.mimeType === 'application/pdf' && PDFPreview}
+							<div class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
+								{#if documentThumbnails[document.id]}
+									<svelte:component this={PDFPreview} url={documentThumbnails[document.id]} width={64} height={64} />
+								{:else if documentThumbnails[document.id] === null}
+									<span class="text-2xl flex items-center justify-center w-full h-full">📄</span>
 								{:else}
 									<div class="w-full h-full flex items-center justify-center">
 										<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
@@ -705,17 +744,67 @@
 							title={selectedDocument.documentName}
 							class="w-full h-[70vh]"
 						></iframe>
-					{:else if selectedDocument.mimeType.includes('text/')}
+					{:else if selectedDocument.mimeType.startsWith('video/')}
+						<video
+							src={documentPreviewUrl}
+							controls
+							class="w-full max-h-[70vh] mx-auto"
+						>
+							<track kind="captions" />
+							Your browser does not support the video tag.
+						</video>
+					{:else if selectedDocument.mimeType.startsWith('audio/')}
+						<div class="p-12">
+							<div class="text-center mb-6">
+								<span class="text-6xl">🎵</span>
+								<p class="mt-4 text-gray-900 font-medium">{selectedDocument.documentName}</p>
+							</div>
+							<audio
+								src={documentPreviewUrl}
+								controls
+								class="w-full"
+							>
+								Your browser does not support the audio tag.
+							</audio>
+						</div>
+					{:else if selectedDocument.mimeType.includes('text/') || selectedDocument.mimeType.includes('json') || selectedDocument.mimeType.includes('xml')}
 						<iframe
 							src={documentPreviewUrl}
 							title={selectedDocument.documentName}
 							class="w-full h-[70vh] bg-white"
 						></iframe>
+					{:else if selectedDocument.mimeType.includes('officedocument') || selectedDocument.mimeType.includes('msword') || selectedDocument.mimeType.includes('ms-excel') || selectedDocument.mimeType.includes('ms-powerpoint')}
+						<div class="p-12 text-center">
+							<span class="text-6xl">{getFileIcon(selectedDocument.mimeType)}</span>
+							<p class="mt-4 text-gray-900 font-medium">{selectedDocument.documentName}</p>
+							<p class="mt-2 text-gray-600">Microsoft Office documents cannot be previewed directly</p>
+							<p class="text-sm text-gray-500 mt-2">Click download to open the file in the appropriate application</p>
+							<button
+								type="button"
+								class="btn btn-primary mt-4"
+								on:click|stopPropagation={() => handleDownload(selectedDocument)}
+							>
+								<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+								</svg>
+								Download File
+							</button>
+						</div>
 					{:else}
 						<div class="p-12 text-center">
 							<span class="text-6xl">{getFileIcon(selectedDocument.mimeType)}</span>
 							<p class="mt-4 text-gray-600">Preview not available for this file type</p>
 							<p class="text-sm text-gray-500 mt-2">Click download to view the file</p>
+							<button
+								type="button"
+								class="btn btn-primary mt-4"
+								on:click|stopPropagation={() => handleDownload(selectedDocument)}
+							>
+								<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+								</svg>
+								Download File
+							</button>
 						</div>
 					{/if}
 				{:else}
