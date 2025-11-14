@@ -104,11 +104,25 @@
 		maintenanceLoading = true;
 		maintenanceError = null;
 		try {
-			const response = await api.getMaintenanceHistory({
+			// Load work orders instead of history, since history is only created after completion
+			const response = await api.getMaintenanceWorkOrders({
 				vehicleId: parseInt(vehicleId),
-				limit: 10
+				limit: 10,
+				status: 'completed' // Only show completed work orders
 			});
-			maintenanceHistory = response.data || [];
+
+			// Transform work orders to match the expected structure
+			maintenanceHistory = (response.data || []).map(wo => ({
+				history: {
+					workOrderId: wo.id,
+					maintenanceDate: wo.completedDate || wo.scheduledDate,
+					totalCost: wo.estimatedCost,
+					odometerReading: wo.odometerReading,
+					workPerformed: wo.description
+				},
+				maintenanceType: wo.maintenanceType,
+				vehicle: wo.vehicle
+			}));
 		} catch (error) {
 			console.error('Failed to load maintenance history:', error);
 			maintenanceError = $_('vehicles.messages.loadFailed');

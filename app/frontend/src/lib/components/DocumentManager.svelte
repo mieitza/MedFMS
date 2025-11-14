@@ -1,29 +1,40 @@
 <script>
 	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 	import { api } from '$lib/api';
 	import Modal from './Modal.svelte';
 
 	export let entityType;
 	export let entityId;
 	export let title = 'Documents';
+	export let maxFileSize = 10 * 1024 * 1024; // 10MB default
+	export let maxFiles = 10; // Maximum files per upload
 
 	let documents = [];
 	let categories = [];
 	let loading = false;
 	let showUploadModal = false;
 	let showViewerModal = false;
-	let uploadFile = null;
-	let uploadPreview = null;
+	let uploadFiles = [];
 	let selectedDocument = null;
 	let documentPreviewUrl = null;
 	let documentThumbnails = {}; // Map of document ID to blob URL for image thumbnails
+	let dragOver = false;
+	let uploadProgress = {}; // Map of file index to upload progress
 	let uploadData = {
-		documentName: '',
 		categoryId: '',
 		description: '',
 		expiryDate: '',
 		isPublic: false
 	};
+
+	// Dynamically import PDFPreview only in browser
+	let PDFPreview = null;
+	if (browser) {
+		import('./PDFPreview.svelte').then(module => {
+			PDFPreview = module.default;
+		});
+	}
 
 	onMount(async () => {
 		await loadDocuments();
@@ -81,61 +92,149 @@
 		}
 	}
 
-	function handleFileSelect(event) {
-		const file = event.target.files[0];
-		if (file) {
-			uploadFile = file;
-			if (!uploadData.documentName) {
-				uploadData.documentName = file.name.replace(/\.[^/.]+$/, '');
-			}
-
-			// Generate preview for images and PDFs
-			generateUploadPreview(file);
-		}
+	// Drag and drop handlers
+	function handleDragOver(event) {
+		event.preventDefault();
+		dragOver = true;
 	}
 
-	function generateUploadPreview(file) {
-		// Clear previous preview
-		if (uploadPreview) {
-			URL.revokeObjectURL(uploadPreview);
-		}
-		uploadPreview = null;
+	function handleDragLeave(event) {
+		event.preventDefault();
+		dragOver = false;
+	}
 
-		// Generate preview for images
+	function handleDrop(event) {
+		event.preventDefault();
+		dragOver = false;
+		const droppedFiles = Array.from(event.dataTransfer.files);
+		addFiles(droppedFiles);
+	}
+
+	// File selection handlers
+	function handleFileSelect(event) {
+		const selectedFiles = Array.from(event.target.files);
+		addFiles(selectedFiles);
+	}
+
+	function addFiles(newFiles) {
+		// Validate and filter files
+		const validFiles = newFiles.filter(file => {
+			// Check file size
+			if (file.size > maxFileSize) {
+				alert(`File "${file.name}" is too large. Maximum size is ${formatFileSize(maxFileSize)}`);
+				return false;
+			}
+
+			// Check if we already have this file
+			if (uploadFiles.some(f => f.name === file.name && f.size === file.size)) {
+				alert(`File "${file.name}" is already selected`);
+				return false;
+			}
+
+			return true;
+		});
+
+		const newFileList = [...uploadFiles, ...validFiles];
+
+		// Check max files limit
+		if (newFileList.length > maxFiles) {
+			alert(`Maximum ${maxFiles} files allowed per upload`);
+			uploadFiles = newFileList.slice(0, maxFiles);
+		} else {
+			uploadFiles = newFileList;
+		}
+
+		// Generate previews for new files
+		uploadFiles = uploadFiles.map((file, index) => {
+			if (!file.preview) {
+				// Use Object.assign to preserve File prototype
+				const enrichedFile = Object.assign(file, {
+					preview: generateFilePreview(file),
+					documentName: file.name.replace(/\.[^/.]+$/, '')
+				});
+				return enrichedFile;
+			}
+			return file;
+		});
+	}
+
+	function generateFilePreview(file) {
 		if (file.type.startsWith('image/')) {
-			uploadPreview = URL.createObjectURL(file);
+			return URL.createObjectURL(file);
 		}
-		// For PDFs, we'll show a placeholder (actual preview requires PDF.js)
-		else if (file.type === 'application/pdf') {
-			uploadPreview = 'pdf-placeholder';
+		return null;
+	}
+
+	function removeFile(index) {
+		// Clean up preview URL if it exists
+		const file = uploadFiles[index];
+		if (file.preview) {
+			URL.revokeObjectURL(file.preview);
 		}
+		uploadFiles = uploadFiles.filter((_, i) => i !== index);
+		delete uploadProgress[index];
+		uploadProgress = uploadProgress;
 	}
 
 	async function handleUpload() {
-		if (!uploadFile) {
-			alert('Please select a file to upload');
-			return;
-		}
-
-		if (!uploadData.documentName.trim()) {
-			alert('Please enter a document name');
+		if (uploadFiles.length === 0) {
+			alert('Please select at least one file to upload');
 			return;
 		}
 
 		loading = true;
-		try {
-			await api.uploadDocument(uploadFile, {
-				...uploadData,
-				entityType,
-				entityId
-			});
+		uploadProgress = {};
 
-			showUploadModal = false;
-			resetUploadForm();
+		try {
+			// Upload files sequentially with progress tracking
+			const results = [];
+			for (let i = 0; i < uploadFiles.length; i++) {
+				const file = uploadFiles[i];
+
+				// Set initial progress
+				uploadProgress[i] = { progress: 0, uploading: true };
+				uploadProgress = uploadProgress;
+
+				try {
+					// Simulate progress (in real implementation, this would come from XMLHttpRequest)
+					uploadProgress[i] = { progress: 30, uploading: true };
+					uploadProgress = uploadProgress;
+
+					const result = await api.uploadDocument(file, {
+						documentName: file.documentName || file.name.replace(/\.[^/.]+$/, ''),
+						...uploadData,
+						entityType,
+						entityId
+					});
+
+					uploadProgress[i] = { progress: 100, uploading: false, success: true };
+					uploadProgress = uploadProgress;
+					results.push(result);
+				} catch (error) {
+					console.error(`Failed to upload ${file.name}:`, error);
+					uploadProgress[i] = { progress: 0, uploading: false, error: error.message };
+					uploadProgress = uploadProgress;
+				}
+			}
+
+			// Show results
+			const successCount = results.length;
+			const failCount = uploadFiles.length - successCount;
+
+			if (failCount === 0) {
+				alert(`Successfully uploaded ${successCount} file(s)`);
+				showUploadModal = false;
+				resetUploadForm();
+			} else if (successCount === 0) {
+				alert(`Failed to upload all files. Please try again.`);
+			} else {
+				alert(`Uploaded ${successCount} file(s) successfully, ${failCount} failed`);
+			}
+
 			await loadDocuments();
 		} catch (error) {
-			console.error('Failed to upload document:', error);
-			alert('Failed to upload document. Please try again.');
+			console.error('Upload error:', error);
+			alert('An error occurred during upload. Please try again.');
 		} finally {
 			loading = false;
 		}
@@ -189,16 +288,17 @@
 	}
 
 	function resetUploadForm() {
-		uploadFile = null;
+		// Clean up preview URLs
+		uploadFiles.forEach(file => {
+			if (file.preview) {
+				URL.revokeObjectURL(file.preview);
+			}
+		});
 
-		// Clean up preview URL
-		if (uploadPreview && uploadPreview !== 'pdf-placeholder') {
-			URL.revokeObjectURL(uploadPreview);
-		}
-		uploadPreview = null;
+		uploadFiles = [];
+		uploadProgress = {};
 
 		uploadData = {
-			documentName: '',
 			categoryId: '',
 			description: '',
 			expiryDate: '',
@@ -242,7 +342,13 @@
 		if (mimeType.includes('pdf')) return '📄';
 		if (mimeType.includes('word')) return '📝';
 		if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return '📊';
+		if (mimeType.includes('text')) return '📃';
 		return '📁';
+	}
+
+	function updateFileName(file, index) {
+		uploadFiles[index] = { ...file, documentName: file.documentName };
+		uploadFiles = uploadFiles;
 	}
 </script>
 
@@ -343,7 +449,7 @@
 						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-							</svg>
+			</svg>
 						</button>
 					</div>
 				</div>
@@ -355,109 +461,171 @@
 <!-- Upload Modal -->
 <Modal
 	open={showUploadModal}
-	title="Upload Document"
-	size="md"
+	title="Upload Documents"
+	size="lg"
 	on:close={closeUploadModal}
 >
 	<div class="space-y-4">
-		<div>
-			<label for="document-file-input" class="block text-sm font-medium text-gray-700 mb-2">
-				Select File
-			</label>
+		<!-- Drag and drop zone -->
+		<div
+			class="border-2 border-dashed rounded-lg p-8 text-center transition-colors {dragOver ? 'border-primary-500 bg-primary-50' : 'border-gray-300 hover:border-gray-400'}"
+			on:dragover={handleDragOver}
+			on:dragleave={handleDragLeave}
+			on:drop={handleDrop}
+		>
+			<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+			</svg>
+			<p class="mt-2 text-sm text-gray-600">
+				Drag and drop files here, or
+				<label for="document-file-input" class="text-primary-600 hover:text-primary-500 cursor-pointer font-medium">
+					browse
+				</label>
+			</p>
 			<input
 				id="document-file-input"
 				type="file"
+				multiple
 				on:change={handleFileSelect}
-				class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm font:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+				class="hidden"
 				accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp"
 			/>
-			{#if uploadFile}
-				<div class="mt-3">
-					<div class="text-sm text-gray-600 mb-2">
-						Selected: {uploadFile.name} ({formatFileSize(uploadFile.size)})
-					</div>
-					{#if uploadPreview && uploadPreview !== 'pdf-placeholder'}
-						<div class="mt-2 border border-gray-200 rounded-lg overflow-hidden">
-							<img src={uploadPreview} alt="Preview" class="max-w-full h-auto max-h-64 mx-auto" />
+			<p class="mt-1 text-xs text-gray-500">
+				Maximum {maxFiles} files, {formatFileSize(maxFileSize)} per file
+			</p>
+		</div>
+
+		<!-- Selected files preview -->
+		{#if uploadFiles.length > 0}
+			<div class="space-y-2 max-h-64 overflow-y-auto">
+				<h4 class="text-sm font-medium text-gray-700">Selected Files ({uploadFiles.length})</h4>
+				{#each uploadFiles as file, index}
+					<div class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
+						<!-- Preview -->
+					{#if file.type === 'application/pdf' && PDFPreview}
+						<div class="w-12 h-12 flex-shrink-0">
+							<svelte:component this={PDFPreview} file={file} width={48} height={48} />
 						</div>
-					{:else if uploadPreview === 'pdf-placeholder'}
-						<div class="mt-2 border border-gray-200 rounded-lg p-4 bg-gray-50 flex items-center justify-center">
-							<div class="text-center">
-								<span class="text-4xl">📄</span>
-								<p class="text-sm text-gray-600 mt-2">PDF document selected</p>
+					{:else if file.type === 'application/pdf'}
+						<div class="w-12 h-12 flex-shrink-0 bg-red-100 rounded flex items-center justify-center">
+							<span class="text-2xl">📄</span>
+						</div>
+					{:else if file.preview}
+							<img src={file.preview} alt={file.name} class="w-12 h-12 object-cover rounded" />
+						{:else}
+							<div class="w-12 h-12 flex-shrink-0 bg-gray-200 rounded flex items-center justify-center">
+								<span class="text-2xl">{getFileIcon(file.type)}</span>
 							</div>
+						{/if}
+
+						<!-- File info -->
+						<div class="flex-1 min-w-0">
+							<input
+								type="text"
+								bind:value={file.documentName}
+								on:input={() => updateFileName(file, index)}
+								class="w-full text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded px-2 py-1"
+								placeholder="Document name"
+							/>
+							<p class="text-xs text-gray-500 mt-1">
+								{file.name} • {formatFileSize(file.size)}
+							</p>
+
+							<!-- Upload progress -->
+							{#if uploadProgress[index]}
+								<div class="mt-1">
+									{#if uploadProgress[index].uploading}
+										<div class="w-full bg-gray-200 rounded-full h-1.5">
+											<div
+												class="bg-primary-600 h-1.5 rounded-full transition-all duration-300"
+												style="width: {uploadProgress[index].progress}%"
+											></div>
+										</div>
+										<p class="text-xs text-gray-500 mt-0.5">{uploadProgress[index].progress}%</p>
+									{:else if uploadProgress[index].success}
+										<p class="text-xs text-green-600">✓ Uploaded successfully</p>
+									{:else if uploadProgress[index].error}
+										<p class="text-xs text-red-600">✗ {uploadProgress[index].error}</p>
+									{/if}
+								</div>
+							{/if}
 						</div>
-					{/if}
-				</div>
-			{/if}
-		</div>
 
-		<div>
-			<label for="document-name" class="block text-sm font-medium text-gray-700 mb-2">
-				Document Name *
-			</label>
-			<input
-				id="document-name"
-				type="text"
-				bind:value={uploadData.documentName}
-				class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-				placeholder="Enter document name"
-				required
-			/>
-		</div>
-
-		<div>
-			<label for="document-category" class="block text-sm font-medium text-gray-700 mb-2">
-				Category
-			</label>
-			<select
-				id="document-category"
-				bind:value={uploadData.categoryId}
-				class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-			>
-				<option value="">Select a category</option>
-				{#each categories as category}
-					<option value={category.id}>{category.categoryName}</option>
+						<!-- Remove button -->
+						<button
+							type="button"
+							on:click={() => removeFile(index)}
+							class="text-gray-400 hover:text-red-600"
+							disabled={uploadProgress[index]?.uploading}
+						>
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+							</svg>
+						</button>
+					</div>
 				{/each}
-			</select>
-		</div>
+			</div>
+		{/if}
 
-		<div>
-			<label for="document-description" class="block text-sm font-medium text-gray-700 mb-2">
-				Description
-			</label>
-			<textarea
-				id="document-description"
-				bind:value={uploadData.description}
-				rows="3"
-				class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-				placeholder="Enter description (optional)"
-			></textarea>
-		</div>
+		<!-- Shared metadata for all files -->
+		{#if uploadFiles.length > 0}
+			<div class="space-y-4 pt-4 border-t border-gray-200">
+				<h4 class="text-sm font-medium text-gray-700">Document Details (applies to all files)</h4>
 
-		<div>
-			<label for="document-expiry" class="block text-sm font-medium text-gray-700 mb-2">
-				Expiry Date
-			</label>
-			<input
-				id="document-expiry"
-				type="date"
-				bind:value={uploadData.expiryDate}
-				class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-			/>
-		</div>
+				<div>
+					<label for="document-category" class="block text-sm font-medium text-gray-700 mb-2">
+						Category
+					</label>
+					<select
+						id="document-category"
+						bind:value={uploadData.categoryId}
+						class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+					>
+						<option value="">Select a category</option>
+						{#each categories as category}
+							<option value={category.id}>{category.categoryName}</option>
+						{/each}
+					</select>
+				</div>
 
-		<div class="flex items-center">
-			<input
-				id="document-public"
-				type="checkbox"
-				bind:checked={uploadData.isPublic}
-				class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-			/>
-			<label for="document-public" class="ml-2 block text-sm text-gray-900">
-				Make this document public
-			</label>
-		</div>
+				<div>
+					<label for="document-description" class="block text-sm font-medium text-gray-700 mb-2">
+						Description
+					</label>
+					<textarea
+						id="document-description"
+						bind:value={uploadData.description}
+						rows="2"
+						class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+						placeholder="Enter description (optional)"
+					></textarea>
+				</div>
+
+				<div>
+					<label for="document-expiry" class="block text-sm font-medium text-gray-700 mb-2">
+						Expiry Date
+					</label>
+					<input
+						id="document-expiry"
+						type="date"
+						bind:value={uploadData.expiryDate}
+						class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+					/>
+				</div>
+
+				<div class="flex items-center">
+					<input
+						id="document-public"
+						type="checkbox"
+						bind:checked={uploadData.isPublic}
+						class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+					/>
+					<label for="document-public" class="ml-2 block text-sm text-gray-900">
+						Make these documents public
+					</label>
+				</div>
+			</div>
+		{/if}
 	</div>
 
 	<svelte:fragment slot="footer">
@@ -468,15 +636,17 @@
 			type="button"
 			class="btn btn-primary"
 			on:click={handleUpload}
-			disabled={loading || !uploadFile}
+			disabled={loading || uploadFiles.length === 0}
 		>
 			{#if loading}
 				<svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
 					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 				</svg>
+				Uploading...
+			{:else}
+				Upload {uploadFiles.length} Document{uploadFiles.length !== 1 ? 's' : ''}
 			{/if}
-			Upload Document
 		</button>
 	</svelte:fragment>
 </Modal>
