@@ -14,57 +14,57 @@
     goto('/materials');
   }
 
-  const reports = [
+  $: reports = [
     {
-      title: $_('reports.warehouse.stockReport.title'),
-      description: $_('reports.warehouse.stockReport.description'),
+      title: $_('maintenance.reports.warehouse.stockReport.title'),
+      description: $_('maintenance.reports.warehouse.stockReport.description'),
       href: '/warehouse/reports/stock',
       icon: 'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4',
       color: 'blue',
       features: [
-        'Current stock levels per warehouse',
-        'Low stock and out of stock alerts',
-        'Stock value calculation',
-        'Filter by warehouse and category'
+        $_('maintenance.reports.warehouse.stockReport.features.currentStock'),
+        $_('maintenance.reports.warehouse.stockReport.features.lowStockAlerts'),
+        $_('maintenance.reports.warehouse.stockReport.features.stockValue'),
+        $_('maintenance.reports.warehouse.stockReport.features.filterWarehouse')
       ]
     },
     {
-      title: $_('reports.warehouse.pricingReport.title'),
-      description: $_('reports.warehouse.pricingReport.description'),
+      title: $_('maintenance.reports.warehouse.pricingReport.title'),
+      description: $_('maintenance.reports.warehouse.pricingReport.description'),
       href: '/warehouse/reports/pricing',
       icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
       color: 'green',
       features: [
-        'Price history and trends',
-        'Min, max, and average prices',
-        'Price variance analysis',
-        'Filter by material and supplier'
+        $_('maintenance.reports.warehouse.pricingReport.features.priceHistory'),
+        $_('maintenance.reports.warehouse.pricingReport.features.minMaxAvg'),
+        $_('maintenance.reports.warehouse.pricingReport.features.priceVariance'),
+        $_('maintenance.reports.warehouse.pricingReport.features.filterSupplier')
       ]
     },
     {
-      title: $_('reports.warehouse.transferReport.title'),
-      description: $_('reports.warehouse.transferReport.description'),
+      title: $_('maintenance.reports.warehouse.transferReport.title'),
+      description: $_('maintenance.reports.warehouse.transferReport.description'),
       href: '/warehouse/reports/transfers',
       icon: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4',
       color: 'purple',
       features: [
-        'Transfer statistics by status',
-        'Transfer type breakdown',
-        'Average completion time',
-        'Filter by warehouses and dates'
+        $_('maintenance.reports.warehouse.transferReport.features.statusStats'),
+        $_('maintenance.reports.warehouse.transferReport.features.typeBreakdown'),
+        $_('maintenance.reports.warehouse.transferReport.features.avgCompletion'),
+        $_('maintenance.reports.warehouse.transferReport.features.filterDates')
       ]
     },
     {
-      title: $_('reports.warehouse.expirationReport.title'),
-      description: $_('reports.warehouse.expirationReport.description'),
+      title: $_('maintenance.reports.warehouse.expirationReport.title'),
+      description: $_('maintenance.reports.warehouse.expirationReport.description'),
       href: '/warehouse/reports/expiration',
       icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
       color: 'red',
       features: [
-        'Expired products alerts',
-        'Products expiring soon',
-        'Value of expired stock',
-        'Configurable alert thresholds'
+        $_('maintenance.reports.warehouse.expirationReport.features.expiredAlerts'),
+        $_('maintenance.reports.warehouse.expirationReport.features.expiringSoon'),
+        $_('maintenance.reports.warehouse.expirationReport.features.expiredValue'),
+        $_('maintenance.reports.warehouse.expirationReport.features.configThresholds')
       ]
     }
   ];
@@ -101,7 +101,7 @@
 </script>
 
 <svelte:head>
-  <title>{$_('reports.warehouse.title')} - MedFMS</title>
+  <title>{$_('maintenance.reports.warehouse.title')} - MedFMS</title>
 </svelte:head>
 
 <div class="container mx-auto p-6">
@@ -113,9 +113,9 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
       </button>
-      <h1 class="text-3xl font-bold text-gray-900">{$_('reports.warehouse.title')}</h1>
+      <h1 class="text-3xl font-bold text-gray-900">{$_('maintenance.reports.warehouse.title')}</h1>
     </div>
-    <p class="text-gray-600 ml-10">Comprehensive warehouse analytics and reporting tools</p>
+    <p class="text-gray-600 ml-10">{$_('maintenance.reports.warehouse.subtitle')}</p>
   </div>
 
   <!-- Reports Grid -->
@@ -139,7 +139,7 @@
         </div>
 
         <div class="bg-white bg-opacity-50 rounded-lg p-4">
-          <h3 class="text-sm font-semibold text-gray-700 mb-2">Key Features:</h3>
+          <h3 class="text-sm font-semibold text-gray-700 mb-2">{$_('maintenance.reports.warehouse.keyFeatures')}:</h3>
           <ul class="space-y-1">
             {#each report.features as feature}
               <li class="flex items-start text-sm text-gray-600">
@@ -153,7 +153,7 @@
         </div>
 
         <div class="mt-4 flex items-center text-sm font-medium {colors.icon}">
-          View Report
+          {$_('maintenance.reports.warehouse.viewReport')}
           <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>

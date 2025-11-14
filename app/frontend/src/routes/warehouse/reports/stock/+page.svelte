@@ -72,7 +72,7 @@
 </script>
 
 <svelte:head>
-  <title>{$_('reports.warehouse.stockReport.pageTitle')}</title>
+  <title>{$_('maintenance.reports.warehouse.stockReport.pageTitle')}</title>
 </svelte:head>
 
 <div class="container mx-auto p-6">
@@ -84,27 +84,27 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
       </button>
-      <h1 class="text-3xl font-bold text-gray-900">{$_('reports.warehouse.stockReport.title')}</h1>
+      <h1 class="text-3xl font-bold text-gray-900">{$_('maintenance.reports.warehouse.stockReport.title')}</h1>
     </div>
-    <p class="text-gray-600">{$_('reports.warehouse.stockReport.description')}</p>
+    <p class="text-gray-600">{$_('maintenance.reports.warehouse.stockReport.description')}</p>
   </div>
 
   <!-- Summary Cards -->
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-      <div class="text-sm font-medium text-gray-600">{$_('reports.warehouse.stockReport.totalItems')}</div>
+      <div class="text-sm font-medium text-gray-600">{$_('maintenance.reports.warehouse.stockReport.totalItems')}</div>
       <div class="text-2xl font-bold text-gray-900 mt-1">{summary.totalItems || 0}</div>
     </div>
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-      <div class="text-sm font-medium text-gray-600">{$_('reports.warehouse.stockReport.totalValue')}</div>
+      <div class="text-sm font-medium text-gray-600">{$_('maintenance.reports.warehouse.stockReport.totalValue')}</div>
       <div class="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(summary.totalValue)}</div>
     </div>
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
-      <div class="text-sm font-medium text-gray-600">{$_('reports.warehouse.stockReport.lowStockItems')}</div>
+      <div class="text-sm font-medium text-gray-600">{$_('maintenance.reports.warehouse.stockReport.lowStockItems')}</div>
       <div class="text-2xl font-bold text-gray-900 mt-1">{summary.lowStockItems || 0}</div>
     </div>
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
-      <div class="text-sm font-medium text-gray-600">{$_('reports.warehouse.stockReport.outOfStockItems')}</div>
+      <div class="text-sm font-medium text-gray-600">{$_('maintenance.reports.warehouse.stockReport.outOfStockItems')}</div>
       <div class="text-2xl font-bold text-gray-900 mt-1">{summary.outOfStockItems || 0}</div>
     </div>
   </div>
@@ -115,7 +115,7 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          {$_('reports.warehouse.stockReport.filters.warehouse')}
+          {$_('maintenance.reports.warehouse.stockReport.filters.warehouse')}
         </label>
         <select bind:value={filters.warehouseId} on:change={handleFilterChange} class="input">
           <option value="">All Warehouses</option>
@@ -127,7 +127,7 @@
       <div class="flex items-end">
         <label class="flex items-center">
           <input type="checkbox" bind:checked={filters.lowStockOnly} on:change={handleFilterChange} class="rounded mr-2" />
-          <span class="text-sm font-medium text-gray-700">{$_('reports.warehouse.stockReport.filters.lowStockOnly')}</span>
+          <span class="text-sm font-medium text-gray-700">{$_('maintenance.reports.warehouse.stockReport.filters.lowStockOnly')}</span>
         </label>
       </div>
     </div>
@@ -153,25 +153,25 @@
         <thead class="bg-gray-50">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.stockReport.materialCode')}
+              {$_('maintenance.reports.warehouse.stockReport.materialCode')}
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.stockReport.materialName')}
+              {$_('maintenance.reports.warehouse.stockReport.materialName')}
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.stockReport.warehouse')}
+              {$_('maintenance.reports.warehouse.stockReport.warehouse')}
             </th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.stockReport.currentStock')}
+              {$_('maintenance.reports.warehouse.stockReport.currentStock')}
             </th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.stockReport.criticalLevel')}
+              {$_('maintenance.reports.warehouse.stockReport.criticalLevel')}
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.stockReport.unit')}
+              {$_('maintenance.reports.warehouse.stockReport.unit')}
             </th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.stockReport.value')}
+              {$_('maintenance.reports.warehouse.stockReport.value')}
             </th>
           </tr>
         </thead>

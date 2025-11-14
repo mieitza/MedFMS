@@ -95,7 +95,7 @@
 </script>
 
 <svelte:head>
-  <title>{$_('reports.warehouse.expirationReport.pageTitle')}</title>
+  <title>{$_('maintenance.reports.warehouse.expirationReport.pageTitle')}</title>
 </svelte:head>
 
 <div class="container mx-auto p-6">
@@ -107,31 +107,31 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
       </button>
-      <h1 class="text-3xl font-bold text-gray-900">{$_('reports.warehouse.expirationReport.title')}</h1>
+      <h1 class="text-3xl font-bold text-gray-900">{$_('maintenance.reports.warehouse.expirationReport.title')}</h1>
     </div>
-    <p class="text-gray-600">{$_('reports.warehouse.expirationReport.description')}</p>
+    <p class="text-gray-600">{$_('maintenance.reports.warehouse.expirationReport.description')}</p>
   </div>
 
   <!-- Summary Cards -->
   <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-      <div class="text-sm font-medium text-gray-600">{$_('reports.warehouse.expirationReport.totalItems')}</div>
+      <div class="text-sm font-medium text-gray-600">{$_('maintenance.reports.warehouse.expirationReport.totalItems')}</div>
       <div class="text-2xl font-bold text-gray-900 mt-1">{summary.totalItems || 0}</div>
     </div>
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
-      <div class="text-sm font-medium text-gray-600">{$_('reports.warehouse.expirationReport.expiredCount')}</div>
+      <div class="text-sm font-medium text-gray-600">{$_('maintenance.reports.warehouse.expirationReport.expiredCount')}</div>
       <div class="text-2xl font-bold text-red-600 mt-1">{summary.expiredCount || 0}</div>
     </div>
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
-      <div class="text-sm font-medium text-gray-600">{$_('reports.warehouse.expirationReport.expiringSoonCount')}</div>
+      <div class="text-sm font-medium text-gray-600">{$_('maintenance.reports.warehouse.expirationReport.expiringSoonCount')}</div>
       <div class="text-2xl font-bold text-yellow-600 mt-1">{summary.expiringSoonCount || 0}</div>
     </div>
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-      <div class="text-sm font-medium text-gray-600">{$_('reports.warehouse.expirationReport.totalValue')}</div>
+      <div class="text-sm font-medium text-gray-600">{$_('maintenance.reports.warehouse.expirationReport.totalValue')}</div>
       <div class="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(summary.totalValue)}</div>
     </div>
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
-      <div class="text-sm font-medium text-gray-600">{$_('reports.warehouse.expirationReport.expiredValue')}</div>
+      <div class="text-sm font-medium text-gray-600">{$_('maintenance.reports.warehouse.expirationReport.expiredValue')}</div>
       <div class="text-2xl font-bold text-red-600 mt-1">{formatCurrency(summary.expiredValue)}</div>
     </div>
   </div>
@@ -142,7 +142,7 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          {$_('reports.warehouse.expirationReport.filters.warehouse')}
+          {$_('maintenance.reports.warehouse.expirationReport.filters.warehouse')}
         </label>
         <select bind:value={filters.warehouseId} on:change={handleFilterChange} class="input">
           <option value="">All Warehouses</option>
@@ -153,14 +153,14 @@
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          {$_('reports.warehouse.expirationReport.filters.daysThreshold')}
+          {$_('maintenance.reports.warehouse.expirationReport.filters.daysThreshold')}
         </label>
         <input type="number" bind:value={filters.daysThreshold} on:change={handleFilterChange} min="1" max="365" class="input" />
       </div>
       <div class="flex items-end">
         <label class="flex items-center">
           <input type="checkbox" bind:checked={filters.includeExpired} on:change={handleFilterChange} class="rounded mr-2" />
-          <span class="text-sm font-medium text-gray-700">{$_('reports.warehouse.expirationReport.filters.includeExpired')}</span>
+          <span class="text-sm font-medium text-gray-700">{$_('maintenance.reports.warehouse.expirationReport.filters.includeExpired')}</span>
         </label>
       </div>
     </div>
@@ -186,28 +186,28 @@
         <thead class="bg-gray-50">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.expirationReport.materialCode')}
+              {$_('maintenance.reports.warehouse.expirationReport.materialCode')}
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.expirationReport.materialName')}
+              {$_('maintenance.reports.warehouse.expirationReport.materialName')}
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.expirationReport.warehouse')}
+              {$_('maintenance.reports.warehouse.expirationReport.warehouse')}
             </th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.expirationReport.currentStock')}
+              {$_('maintenance.reports.warehouse.expirationReport.currentStock')}
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.expirationReport.expirationDate')}
+              {$_('maintenance.reports.warehouse.expirationReport.expirationDate')}
             </th>
             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.expirationReport.daysUntilExpiry')}
+              {$_('maintenance.reports.warehouse.expirationReport.daysUntilExpiry')}
             </th>
             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.expirationReport.status')}
+              {$_('maintenance.reports.warehouse.expirationReport.status')}
             </th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.expirationReport.value')}
+              {$_('maintenance.reports.warehouse.expirationReport.value')}
             </th>
           </tr>
         </thead>
@@ -236,7 +236,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                 <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {getExpirationBadgeClass(item)}">
-                  {item.isExpired ? $_('reports.warehouse.expirationReport.expired') : $_('reports.warehouse.expirationReport.expiringSoon')}
+                  {item.isExpired ? $_('maintenance.reports.warehouse.expirationReport.expired') : $_('maintenance.reports.warehouse.expirationReport.expiringSoon')}
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">

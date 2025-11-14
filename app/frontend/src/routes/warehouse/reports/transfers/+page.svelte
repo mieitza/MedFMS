@@ -101,7 +101,7 @@
 </script>
 
 <svelte:head>
-  <title>{$_('reports.warehouse.transferReport.pageTitle')}</title>
+  <title>{$_('maintenance.reports.warehouse.transferReport.pageTitle')}</title>
 </svelte:head>
 
 <div class="container mx-auto p-6">
@@ -113,15 +113,15 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
       </button>
-      <h1 class="text-3xl font-bold text-gray-900">{$_('reports.warehouse.transferReport.title')}</h1>
+      <h1 class="text-3xl font-bold text-gray-900">{$_('maintenance.reports.warehouse.transferReport.title')}</h1>
     </div>
-    <p class="text-gray-600">{$_('reports.warehouse.transferReport.description')}</p>
+    <p class="text-gray-600">{$_('maintenance.reports.warehouse.transferReport.description')}</p>
   </div>
 
   <!-- Summary Cards -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-      <div class="text-sm font-medium text-gray-600">{$_('reports.warehouse.transferReport.totalTransfers')}</div>
+      <div class="text-sm font-medium text-gray-600">{$_('maintenance.reports.warehouse.transferReport.totalTransfers')}</div>
       <div class="text-2xl font-bold text-gray-900 mt-1">{statistics.totalTransfers || 0}</div>
     </div>
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
@@ -133,9 +133,9 @@
       <div class="text-2xl font-bold text-yellow-600 mt-1">{statistics.byStatus?.pending || 0}</div>
     </div>
     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
-      <div class="text-sm font-medium text-gray-600">{$_('reports.warehouse.transferReport.avgCompletionTime')}</div>
+      <div class="text-sm font-medium text-gray-600">{$_('maintenance.reports.warehouse.transferReport.avgCompletionTime')}</div>
       <div class="text-2xl font-bold text-gray-900 mt-1">
-        {statistics.avgCompletionTime ? statistics.avgCompletionTime.toFixed(1) : '0'} {$_('reports.warehouse.transferReport.days')}
+        {statistics.avgCompletionTime ? statistics.avgCompletionTime.toFixed(1) : '0'} {$_('maintenance.reports.warehouse.transferReport.days')}
       </div>
     </div>
   </div>
@@ -143,7 +143,7 @@
   <!-- Statistics by Status and Type -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
     <div class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-lg font-semibold text-gray-900 mb-4">{$_('reports.warehouse.transferReport.byStatus')}</h3>
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">{$_('maintenance.reports.warehouse.transferReport.byStatus')}</h3>
       <div class="space-y-2">
         {#each Object.entries(statistics.byStatus || {}) as [status, count]}
           <div class="flex justify-between items-center">
@@ -154,7 +154,7 @@
       </div>
     </div>
     <div class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-lg font-semibold text-gray-900 mb-4">{$_('reports.warehouse.transferReport.byType')}</h3>
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">{$_('maintenance.reports.warehouse.transferReport.byType')}</h3>
       <div class="space-y-2">
         {#each Object.entries(statistics.byType || {}) as [type, count]}
           <div class="flex justify-between items-center">
@@ -172,7 +172,7 @@
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          {$_('reports.warehouse.transferReport.filters.status')}
+          {$_('maintenance.reports.warehouse.transferReport.filters.status')}
         </label>
         <select bind:value={filters.status} on:change={handleFilterChange} class="input">
           <option value="">All Statuses</option>
@@ -183,7 +183,7 @@
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          {$_('reports.warehouse.transferReport.filters.transferType')}
+          {$_('maintenance.reports.warehouse.transferReport.filters.transferType')}
         </label>
         <select bind:value={filters.transferType} on:change={handleFilterChange} class="input">
           <option value="">All Types</option>
@@ -194,7 +194,7 @@
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          {$_('reports.warehouse.transferReport.filters.sourceWarehouse')}
+          {$_('maintenance.reports.warehouse.transferReport.filters.sourceWarehouse')}
         </label>
         <select bind:value={filters.sourceWarehouseId} on:change={handleFilterChange} class="input">
           <option value="">All Sources</option>
@@ -205,7 +205,7 @@
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          {$_('reports.warehouse.transferReport.filters.destinationWarehouse')}
+          {$_('maintenance.reports.warehouse.transferReport.filters.destinationWarehouse')}
         </label>
         <select bind:value={filters.destinationWarehouseId} on:change={handleFilterChange} class="input">
           <option value="">All Destinations</option>
@@ -216,7 +216,7 @@
       </div>
       <div class="col-span-2">
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          {$_('reports.warehouse.transferReport.filters.dateRange')}
+          {$_('maintenance.reports.warehouse.transferReport.filters.dateRange')}
         </label>
         <div class="grid grid-cols-2 gap-2">
           <input type="date" bind:value={filters.startDate} on:change={handleFilterChange} class="input text-sm" />
@@ -246,13 +246,13 @@
         <thead class="bg-gray-50">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.transferReport.requestNumber')}
+              {$_('maintenance.reports.warehouse.transferReport.requestNumber')}
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.transferReport.transferType')}
+              {$_('maintenance.reports.warehouse.transferReport.transferType')}
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.transferReport.material')}
+              {$_('maintenance.reports.warehouse.transferReport.material')}
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Source
@@ -261,13 +261,13 @@
               Destination
             </th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.transferReport.quantity')}
+              {$_('maintenance.reports.warehouse.transferReport.quantity')}
             </th>
             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
               Status
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              {$_('reports.warehouse.transferReport.requestedDate')}
+              {$_('maintenance.reports.warehouse.transferReport.requestedDate')}
             </th>
           </tr>
         </thead>

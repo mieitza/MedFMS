@@ -74,7 +74,7 @@
 </script>
 
 <svelte:head>
-  <title>{$_('reports.warehouse.pricingReport.pageTitle')}</title>
+  <title>{$_('maintenance.reports.warehouse.pricingReport.pageTitle')}</title>
 </svelte:head>
 
 <div class="container mx-auto p-6">
@@ -86,9 +86,9 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
       </button>
-      <h1 class="text-3xl font-bold text-gray-900">{$_('reports.warehouse.pricingReport.title')}</h1>
+      <h1 class="text-3xl font-bold text-gray-900">{$_('maintenance.reports.warehouse.pricingReport.title')}</h1>
     </div>
-    <p class="text-gray-600">{$_('reports.warehouse.pricingReport.description')}</p>
+    <p class="text-gray-600">{$_('maintenance.reports.warehouse.pricingReport.description')}</p>
   </div>
 
   <!-- Filters -->
@@ -97,7 +97,7 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          {$_('reports.warehouse.pricingReport.filters.dateRange')}
+          {$_('maintenance.reports.warehouse.pricingReport.filters.dateRange')}
         </label>
         <div class="grid grid-cols-2 gap-2">
           <input type="date" bind:value={filters.startDate} on:change={handleFilterChange} class="input text-sm" />
@@ -116,25 +116,25 @@
           <thead class="bg-gray-50">
             <tr>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                {$_('reports.warehouse.pricingReport.material')}
+                {$_('maintenance.reports.warehouse.pricingReport.material')}
               </th>
               <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                {$_('reports.warehouse.pricingReport.minPrice')}
+                {$_('maintenance.reports.warehouse.pricingReport.minPrice')}
               </th>
               <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                {$_('reports.warehouse.pricingReport.avgPrice')}
+                {$_('maintenance.reports.warehouse.pricingReport.avgPrice')}
               </th>
               <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                {$_('reports.warehouse.pricingReport.maxPrice')}
+                {$_('maintenance.reports.warehouse.pricingReport.maxPrice')}
               </th>
               <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                {$_('reports.warehouse.pricingReport.priceVariance')}
+                {$_('maintenance.reports.warehouse.pricingReport.priceVariance')}
               </th>
               <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                {$_('reports.warehouse.pricingReport.totalQuantity')}
+                {$_('maintenance.reports.warehouse.pricingReport.totalQuantity')}
               </th>
               <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                {$_('reports.warehouse.pricingReport.transactionCount')}
+                {$_('maintenance.reports.warehouse.pricingReport.transactionCount')}
               </th>
             </tr>
           </thead>
