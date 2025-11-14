@@ -367,13 +367,13 @@
 				<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
 				</svg>
-				{$_('inventory.requestFromWarehouse')}
+				{$_('vehicles.inventory.requestFromWarehouse')}
 			</button>
 			<button on:click={handleReturnToWarehouse} class="btn btn-secondary text-sm">
 				<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
 				</svg>
-				{$_('inventory.returnToWarehouse')}
+				{$_('vehicles.inventory.returnToWarehouse')}
 			</button>
 			<button on:click={openAddModal} class="btn btn-primary text-sm">
 				<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
