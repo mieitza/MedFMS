@@ -19,7 +19,6 @@
 	let selectedDocument = null;
 	let documentPreviewUrl = null;
 	let documentThumbnails = {}; // Map of document ID to blob URL for image thumbnails
-	let documentBlobs = {}; // Map of document ID to blob object for PDFs
 	let dragOver = false;
 	let uploadProgress = {}; // Map of file index to upload progress
 	let uploadData = {
@@ -50,7 +49,6 @@
 				if (url) URL.revokeObjectURL(url);
 			});
 			documentThumbnails = {};
-			documentBlobs = {};
 
 			const response = await api.getDocuments(entityType, entityId);
 			documents = response.data || [];
@@ -66,37 +64,25 @@
 	}
 
 	async function loadDocumentThumbnails() {
-		// Load thumbnails for image documents and PDFs
+		// Load thumbnails only for image documents
+		// Note: PDF thumbnails are disabled for now due to compatibility issues
 		const previewableDocuments = documents.filter(doc =>
-			doc.mimeType.startsWith('image/') || doc.mimeType === 'application/pdf'
+			doc.mimeType.startsWith('image/')
 		);
 
 		await Promise.all(
 			previewableDocuments.map(async (document) => {
 				try {
 					const blob = await api.downloadDocument(document.id);
-
-					// For PDFs, store the blob object for PDFPreview component
-					if (document.mimeType === 'application/pdf') {
-						documentBlobs[document.id] = blob;
-						// Still create URL for fallback
-						documentThumbnails[document.id] = URL.createObjectURL(blob);
-					} else {
-						// For images, just store the URL
-						documentThumbnails[document.id] = URL.createObjectURL(blob);
-					}
+					documentThumbnails[document.id] = URL.createObjectURL(blob);
 				} catch (error) {
 					console.error(`Failed to load thumbnail for document ${document.id}:`, error);
 					documentThumbnails[document.id] = null;
-					if (document.mimeType === 'application/pdf') {
-						documentBlobs[document.id] = null;
-					}
 				}
 			})
 		);
 		// Trigger reactivity
 		documentThumbnails = documentThumbnails;
-		documentBlobs = documentBlobs;
 	}
 
 	async function loadCategories() {
@@ -436,18 +422,6 @@
 									/>
 								{:else if documentThumbnails[document.id] === null}
 									<span class="text-2xl flex items-center justify-center w-full h-full">🖼️</span>
-								{:else}
-									<div class="w-full h-full flex items-center justify-center">
-										<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
-									</div>
-								{/if}
-							</div>
-						{:else if document.mimeType === 'application/pdf' && PDFPreview}
-							<div class="w-16 h-16 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
-								{#if documentBlobs[document.id]}
-									<svelte:component this={PDFPreview} file={documentBlobs[document.id]} width={64} height={64} />
-								{:else if documentBlobs[document.id] === null}
-									<span class="text-2xl flex items-center justify-center w-full h-full">📄</span>
 								{:else}
 									<div class="w-full h-full flex items-center justify-center">
 										<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
