@@ -88,20 +88,26 @@
     - Built warehouse reports index page
     - Added navigation integration to dashboard
 
+15. **Vehicle inventory subsection**
+    - Comprehensive database schema with categories, items, assignments, inspections, and dispensing
+    - Full backend API with CRUD operations for all inventory entities
+    - Frontend API methods implemented
+    - VehicleInventoryManager component (32KB) with full functionality
+    - Integrated into vehicle detail page
+    - Expiration tracking for medical supplies
+    - Inspection and certification tracking
+    - Patient dispensing records
+
+16. **ANMDM authorization section**
+    - Authorization fields (number, type, issuing authority)
+    - Issue and expiry date tracking
+    - Color-coded expiration alerts (expired, expiring soon, valid)
+    - Integrated into vehicle detail page
+    - Comprehensive translations
+
 ---
 
 ### 🔄 Pending Tasks
-
-#### Vehicle Management (High Priority)
-- **Add vehicle inventory subsection to vehicle detail page**
-  - Track tires, oxygen tube, defibrillator, etc.
-  - Implement inventory item CRUD
-  - Add expiration tracking for medical supplies
-
-- **Add ANMDM authorization (aviz) section to vehicle details page**
-  - Add authorization fields
-  - Implement authorization tracking
-  - Add expiration alerts
 
 #### Document Management
 - **Improve document upload component with preview on load**
