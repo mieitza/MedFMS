@@ -71,11 +71,28 @@
     - Added approve/reject actions
     - Implemented approval notes
 
+13. **Create admin CRUD page for warehouse material units**
+    - Built admin page for managing material units
+    - Implemented create, update operations
+    - Added unit name and abbreviation fields
+    - Integrated with navigation
+
+14. **Implement all warehouse reports**
+    - Created backend API endpoints for all 4 reports
+    - Added frontend API methods
+    - Implemented comprehensive translations (English & Romanian)
+    - Created warehouse stock report page
+    - Created warehouse pricing report page
+    - Created warehouse transfer report page
+    - Created product expiration alert report page
+    - Built warehouse reports index page
+    - Added navigation integration to dashboard
+
 ---
 
 ### 🔄 Pending Tasks
 
-#### Vehicle Management
+#### Vehicle Management (High Priority)
 - **Add vehicle inventory subsection to vehicle detail page**
   - Track tires, oxygen tube, defibrillator, etc.
   - Implement inventory item CRUD
@@ -85,38 +102,6 @@
   - Add authorization fields
   - Implement authorization tracking
   - Add expiration alerts
-
-#### Warehouse Reports
-- **Create warehouse stock report**
-  - Current stock levels per warehouse
-  - Stock movements history
-  - Low stock alerts
-  - Export to Excel/PDF
-
-- **Create warehouse pricing report**
-  - Material price history
-  - Purchase price analysis
-  - Cost trends
-  - Price comparison by supplier
-
-- **Create warehouse transfer report**
-  - Transfer request statistics
-  - Transfer history by warehouse
-  - Transfer time analysis
-  - Material movement tracking
-
-- **Create product expiration alert report**
-  - Products expiring soon
-  - Expired products
-  - Configurable alert thresholds
-  - Email notifications
-
-#### Admin Features
-- **Create admin CRUD page for warehouse unit label names**
-  - Manage material units
-  - Add/edit/delete units
-  - Set default units
-  - Unit conversion factors
 
 #### Document Management
 - **Improve document upload component with preview on load**
