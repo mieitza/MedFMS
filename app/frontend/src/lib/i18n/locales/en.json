@@ -1211,6 +1211,9 @@
       },
       "warehouse": {
         "title": "Warehouse Reports",
+        "subtitle": "Comprehensive warehouse analytics and reporting tools",
+        "keyFeatures": "Key Features",
+        "viewReport": "View Report",
         "stockReport": {
           "title": "Warehouse Stock Report",
           "pageTitle": "Warehouse Stock Report - MedFMS",
@@ -1231,6 +1234,12 @@
             "materialType": "Material Type",
             "category": "Category",
             "lowStockOnly": "Low Stock Only"
+          },
+          "features": {
+            "currentStock": "Current stock levels per warehouse",
+            "lowStockAlerts": "Low stock and out of stock alerts",
+            "stockValue": "Total stock value calculation",
+            "filterWarehouse": "Filter by warehouse, type, or category"
           }
         },
         "pricingReport": {
@@ -1251,6 +1260,12 @@
             "material": "Material",
             "supplier": "Supplier",
             "dateRange": "Date Range"
+          },
+          "features": {
+            "priceHistory": "Price history and trends for each material",
+            "minMaxAvg": "Min, max, and average pricing analysis",
+            "priceVariance": "Price variance identification",
+            "filterSupplier": "Filter by material, supplier, or date range"
           }
         },
         "transferReport": {
@@ -1276,6 +1291,12 @@
             "sourceWarehouse": "Source Warehouse",
             "destinationWarehouse": "Destination Warehouse",
             "dateRange": "Date Range"
+          },
+          "features": {
+            "statusStats": "Statistics by transfer status",
+            "typeBreakdown": "Breakdown by transfer type",
+            "avgCompletion": "Average completion time tracking",
+            "filterDates": "Filter by status, type, and date range"
           }
         },
         "expirationReport": {
@@ -1301,6 +1322,12 @@
             "warehouse": "Warehouse",
             "daysThreshold": "Days Threshold",
             "includeExpired": "Include Expired"
+          },
+          "features": {
+            "expiredAlerts": "Alerts for expired products",
+            "expiringSoon": "Identify products expiring soon",
+            "expiredValue": "Track total value of expired stock",
+            "configThresholds": "Configurable expiration thresholds"
           }
         }
       },

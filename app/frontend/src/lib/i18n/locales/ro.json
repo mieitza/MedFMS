@@ -1263,6 +1263,9 @@
       },
       "warehouse": {
         "title": "Rapoarte Depozit",
+        "subtitle": "Instrumente cuprinzătoare de analiză și raportare pentru depozite",
+        "keyFeatures": "Caracteristici Principale",
+        "viewReport": "Vizualizare Raport",
         "stockReport": {
           "title": "Raport Stoc Depozit",
           "pageTitle": "Raport Stoc Depozit - MedFMS",
@@ -1283,6 +1286,12 @@
             "materialType": "Tip Material",
             "category": "Categorie",
             "lowStockOnly": "Doar Stoc Scăzut"
+          },
+          "features": {
+            "currentStock": "Niveluri curente de stoc pe depozit",
+            "lowStockAlerts": "Alerte pentru stoc scăzut și articole epuizate",
+            "stockValue": "Calcul valoare totală stoc",
+            "filterWarehouse": "Filtrare după depozit, tip sau categorie"
           }
         },
         "pricingReport": {
@@ -1303,6 +1312,12 @@
             "material": "Material",
             "supplier": "Furnizor",
             "dateRange": "Interval Date"
+          },
+          "features": {
+            "priceHistory": "Istoric prețuri și tendințe pentru fiecare material",
+            "minMaxAvg": "Analiză prețuri minime, maxime și medii",
+            "priceVariance": "Identificare variații de preț",
+            "filterSupplier": "Filtrare după material, furnizor sau interval de date"
           }
         },
         "transferReport": {
@@ -1328,6 +1343,12 @@
             "sourceWarehouse": "Depozit Sursă",
             "destinationWarehouse": "Depozit Destinație",
             "dateRange": "Interval Date"
+          },
+          "features": {
+            "statusStats": "Statistici după status transfer",
+            "typeBreakdown": "Defalcare după tip transfer",
+            "avgCompletion": "Urmărire timp mediu finalizare",
+            "filterDates": "Filtrare după status, tip și interval de date"
           }
         },
         "expirationReport": {
@@ -1353,6 +1374,12 @@
             "warehouse": "Depozit",
             "daysThreshold": "Prag Zile",
             "includeExpired": "Include Expirate"
+          },
+          "features": {
+            "expiredAlerts": "Alerte pentru produse expirate",
+            "expiringSoon": "Identificare produse ce expiră în curând",
+            "expiredValue": "Urmărire valoare totală stoc expirat",
+            "configThresholds": "Praguri de expirare configurabile"
           }
         }
       },
