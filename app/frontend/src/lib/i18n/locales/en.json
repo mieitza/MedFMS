@@ -1209,6 +1209,101 @@
         "avgCostPerVehicle": "Average Cost per Vehicle",
         "highestCostVehicles": "Highest Cost Vehicles"
       },
+      "warehouse": {
+        "title": "Warehouse Reports",
+        "stockReport": {
+          "title": "Warehouse Stock Report",
+          "pageTitle": "Warehouse Stock Report - MedFMS",
+          "description": "Current stock levels and movement history",
+          "totalItems": "Total Items",
+          "totalValue": "Total Value",
+          "lowStockItems": "Low Stock Items",
+          "outOfStockItems": "Out of Stock Items",
+          "materialCode": "Material Code",
+          "materialName": "Material Name",
+          "currentStock": "Current Stock",
+          "criticalLevel": "Critical Level",
+          "unit": "Unit",
+          "warehouse": "Warehouse",
+          "value": "Value",
+          "filters": {
+            "warehouse": "Filter by Warehouse",
+            "materialType": "Material Type",
+            "category": "Category",
+            "lowStockOnly": "Low Stock Only"
+          }
+        },
+        "pricingReport": {
+          "title": "Warehouse Pricing Report",
+          "pageTitle": "Warehouse Pricing Report - MedFMS",
+          "description": "Material price history and purchase analysis",
+          "material": "Material",
+          "minPrice": "Min Price",
+          "maxPrice": "Max Price",
+          "avgPrice": "Avg Price",
+          "priceVariance": "Price Variance",
+          "totalQuantity": "Total Quantity",
+          "totalAmount": "Total Amount",
+          "transactionCount": "Transaction Count",
+          "lastPrice": "Last Price",
+          "trend": "Trend",
+          "filters": {
+            "material": "Material",
+            "supplier": "Supplier",
+            "dateRange": "Date Range"
+          }
+        },
+        "transferReport": {
+          "title": "Warehouse Transfer Report",
+          "pageTitle": "Warehouse Transfer Report - MedFMS",
+          "description": "Transfer request statistics and material movement history",
+          "totalTransfers": "Total Transfers",
+          "byStatus": "By Status",
+          "byType": "By Type",
+          "avgCompletionTime": "Avg Completion Time",
+          "requestNumber": "Request Number",
+          "transferType": "Transfer Type",
+          "sourceWarehouse": "Source Warehouse",
+          "destinationWarehouse": "Destination Warehouse",
+          "material": "Material",
+          "quantity": "Quantity",
+          "requestedDate": "Requested Date",
+          "completedDate": "Completed Date",
+          "days": "days",
+          "filters": {
+            "status": "Status",
+            "transferType": "Transfer Type",
+            "sourceWarehouse": "Source Warehouse",
+            "destinationWarehouse": "Destination Warehouse",
+            "dateRange": "Date Range"
+          }
+        },
+        "expirationReport": {
+          "title": "Product Expiration Report",
+          "pageTitle": "Product Expiration Report - MedFMS",
+          "description": "Alerts for expired or expiring soon products",
+          "totalItems": "Total Items",
+          "expiredCount": "Expired",
+          "expiringSoonCount": "Expiring Soon",
+          "totalValue": "Total Value",
+          "expiredValue": "Expired Value",
+          "materialCode": "Material Code",
+          "materialName": "Material Name",
+          "warehouse": "Warehouse",
+          "currentStock": "Current Stock",
+          "expirationDate": "Expiration Date",
+          "daysUntilExpiry": "Days Until Expiry",
+          "status": "Status",
+          "value": "Value",
+          "expired": "Expired",
+          "expiringSoon": "Expiring Soon",
+          "filters": {
+            "warehouse": "Warehouse",
+            "daysThreshold": "Days Threshold",
+            "includeExpired": "Include Expired"
+          }
+        }
+      },
       "messages": {
         "exportNotImplemented": "Export functionality would be implemented here"
       }

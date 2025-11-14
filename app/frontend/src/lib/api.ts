@@ -1334,6 +1334,80 @@ export const api = {
     return response.json();
   },
 
+  // Warehouse Reports APIs
+  async getWarehouseStockReport(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.warehouseId) queryParams.append('warehouseId', params.warehouseId.toString());
+    if (params.materialTypeId) queryParams.append('materialTypeId', params.materialTypeId.toString());
+    if (params.categoryId) queryParams.append('categoryId', params.categoryId.toString());
+    if (params.lowStockOnly) queryParams.append('lowStockOnly', params.lowStockOnly.toString());
+
+    const response = await fetch(`${API_BASE_URL}/materials/reports/stock?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch warehouse stock report');
+    }
+
+    return response.json();
+  },
+
+  async getWarehousePricingReport(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.materialId) queryParams.append('materialId', params.materialId.toString());
+    if (params.supplierId) queryParams.append('supplierId', params.supplierId.toString());
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/materials/reports/pricing?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch warehouse pricing report');
+    }
+
+    return response.json();
+  },
+
+  async getWarehouseTransferReport(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.status) queryParams.append('status', params.status);
+    if (params.transferType) queryParams.append('transferType', params.transferType);
+    if (params.sourceWarehouseId) queryParams.append('sourceWarehouseId', params.sourceWarehouseId.toString());
+    if (params.destinationWarehouseId) queryParams.append('destinationWarehouseId', params.destinationWarehouseId.toString());
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/materials/reports/transfers?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch warehouse transfer report');
+    }
+
+    return response.json();
+  },
+
+  async getProductExpirationReport(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.warehouseId) queryParams.append('warehouseId', params.warehouseId.toString());
+    if (params.daysThreshold) queryParams.append('daysThreshold', params.daysThreshold.toString());
+    if (params.includeExpired !== undefined) queryParams.append('includeExpired', params.includeExpired.toString());
+
+    const response = await fetch(`${API_BASE_URL}/materials/reports/expiration?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch product expiration report');
+    }
+
+    return response.json();
+  },
+
   // Reports API
   async getFleetOverviewReport(params = {}) {
     const queryParams = new URLSearchParams();

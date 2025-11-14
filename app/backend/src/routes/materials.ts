@@ -85,6 +85,289 @@ router.get('/low-stock', async (req, res, next) => {
   }
 });
 
+// ========== Warehouse Reports ==========
+
+// GET /api/materials/reports/stock - Warehouse stock report
+router.get('/reports/stock', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
+  try {
+    const db = getDb();
+    const { warehouseId, materialTypeId, categoryId, lowStockOnly } = req.query;
+
+    let query = db.select({
+      material: materials,
+      warehouse: warehouses,
+      unit: materialUnits
+    })
+    .from(materials)
+    .leftJoin(warehouses, eq(materials.warehouseId, warehouses.id))
+    .leftJoin(materialUnits, eq(materials.unitId, materialUnits.id));
+
+    const conditions = [];
+    if (warehouseId) conditions.push(eq(materials.warehouseId, parseInt(warehouseId as string)));
+    if (materialTypeId) conditions.push(eq(materials.materialTypeId, parseInt(materialTypeId as string)));
+    if (categoryId) conditions.push(eq(materials.categoryId, parseInt(categoryId as string)));
+    if (lowStockOnly === 'true') conditions.push(sql`${materials.currentStock} <= ${materials.criticalLevel}`);
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    const results = await query.orderBy(warehouses.warehouseName, materials.materialName);
+
+    // Calculate summary statistics
+    const summary = {
+      totalItems: results.length,
+      totalValue: results.reduce((sum, r) => sum + (r.material.currentStock * (r.material.standardPrice || 0)), 0),
+      lowStockItems: results.filter(r => r.material.currentStock <= (r.material.criticalLevel || 0)).length,
+      outOfStockItems: results.filter(r => r.material.currentStock === 0).length
+    };
+
+    res.json({
+      success: true,
+      data: results,
+      summary
+    });
+  } catch (error) {
+    logger.error('Error generating stock report:', error);
+    next(error);
+  }
+});
+
+// GET /api/materials/reports/pricing - Warehouse pricing report
+router.get('/reports/pricing', authorize('admin', 'manager'), async (req, res, next) => {
+  try {
+    const db = getDb();
+    const { materialId, supplierId, startDate, endDate } = req.query;
+
+    let query = db.select({
+      transaction: materialTransactions,
+      material: materials,
+      warehouse: warehouses,
+      unit: materialUnits
+    })
+    .from(materialTransactions)
+    .leftJoin(materials, eq(materialTransactions.materialId, materials.id))
+    .leftJoin(warehouses, eq(materialTransactions.warehouseId, warehouses.id))
+    .leftJoin(materialUnits, eq(materials.unitId, materialUnits.id))
+    .where(eq(materialTransactions.transactionType, 'entry'));
+
+    const conditions = [eq(materialTransactions.transactionType, 'entry')];
+    if (materialId) conditions.push(eq(materialTransactions.materialId, parseInt(materialId as string)));
+    if (supplierId) conditions.push(eq(materialTransactions.supplierId, parseInt(supplierId as string)));
+    if (startDate) conditions.push(gte(materialTransactions.transactionDate, new Date(startDate as string)));
+    if (endDate) conditions.push(lte(materialTransactions.transactionDate, new Date(endDate as string)));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    const results = await query.orderBy(desc(materialTransactions.transactionDate));
+
+    // Group by material and calculate price statistics
+    const priceAnalysis = new Map();
+    results.forEach(r => {
+      const materialId = r.transaction.materialId;
+      const unitPrice = r.transaction.unitPrice || 0;
+
+      if (!priceAnalysis.has(materialId)) {
+        priceAnalysis.set(materialId, {
+          materialCode: r.material?.materialCode,
+          materialName: r.material?.materialName,
+          unitName: r.unit?.abbreviation || r.unit?.unitName,
+          prices: [],
+          minPrice: unitPrice,
+          maxPrice: unitPrice,
+          totalQuantity: 0,
+          totalAmount: 0
+        });
+      }
+
+      const analysis = priceAnalysis.get(materialId);
+      analysis.prices.push({
+        date: r.transaction.transactionDate,
+        price: unitPrice,
+        quantity: r.transaction.quantity,
+        supplier: r.transaction.supplierId
+      });
+      analysis.minPrice = Math.min(analysis.minPrice, unitPrice);
+      analysis.maxPrice = Math.max(analysis.maxPrice, unitPrice);
+      analysis.totalQuantity += r.transaction.quantity;
+      analysis.totalAmount += (r.transaction.totalAmount || (unitPrice * r.transaction.quantity));
+    });
+
+    // Calculate average prices
+    const summary = Array.from(priceAnalysis.values()).map(item => ({
+      ...item,
+      avgPrice: item.totalAmount / item.totalQuantity,
+      priceVariance: item.maxPrice - item.minPrice,
+      transactionCount: item.prices.length
+    }));
+
+    res.json({
+      success: true,
+      data: results,
+      analysis: summary
+    });
+  } catch (error) {
+    logger.error('Error generating pricing report:', error);
+    next(error);
+  }
+});
+
+// GET /api/materials/reports/transfers - Warehouse transfer report
+router.get('/reports/transfers', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
+  try {
+    const db = getDb();
+    const { status, transferType, sourceWarehouseId, destinationWarehouseId, startDate, endDate } = req.query;
+
+    const sourceWarehouse = alias(warehouses, 'source_warehouse');
+    const destWarehouse = alias(warehouses, 'dest_warehouse');
+
+    let query = db.select({
+      transferRequest: warehouseTransferRequests,
+      sourceWarehouse: sourceWarehouse,
+      destinationWarehouse: destWarehouse,
+      destinationVehicle: vehicles,
+      material: materials,
+      unit: materialUnits
+    })
+    .from(warehouseTransferRequests)
+    .leftJoin(sourceWarehouse, eq(warehouseTransferRequests.sourceWarehouseId, sourceWarehouse.id))
+    .leftJoin(destWarehouse, eq(warehouseTransferRequests.destinationWarehouseId, destWarehouse.id))
+    .leftJoin(vehicles, eq(warehouseTransferRequests.destinationVehicleId, vehicles.id))
+    .leftJoin(materials, eq(warehouseTransferRequests.materialId, materials.id))
+    .leftJoin(materialUnits, eq(materials.unitId, materialUnits.id));
+
+    const conditions = [];
+    if (status) conditions.push(eq(warehouseTransferRequests.status, status as string));
+    if (transferType) conditions.push(eq(warehouseTransferRequests.transferType, transferType as any));
+    if (sourceWarehouseId) conditions.push(eq(warehouseTransferRequests.sourceWarehouseId, parseInt(sourceWarehouseId as string)));
+    if (destinationWarehouseId) conditions.push(eq(warehouseTransferRequests.destinationWarehouseId, parseInt(destinationWarehouseId as string)));
+    if (startDate) conditions.push(gte(warehouseTransferRequests.requestedDate, new Date(startDate as string)));
+    if (endDate) conditions.push(lte(warehouseTransferRequests.requestedDate, new Date(endDate as string)));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    const results = await query.orderBy(desc(warehouseTransferRequests.requestedDate));
+
+    // Calculate statistics
+    const statistics = {
+      totalTransfers: results.length,
+      byStatus: {
+        pending: results.filter(r => r.transferRequest.status === 'pending').length,
+        approved: results.filter(r => r.transferRequest.status === 'approved').length,
+        in_transit: results.filter(r => r.transferRequest.status === 'in_transit').length,
+        completed: results.filter(r => r.transferRequest.status === 'completed').length,
+        rejected: results.filter(r => r.transferRequest.status === 'rejected').length,
+        cancelled: results.filter(r => r.transferRequest.status === 'cancelled').length
+      },
+      byType: {
+        warehouse_to_warehouse: results.filter(r => r.transferRequest.transferType === 'warehouse-to-warehouse').length,
+        warehouse_to_vehicle: results.filter(r => r.transferRequest.transferType === 'warehouse-to-vehicle').length,
+        warehouse_to_employee: results.filter(r => r.transferRequest.transferType === 'warehouse-to-employee').length,
+        vehicle_to_warehouse: results.filter(r => r.transferRequest.transferType === 'vehicle-to-warehouse').length
+      },
+      avgCompletionTime: results
+        .filter(r => r.transferRequest.status === 'completed' && r.transferRequest.completedDate && r.transferRequest.requestedDate)
+        .reduce((sum, r, _, arr) => {
+          const timeDiff = new Date(r.transferRequest.completedDate!).getTime() - new Date(r.transferRequest.requestedDate).getTime();
+          return sum + (timeDiff / arr.length);
+        }, 0) / (1000 * 60 * 60 * 24) // Convert to days
+    };
+
+    res.json({
+      success: true,
+      data: results,
+      statistics
+    });
+  } catch (error) {
+    logger.error('Error generating transfer report:', error);
+    next(error);
+  }
+});
+
+// GET /api/materials/reports/expiration - Product expiration alert report
+router.get('/reports/expiration', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
+  try {
+    const db = getDb();
+    const { warehouseId, daysThreshold = 30, includeExpired = 'true' } = req.query;
+    const threshold = parseInt(daysThreshold as string);
+    const now = new Date();
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + threshold);
+
+    let query = db.select({
+      material: materials,
+      warehouse: warehouses,
+      unit: materialUnits
+    })
+    .from(materials)
+    .leftJoin(warehouses, eq(materials.warehouseId, warehouses.id))
+    .leftJoin(materialUnits, eq(materials.unitId, materialUnits.id))
+    .where(sql`${materials.expirationDate} IS NOT NULL`);
+
+    const conditions = [sql`${materials.expirationDate} IS NOT NULL`];
+
+    if (warehouseId) {
+      conditions.push(eq(materials.warehouseId, parseInt(warehouseId as string)));
+    }
+
+    // Filter by expiration date
+    if (includeExpired === 'true') {
+      conditions.push(lte(materials.expirationDate, futureDate));
+    } else {
+      conditions.push(and(
+        gte(materials.expirationDate, now),
+        lte(materials.expirationDate, futureDate)
+      )!);
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    const results = await query.orderBy(materials.expirationDate);
+
+    // Categorize by expiration status
+    const categorized = {
+      expired: results.filter(r => r.material.expirationDate && new Date(r.material.expirationDate) < now),
+      expiringSoon: results.filter(r => {
+        if (!r.material.expirationDate) return false;
+        const expDate = new Date(r.material.expirationDate);
+        const daysUntilExpiry = Math.floor((expDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        return daysUntilExpiry >= 0 && daysUntilExpiry <= threshold;
+      }),
+      totalValue: results.reduce((sum, r) => sum + (r.material.currentStock * (r.material.standardPrice || 0)), 0),
+      expiredValue: results
+        .filter(r => r.material.expirationDate && new Date(r.material.expirationDate) < now)
+        .reduce((sum, r) => sum + (r.material.currentStock * (r.material.standardPrice || 0)), 0)
+    };
+
+    res.json({
+      success: true,
+      data: results.map(r => ({
+        ...r,
+        daysUntilExpiry: r.material.expirationDate
+          ? Math.floor((new Date(r.material.expirationDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+          : null,
+        isExpired: r.material.expirationDate ? new Date(r.material.expirationDate) < now : false
+      })),
+      summary: {
+        totalItems: results.length,
+        expiredCount: categorized.expired.length,
+        expiringSoonCount: categorized.expiringSoon.length,
+        totalValue: categorized.totalValue,
+        expiredValue: categorized.expiredValue
+      }
+    });
+  } catch (error) {
+    logger.error('Error generating expiration report:', error);
+    next(error);
+  }
+});
+
 // ========== Warehouse Routes ==========
 
 // GET /api/materials/warehouses - Get all warehouses

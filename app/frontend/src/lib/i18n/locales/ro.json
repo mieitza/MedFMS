@@ -1261,6 +1261,101 @@
         "avgCostPerVehicle": "Cost Mediu pe Vehicul",
         "highestCostVehicles": "Vehicule cu Cele Mai Mari Costuri"
       },
+      "warehouse": {
+        "title": "Rapoarte Depozit",
+        "stockReport": {
+          "title": "Raport Stoc Depozit",
+          "pageTitle": "Raport Stoc Depozit - MedFMS",
+          "description": "Niveluri curente de stoc și istoricul mișcărilor",
+          "totalItems": "Total Articole",
+          "totalValue": "Valoare Totală",
+          "lowStockItems": "Articole Stoc Scăzut",
+          "outOfStockItems": "Articole Epuizate",
+          "materialCode": "Cod Material",
+          "materialName": "Denumire Material",
+          "currentStock": "Stoc Curent",
+          "criticalLevel": "Nivel Critic",
+          "unit": "Unitate",
+          "warehouse": "Depozit",
+          "value": "Valoare",
+          "filters": {
+            "warehouse": "Filtru Depozit",
+            "materialType": "Tip Material",
+            "category": "Categorie",
+            "lowStockOnly": "Doar Stoc Scăzut"
+          }
+        },
+        "pricingReport": {
+          "title": "Raport Prețuri Depozit",
+          "pageTitle": "Raport Prețuri Depozit - MedFMS",
+          "description": "Istoric prețuri materiale și analiză achiziții",
+          "material": "Material",
+          "minPrice": "Preț Minim",
+          "maxPrice": "Preț Maxim",
+          "avgPrice": "Preț Mediu",
+          "priceVariance": "Variație Preț",
+          "totalQuantity": "Cantitate Totală",
+          "totalAmount": "Sumă Totală",
+          "transactionCount": "Nr. Tranzacții",
+          "lastPrice": "Ultimul Preț",
+          "trend": "Tendință",
+          "filters": {
+            "material": "Material",
+            "supplier": "Furnizor",
+            "dateRange": "Interval Date"
+          }
+        },
+        "transferReport": {
+          "title": "Raport Transferuri Depozit",
+          "pageTitle": "Raport Transferuri Depozit - MedFMS",
+          "description": "Statistici cereri transfer și istoric mișcări materiale",
+          "totalTransfers": "Total Transferuri",
+          "byStatus": "După Status",
+          "byType": "După Tip",
+          "avgCompletionTime": "Timp Mediu Finalizare",
+          "requestNumber": "Nr. Cerere",
+          "transferType": "Tip Transfer",
+          "sourceWarehouse": "Depozit Sursă",
+          "destinationWarehouse": "Depozit Destinație",
+          "material": "Material",
+          "quantity": "Cantitate",
+          "requestedDate": "Data Cererii",
+          "completedDate": "Data Finalizării",
+          "days": "zile",
+          "filters": {
+            "status": "Status",
+            "transferType": "Tip Transfer",
+            "sourceWarehouse": "Depozit Sursă",
+            "destinationWarehouse": "Depozit Destinație",
+            "dateRange": "Interval Date"
+          }
+        },
+        "expirationReport": {
+          "title": "Raport Expirare Produse",
+          "pageTitle": "Raport Expirare Produse - MedFMS",
+          "description": "Alerte pentru produse expirate sau ce vor expira în curând",
+          "totalItems": "Total Articole",
+          "expiredCount": "Expirate",
+          "expiringSoonCount": "Expiră în Curând",
+          "totalValue": "Valoare Totală",
+          "expiredValue": "Valoare Expirată",
+          "materialCode": "Cod Material",
+          "materialName": "Denumire Material",
+          "warehouse": "Depozit",
+          "currentStock": "Stoc Curent",
+          "expirationDate": "Data Expirării",
+          "daysUntilExpiry": "Zile până la Expirare",
+          "status": "Status",
+          "value": "Valoare",
+          "expired": "Expirat",
+          "expiringSoon": "Expiră în Curând",
+          "filters": {
+            "warehouse": "Depozit",
+            "daysThreshold": "Prag Zile",
+            "includeExpired": "Include Expirate"
+          }
+        }
+      },
       "messages": {
         "exportNotImplemented": "Funcționalitatea de export va fi implementată aici"
       }
