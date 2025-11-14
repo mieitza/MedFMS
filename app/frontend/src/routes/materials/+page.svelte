@@ -305,11 +305,11 @@
         materialCode: material.materialCode,
         materialName: material.materialName,
         description: material.description || '',
-        unitId: material.unitId || 1,
+        unitId: material.unitId || null,
         currentStock: material.currentStock || 0,
         criticalLevel: material.criticalLevel || 0,
         standardPrice: material.standardPrice || 0,
-        warehouseId: material.warehouseId,
+        warehouseId: material.warehouseId || null,
       };
     } else {
       isEditing = false;
@@ -318,7 +318,7 @@
         materialCode: '',
         materialName: '',
         description: '',
-        unitId: 1,
+        unitId: null,
         currentStock: 0,
         criticalLevel: 0,
         standardPrice: 0,

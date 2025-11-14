@@ -18,15 +18,15 @@
 	let formData = {
 		vehicleCode: '',
 		licensePlate: '',
-		brandId: '',
-		modelId: '',
+		brandId: null,
+		modelId: null,
 		year: new Date().getFullYear(),
-		fuelTypeId: '',
-		vehicleTypeId: '',
-		statusId: '',
-		locationId: '',
-		departmentId: '',
-		driverId: '',
+		fuelTypeId: null,
+		vehicleTypeId: null,
+		statusId: null,
+		locationId: null,
+		departmentId: null,
+		driverId: null,
 		odometer: '',
 		description: '',
 		// ANMDM Authorization fields
@@ -48,15 +48,15 @@
 			formData = {
 				vehicleCode: vehicle.vehicleCode || '',
 				licensePlate: vehicle.licensePlate || '',
-				brandId: vehicle.brandId?.toString() || '',
-				modelId: vehicle.modelId?.toString() || '',
+				brandId: vehicle.brandId || null,
+				modelId: vehicle.modelId || null,
 				year: vehicle.year || new Date().getFullYear(),
-				fuelTypeId: vehicle.fuelTypeId?.toString() || '',
-				vehicleTypeId: vehicle.vehicleTypeId?.toString() || '',
-				statusId: vehicle.statusId?.toString() || '',
-				locationId: vehicle.locationId?.toString() || '',
-				departmentId: vehicle.departmentId?.toString() || '',
-				driverId: vehicle.driverId?.toString() || '',
+				fuelTypeId: vehicle.fuelTypeId || null,
+				vehicleTypeId: vehicle.vehicleTypeId || null,
+				statusId: vehicle.statusId || null,
+				locationId: vehicle.locationId || null,
+				departmentId: vehicle.departmentId || null,
+				driverId: vehicle.driverId || null,
 				odometer: vehicle.odometer || '',
 				description: vehicle.description || '',
 				// ANMDM Authorization fields
@@ -75,11 +75,11 @@
 		if (formData.brandId) {
 			filteredModels = models.filter(model => model.brandId == formData.brandId);
 			if (!filteredModels.find(model => model.id == formData.modelId)) {
-				formData.modelId = '';
+				formData.modelId = null;
 			}
 		} else {
 			filteredModels = [];
-			formData.modelId = '';
+			formData.modelId = null;
 		}
 	}
 
@@ -221,7 +221,7 @@
 					class:border-red-500={errors.brandId}
 					required
 				>
-					<option value="">{$_('vehicles.placeholders.selectBrand')}</option>
+					<option value={null}>{$_('vehicles.placeholders.selectBrand')}</option>
 					{#each brands as brand}
 						<option value={brand.id}>{brand.brandName}</option>
 					{/each}
@@ -244,7 +244,7 @@
 					disabled={!formData.brandId}
 					required
 				>
-					<option value="">{$_('vehicles.placeholders.selectModel')}</option>
+					<option value={null}>{$_('vehicles.placeholders.selectModel')}</option>
 					{#each filteredModels as model}
 						<option value={model.id}>{model.modelName}</option>
 					{/each}
@@ -287,7 +287,7 @@
 					class:border-red-500={errors.fuelTypeId}
 					required
 				>
-					<option value="">{$_('vehicles.placeholders.selectFuelType')}</option>
+					<option value={null}>{$_('vehicles.placeholders.selectFuelType')}</option>
 					{#each fuelTypes as fuelType}
 						<option value={fuelType.id}>{fuelType.fuelName}</option>
 					{/each}
@@ -309,7 +309,7 @@
 					class:border-red-500={errors.vehicleTypeId}
 					required
 				>
-					<option value="">{$_('vehicles.placeholders.selectVehicleType')}</option>
+					<option value={null}>{$_('vehicles.placeholders.selectVehicleType')}</option>
 					{#each vehicleTypes as vehicleType}
 						<option value={vehicleType.id}>{vehicleType.typeName}</option>
 					{/each}
@@ -331,7 +331,7 @@
 					class:border-red-500={errors.statusId}
 					required
 				>
-					<option value="">{$_('vehicles.placeholders.selectStatus')}</option>
+					<option value={null}>{$_('vehicles.placeholders.selectStatus')}</option>
 					{#each vehicleStatuses as status}
 						<option value={status.id}>{status.statusName}</option>
 					{/each}
@@ -351,7 +351,7 @@
 					bind:value={formData.locationId}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 				>
-					<option value="">{$_('vehicles.placeholders.selectLocation')}</option>
+					<option value={null}>{$_('vehicles.placeholders.selectLocation')}</option>
 					{#each locations as location}
 						<option value={location.id}>{location.locationName}</option>
 					{/each}
@@ -368,7 +368,7 @@
 					bind:value={formData.departmentId}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 				>
-					<option value="">{$_('vehicles.placeholders.selectDepartment')}</option>
+					<option value={null}>{$_('vehicles.placeholders.selectDepartment')}</option>
 					{#each departments as department}
 						<option value={department.id}>{department.departmentName}</option>
 					{/each}
@@ -385,7 +385,7 @@
 					bind:value={formData.driverId}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 				>
-					<option value="">{$_('vehicles.placeholders.selectDriver')}</option>
+					<option value={null}>{$_('vehicles.placeholders.selectDriver')}</option>
 					{#each drivers as driver}
 						<option value={driver.id}>{driver.fullName}</option>
 					{/each}

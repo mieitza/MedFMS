@@ -290,11 +290,11 @@
         materialCode: material.materialCode || '',
         materialName: material.materialName || '',
         description: material.description || '',
-        unitId: material.unitId || 0,
+        unitId: material.unitId || null,
         currentStock: material.currentStock || 0,
         criticalLevel: material.criticalLevel || 0,
         standardPrice: material.standardPrice || 0,
-        warehouseId: material.warehouseId || 0,
+        warehouseId: material.warehouseId || null,
         barcodeNumber: material.barcodeNumber || '',
         shelfLocation: material.shelfLocation || '',
       };
@@ -310,11 +310,11 @@
         materialCode: material.materialCode || '',
         materialName: material.materialName || '',
         description: material.description || '',
-        unitId: material.unitId || 0,
+        unitId: material.unitId || null,
         currentStock: material.currentStock || 0,
         criticalLevel: material.criticalLevel || 0,
         standardPrice: material.standardPrice || 0,
-        warehouseId: material.warehouseId || 0,
+        warehouseId: material.warehouseId || null,
         barcodeNumber: material.barcodeNumber || '',
         shelfLocation: material.shelfLocation || '',
       };
@@ -671,7 +671,7 @@
           disabled={isSaving}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value={0}>{$_('materials.edit.selectUnit')}</option>
+          <option value={null}>{$_('materials.edit.selectUnit')}</option>
           {#each units as unit}
             <option value={unit.id}>{unit.unitName} ({unit.unitCode})</option>
           {/each}
@@ -686,7 +686,7 @@
           disabled={isSaving}
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
         >
-          <option value={0}>{$_('materials.edit.noWarehouse')}</option>
+          <option value={null}>{$_('materials.edit.noWarehouse')}</option>
           {#each warehouses as warehouse}
             <option value={warehouse.id}>{warehouse.warehouseName} ({warehouse.warehouseCode})</option>
           {/each}
