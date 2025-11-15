@@ -610,6 +610,8 @@
       "startDate": "Data Început",
       "endDate": "Data Sfârșit",
       "totalFuelVolume": "Volum Total Combustibil",
+      "totalCost": "Cost Total",
+      "uniqueVehicles": "Vehicule Unice",
       "exportToCSV": "Exportă CSV",
       "fleet": {
         "pageTitle": "RAPORT ANALIZĂ UTILIZARE COMBUSTIBIL",

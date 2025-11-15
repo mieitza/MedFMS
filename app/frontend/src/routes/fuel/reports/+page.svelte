@@ -544,6 +544,22 @@
   <!-- Main Content -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
+    <!-- Quick Links to Other Reports -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <h3 class="text-sm font-semibold text-blue-900 mb-3">Additional Reports</h3>
+      <div class="flex flex-wrap gap-3">
+        <a
+          href="/fuel/reports/sunday-fueling"
+          class="inline-flex items-center px-4 py-2 bg-white border border-blue-300 rounded-md text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+          {$_('fuel.reports.sundayFueling.title')}
+        </a>
+      </div>
+    </div>
+
     <!-- Filters -->
     <div class="bg-white p-6 rounded-lg shadow border mb-6">
       <h2 class="text-lg font-semibold mb-4">{$_('fuel.reports.configuration.title')}</h2>

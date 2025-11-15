@@ -610,8 +610,9 @@
       "startDate": "Start Date",
       "endDate": "End Date",
       "totalFuelVolume": "Total Fuel Volume",
-      "exportToCSV": "Export CSV",
-      "uniqueVehicles": "Unique Vehicles"
+      "totalCost": "Total Cost",
+      "uniqueVehicles": "Unique Vehicles",
+      "exportToCSV": "Export CSV"
     }
   },
   "materials": {

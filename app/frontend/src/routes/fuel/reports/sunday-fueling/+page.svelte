@@ -26,7 +26,13 @@
       sortable: true,
       render: (value) => {
         const date = new Date(value);
-        return `${date.toLocaleDateString('ro-RO')} ${date.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}`;
+        // Format as dd/mm/yyyy HH:MM
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
       }
     },
     {
@@ -209,17 +215,27 @@
       'KM'
     ];
 
-    const rows = filteredTransactions.map(t => [
-      new Date(t.transactionDate).toLocaleString('ro-RO'),
-      t.vehicle?.licensePlate || 'N/A',
-      t.vehicle?.vehicleCode || 'N/A',
-      t.driver?.fullName || 'N/A',
-      t.fuelStation?.stationName || 'N/A',
-      t.fuelType?.fuelName || 'N/A',
-      parseFloat(t.quantity || 0).toFixed(2),
-      parseFloat(t.totalAmount || 0).toFixed(2),
-      t.odometerReading || 'N/A'
-    ]);
+    const rows = filteredTransactions.map(t => {
+      const date = new Date(t.transactionDate);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}`;
+
+      return [
+        formattedDate,
+        t.vehicle?.licensePlate || 'N/A',
+        t.vehicle?.vehicleCode || 'N/A',
+        t.driver?.fullName || 'N/A',
+        t.fuelStation?.stationName || 'N/A',
+        t.fuelType?.fuelName || 'N/A',
+        parseFloat(t.quantity || 0).toFixed(2),
+        parseFloat(t.totalAmount || 0).toFixed(2),
+        t.odometerReading || 'N/A'
+      ];
+    });
 
     const csvContent = [
       headers.join(','),
