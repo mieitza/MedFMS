@@ -6,6 +6,7 @@
   import Modal from '$lib/components/Modal.svelte';
   import WorkOrderFiles from '$lib/components/WorkOrderFiles.svelte';
   import { _ } from '$lib/i18n';
+  import { createFormTracker } from '$lib/utils/formTracking';
 
   let workOrder = null;
   let loading = false;
@@ -14,6 +15,7 @@
   let showEditModal = false;
   let vehicles = [];
   let maintenanceTypes = [];
+  let formTracker = null; // For tracking changed fields when editing
 
   // Edit form data
   let editFormData = {
@@ -220,13 +222,17 @@
       estimatedCost: workOrder.estimatedCost?.toString() || '',
       notes: workOrder.notes || ''
     };
+
+    // Create form tracker with original data for change detection
+    formTracker = createFormTracker(editFormData);
+
     showEditModal = true;
   }
 
   async function handleEditSubmit() {
     try {
       actionLoading = true;
-      const updateData = {
+      const fullUpdateData = {
         vehicleId: parseInt(editFormData.vehicleId),
         maintenanceTypeId: parseInt(editFormData.maintenanceTypeId),
         title: editFormData.title,
@@ -237,10 +243,34 @@
         notes: editFormData.notes
       };
 
-      await api.updateWorkOrder(workOrder.id, updateData);
-      await loadWorkOrder(workOrder.id);
+      // For updates, detect and send only changed fields
+      const changedFields = formTracker ? formTracker.detectChanges(fullUpdateData) : fullUpdateData;
+
+      // Apply type conversions to changed fields
+      const payload = {};
+      for (const key in changedFields) {
+        if (key === 'vehicleId' || key === 'maintenanceTypeId' || key === 'priority') {
+          payload[key] = parseInt(changedFields[key]);
+        } else if (key === 'estimatedCost') {
+          payload[key] = changedFields[key] ? parseFloat(changedFields[key]) : null;
+        } else if (key === 'scheduledDate') {
+          payload[key] = changedFields[key] ? new Date(changedFields[key]) : null;
+        } else {
+          payload[key] = changedFields[key];
+        }
+      }
+
+      // Only send PATCH if there are changes
+      if (Object.keys(payload).length > 0) {
+        await api.patchWorkOrder(workOrder.id, payload);
+        await loadWorkOrder(workOrder.id);
+        alert($_('maintenance.workOrderDetail.messages.updateSuccess'));
+      } else {
+        // No changes
+        alert($_('maintenance.messages.noChanges') || 'No changes to save');
+      }
+
       showEditModal = false;
-      alert($_('maintenance.workOrderDetail.messages.updateSuccess'));
     } catch (err) {
       console.error('Failed to update work order:', err);
       alert($_('maintenance.workOrderDetail.messages.updateFailed') + ': ' + err.message);

@@ -117,6 +117,7 @@ async patchEntity(id, partialData) {
 7. Transfer Requests Form (`src/routes/materials/transfer-requests/[id]/+page.svelte`)
 8. Material Detail Form (`src/routes/materials/[id]/+page.svelte`)
 9. Maintenance Work Orders - List Form (`src/routes/maintenance/+page.svelte`)
+10. Maintenance Work Orders - Detail Form (`src/routes/maintenance/work-orders/[id]/+page.svelte`)
 
 ## Forms Remaining to Update
 
