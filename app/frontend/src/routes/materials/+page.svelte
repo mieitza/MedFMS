@@ -23,6 +23,7 @@
       capacity: 500
     }
   ];
+  let units = [];
   let loading = false;
 
   let pagination = null;
@@ -184,6 +185,7 @@
 
     await loadMaterials();
     await loadWarehouses();
+    await loadUnits();
   });
 
   async function loadMaterials() {
@@ -252,6 +254,17 @@
           capacity: 1000
         }
       ];
+    }
+  }
+
+  async function loadUnits() {
+    try {
+      const response = await api.getMaterialUnits({ active: true });
+      units = response.data || [];
+      console.log('Loaded units:', units);
+    } catch (error) {
+      console.error('Failed to load units:', error);
+      units = [];
     }
   }
 
@@ -578,6 +591,23 @@
           disabled={isSaving}
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          {$_('materials.edit.unit')} <span class="text-red-500">*</span>
+        </label>
+        <select
+          bind:value={materialForm.unitId}
+          required
+          disabled={isSaving}
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value={null}>{$_('materials.edit.selectUnit')}</option>
+          {#each units as unit}
+            <option value={unit.id}>{unit.unitName} ({unit.unitCode})</option>
+          {/each}
+        </select>
       </div>
 
       <div>
