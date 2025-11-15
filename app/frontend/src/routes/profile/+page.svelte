@@ -4,12 +4,14 @@
 	import { auth } from '$lib/stores/auth';
 	import api from '$lib/api';
 	import { _ } from '$lib/i18n';
+	import { createFormTracker } from '$lib/utils/formTracking';
 
 	let loading = false;
 	let saving = false;
 	let changingPin = false;
 	let error = '';
 	let success = '';
+	let formTracker = null; // For tracking changed fields
 
 	// Profile form
 	let profileData = {
@@ -40,6 +42,9 @@
 					email: response.data.email || '',
 					phoneNumber: response.data.phoneNumber || ''
 				};
+
+				// Create form tracker with original data for change detection
+				formTracker = createFormTracker(profileData);
 			}
 		} catch (err) {
 			console.error('Error loading profile:', err);
@@ -54,17 +59,28 @@
 		error = '';
 		success = '';
 		try {
-			const response = await api.updateCurrentUser(profileData);
-			if (response.success) {
-				success = $_('profile.messages.profileUpdated');
-				// Update auth store with new user data
-				if (response.data) {
-					auth.updateUser({
-						...$auth.user,
-						fullName: response.data.fullName,
-						email: response.data.email
-					});
+			// For updates, detect and send only changed fields
+			const changedFields = formTracker ? formTracker.detectChanges(profileData) : profileData;
+
+			// Only send PATCH if there are changes
+			if (Object.keys(changedFields).length > 0) {
+				const response = await api.updateCurrentUser(changedFields);
+				if (response.success) {
+					success = $_('profile.messages.profileUpdated');
+					// Update auth store with new user data
+					if (response.data) {
+						auth.updateUser({
+							...$auth.user,
+							fullName: response.data.fullName,
+							email: response.data.email
+						});
+					}
+					// Update form tracker with new data
+					formTracker.setOriginalData(profileData);
 				}
+			} else {
+				// No changes
+				success = $_('profile.messages.noChanges') || 'No changes to save';
 			}
 		} catch (err) {
 			console.error('Error updating profile:', err);

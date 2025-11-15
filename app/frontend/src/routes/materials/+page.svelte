@@ -5,8 +5,10 @@
   import { _ } from '$lib/i18n';
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
+  import { createFormTracker } from '$lib/utils/formTracking';
 
   let materials = [];
+  let formTracker = null; // For tracking changed fields when editing
   let warehouses = [
     {
       id: 1,
@@ -324,9 +326,13 @@
         standardPrice: material.standardPrice || 0,
         warehouseId: material.warehouseId || null,
       };
+
+      // Create form tracker with original data for change detection
+      formTracker = createFormTracker(materialForm);
     } else {
       isEditing = false;
       selectedMaterial = null;
+      formTracker = null;
       materialForm = {
         materialCode: '',
         materialName: '',
@@ -356,8 +362,16 @@
       isSaving = true;
 
       if (isEditing) {
-        await api.updateMaterial(selectedMaterial.id, materialForm);
-        alert($_('materials.messages.updateSuccess'));
+        // For updates, detect and send only changed fields
+        const changedFields = formTracker ? formTracker.detectChanges(materialForm) : materialForm;
+
+        // Only send PATCH if there are changes
+        if (Object.keys(changedFields).length > 0) {
+          await api.patchMaterial(selectedMaterial.id, changedFields);
+          alert($_('materials.messages.updateSuccess'));
+        } else {
+          alert($_('materials.messages.noChanges') || 'No changes to save');
+        }
       } else {
         await api.createMaterial(materialForm);
         alert($_('materials.messages.createSuccess'));

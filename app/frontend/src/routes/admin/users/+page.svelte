@@ -6,6 +6,7 @@
 	import DataTable from '$lib/components/DataTable.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { _ } from '$lib/i18n';
+	import { createFormTracker } from '$lib/utils/formTracking';
 
 	let users = [];
 	let loading = false;
@@ -15,6 +16,7 @@
 	let selectedUser = null;
 	let departments = [];
 	let locations = [];
+	let formTracker = null; // For tracking changed fields when editing
 
 	// Reactive role check
 	let isAdmin = false;
@@ -161,6 +163,10 @@
 			phoneNumber: user.phoneNumber || '',
 			active: user.active
 		};
+
+		// Create form tracker with original data for change detection
+		formTracker = createFormTracker(formData);
+
 		showModal = true;
 	}
 
@@ -170,11 +176,24 @@
 				await api.createUser(formData);
 				alert($_('users.messages.createSuccess'));
 			} else {
-				const updateData = { ...formData };
+				// For updates, detect and send only changed fields
+				const changedFields = formTracker ? formTracker.detectChanges(formData) : formData;
+
+				// Remove username (can't be changed) and empty PIN
+				const updateData = { ...changedFields };
 				delete updateData.username; // Can't change username
-				if (!updateData.pin) delete updateData.pin; // Only update PIN if provided
-				await api.updateUser(selectedUser.id, updateData);
-				alert($_('users.messages.updateSuccess'));
+				if (updateData.pin === '' || updateData.pin === null) {
+					delete updateData.pin; // Only update PIN if provided with a value
+				}
+
+				// Only send PATCH if there are changes
+				if (Object.keys(updateData).length > 0) {
+					await api.patchUser(selectedUser.id, updateData);
+					alert($_('users.messages.updateSuccess'));
+				} else {
+					// No changes, just close the modal
+					alert($_('users.messages.noChanges') || 'No changes to save');
+				}
 			}
 			showModal = false;
 			await loadUsers();
