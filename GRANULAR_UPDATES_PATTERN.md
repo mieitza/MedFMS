@@ -113,6 +113,8 @@ async patchEntity(id, partialData) {
 3. User Admin Form (`src/routes/admin/users/+page.svelte`)
 4. Profile Form (`src/routes/profile/+page.svelte`)
 5. Material List Form (`src/routes/materials/+page.svelte`)
+6. Warehouse Form (`src/routes/materials/warehouses/[id]/+page.svelte`)
+7. Transfer Requests Form (`src/routes/materials/transfer-requests/[id]/+page.svelte`)
 
 ## Forms Remaining to Update
 
@@ -123,29 +125,19 @@ Based on the codebase exploration, these forms still need the pattern applied:
 1. **Material Detail Form** (`src/routes/materials/[id]/+page.svelte`)
    - Location: Line ~324
    - API: `api.updateMaterial(material.id, materialForm)`
-   - Add: `api.patchMaterial()`
+   - Note: `api.patchMaterial()` already exists
 
-2. **Warehouse Form** (`src/routes/materials/warehouses/[id]/+page.svelte`)
-   - Location: Line ~153
-   - API: `api.updateWarehouse(warehouseId, warehouseForm)`
-   - Add: `api.patchWarehouse()`
-
-3. **Maintenance Work Orders - List** (`src/routes/maintenance/+page.svelte`)
+2. **Maintenance Work Orders - List** (`src/routes/maintenance/+page.svelte`)
    - Location: Line ~420
    - API: `api.updateWorkOrder(editingWorkOrder.id, submitData)`
    - Already has: `api.updateWorkOrder()` (uses PUT)
 
-4. **Maintenance Work Orders - Detail** (`src/routes/maintenance/work-orders/[id]/+page.svelte`)
+3. **Maintenance Work Orders - Detail** (`src/routes/maintenance/work-orders/[id]/+page.svelte`)
    - Location: Line ~240
    - API: `api.updateWorkOrder(workOrder.id, updateData)`
    - Already has: `api.updateWorkOrder()` (uses PUT)
 
-5. **Transfer Requests** (`src/routes/materials/transfer-requests/[id]/+page.svelte`)
-   - Location: Line ~152
-   - API: `api.updateTransferRequest(requestId, requestData)`
-   - Add: `api.patchTransferRequest()`
-
-6. **Vehicle Inventory Assignments** (`src/lib/components/VehicleInventoryManager.svelte`)
+4. **Vehicle Inventory Assignments** (`src/lib/components/VehicleInventoryManager.svelte`)
    - Location: Line ~248
    - API: `api.updateVehicleInventoryAssignment(selectedAssignment.assignment.id, assignmentData)`
    - Add: `api.patchVehicleInventoryAssignment()`
