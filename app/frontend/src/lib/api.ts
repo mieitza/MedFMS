@@ -999,6 +999,20 @@ export const api = {
     return response.json();
   },
 
+  async patchWorkOrder(workOrderId, partialData) {
+    const response = await fetch(`${API_BASE_URL}/maintenance/work-orders/${workOrderId}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(partialData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to patch work order');
+    }
+
+    return response.json();
+  },
+
   async deleteWorkOrder(workOrderId) {
     const response = await fetch(`${API_BASE_URL}/maintenance/work-orders/${workOrderId}`, {
       method: 'DELETE',
