@@ -2,6 +2,7 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { api } from '$lib/api';
 	import { _ } from '$lib/i18n';
+	import { createFormTracker } from '$lib/utils/formTracking';
 
 	export let driver = null;
 	export let cities = [];
@@ -11,6 +12,7 @@
 	const dispatch = createEventDispatcher();
 
 	let loading = false;
+	let formTracker = null; // For tracking changed fields when editing
 	let formData = {
 		driverCode: '',
 		firstName: '',
@@ -52,6 +54,9 @@
 				departmentId: driver.departmentId || null,
 				positionId: driver.positionId || null
 			};
+
+			// Create form tracker with original data for change detection
+			formTracker = createFormTracker(formData);
 		}
 	});
 
@@ -71,7 +76,7 @@
 		try {
 			updateFullName();
 
-			const submitData = {
+			const fullPayload = {
 				...formData,
 				cityId: formData.cityId ? parseInt(formData.cityId) : null,
 				departmentId: formData.departmentId ? parseInt(formData.departmentId) : null,
@@ -80,10 +85,29 @@
 
 			let result;
 			if (driver) {
-				result = await api.updateDriver(driver.id, submitData);
-				dispatch('success', { type: 'updated', data: result.data });
+				// For updates, detect and send only changed fields
+				const changedFields = formTracker ? formTracker.detectChanges(fullPayload) : fullPayload;
+
+				// Apply same type conversions to changed fields
+				const submitData = {};
+				for (const key in changedFields) {
+					if (key === 'cityId' || key === 'departmentId' || key === 'positionId') {
+						submitData[key] = changedFields[key] ? parseInt(changedFields[key]) : null;
+					} else {
+						submitData[key] = changedFields[key];
+					}
+				}
+
+				// Only send PATCH if there are changes
+				if (Object.keys(submitData).length > 0) {
+					result = await api.patchDriver(driver.id, submitData);
+					dispatch('success', { type: 'updated', data: result.data });
+				} else {
+					// No changes, just close the form
+					dispatch('success', { type: 'updated', data: {} });
+				}
 			} else {
-				result = await api.createDriver(submitData);
+				result = await api.createDriver(fullPayload);
 				dispatch('success', { type: 'created', data: result.data });
 			}
 		} catch (error) {

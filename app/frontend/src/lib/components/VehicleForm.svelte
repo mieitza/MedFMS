@@ -2,6 +2,7 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { api } from '$lib/api';
 	import { _ } from '$lib/i18n';
+	import { createFormTracker } from '$lib/utils/formTracking';
 
 	export let vehicle = null;
 	export let brands = [];
@@ -41,6 +42,7 @@
 	let filteredModels = [];
 	let loading = false;
 	let errors = {};
+	let formTracker = null; // For tracking changed fields when editing
 
 	// Initialize form with vehicle data if editing
 	onMount(() => {
@@ -68,6 +70,9 @@
 				anmdmNotes: vehicle.anmdmNotes || ''
 			};
 			updateFilteredModels();
+
+			// Create form tracker with original data for change detection
+			formTracker = createFormTracker(formData);
 		}
 	});
 
@@ -133,7 +138,8 @@
 		loading = true;
 
 		try {
-			const payload = {
+			// Prepare payload with proper type conversions
+			const fullPayload = {
 				...formData,
 				brandId: parseInt(formData.brandId),
 				modelId: parseInt(formData.modelId),
@@ -148,11 +154,35 @@
 			};
 
 			if (vehicle) {
-				await api.updateVehicle(vehicle.id, payload);
-				dispatch('success', { type: 'update', data: payload });
+				// For updates, detect and send only changed fields
+				const changedFields = formTracker ? formTracker.detectChanges(fullPayload) : fullPayload;
+
+				// Apply same type conversions to changed fields
+				const payload = {};
+				for (const key in changedFields) {
+					if (key === 'brandId' || key === 'modelId' || key === 'year' ||
+					    key === 'fuelTypeId' || key === 'vehicleTypeId' || key === 'statusId') {
+						payload[key] = parseInt(changedFields[key]);
+					} else if (key === 'locationId' || key === 'departmentId' || key === 'driverId') {
+						payload[key] = changedFields[key] ? parseInt(changedFields[key]) : undefined;
+					} else if (key === 'odometer') {
+						payload[key] = changedFields[key] ? parseInt(changedFields[key]) : undefined;
+					} else {
+						payload[key] = changedFields[key];
+					}
+				}
+
+				// Only send PATCH if there are changes
+				if (Object.keys(payload).length > 0) {
+					await api.patchVehicle(vehicle.id, payload);
+					dispatch('success', { type: 'update', data: payload });
+				} else {
+					// No changes, just close the form
+					dispatch('success', { type: 'update', data: {} });
+				}
 			} else {
-				await api.createVehicle(payload);
-				dispatch('success', { type: 'create', data: payload });
+				await api.createVehicle(fullPayload);
+				dispatch('success', { type: 'create', data: fullPayload });
 			}
 		} catch (error) {
 			console.error('Failed to save vehicle:', error);

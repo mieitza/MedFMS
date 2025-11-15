@@ -132,6 +132,21 @@ export const api = {
     return response.json();
   },
 
+  // Generic PATCH helper for partial updates
+  async patch(endpoint: string, data?: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: data ? JSON.stringify(data) : undefined,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to patch ${endpoint}`);
+    }
+
+    return response.json();
+  },
+
   // Vehicles API
   async getVehicles(params: {
     page?: number;
@@ -189,6 +204,20 @@ export const api = {
 
     if (!response.ok) {
       throw new Error('Failed to update vehicle');
+    }
+
+    return response.json();
+  },
+
+  async patchVehicle(id: number, partialData: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/vehicles/${id}`, {
+      method: 'PUT', // Backend uses PUT but accepts partial data via .partial()
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(partialData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to patch vehicle');
     }
 
     return response.json();
@@ -340,6 +369,20 @@ export const api = {
 
     if (!response.ok) {
       throw new Error('Failed to update driver');
+    }
+
+    return response.json();
+  },
+
+  async patchDriver(id: number, partialData: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/drivers/${id}`, {
+      method: 'PUT', // Backend uses PUT but accepts partial data via .partial()
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(partialData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to patch driver');
     }
 
     return response.json();
@@ -1027,6 +1070,20 @@ export const api = {
     return response.json();
   },
 
+  async patchMaterial(id, partialData) {
+    const response = await fetch(`${API_BASE_URL}/materials/${id}`, {
+      method: 'PUT', // Backend uses PUT but accepts partial data via .partial()
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(partialData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to patch material');
+    }
+
+    return response.json();
+  },
+
   async deleteMaterial(id) {
     const response = await fetch(`${API_BASE_URL}/materials/${id}`, {
       method: 'DELETE',
@@ -1645,6 +1702,21 @@ export const api = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || 'Failed to update user');
+    }
+
+    return response.json();
+  },
+
+  async patchUser(id, partialData) {
+    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+      method: 'PUT', // Backend uses PUT but accepts partial data via .partial()
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(partialData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to patch user');
     }
 
     return response.json();
