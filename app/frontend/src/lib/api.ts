@@ -1197,6 +1197,20 @@ export const api = {
     return response.json();
   },
 
+  async patchWarehouse(id, partialData) {
+    const response = await fetch(`${API_BASE_URL}/materials/warehouses/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(partialData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to patch warehouse');
+    }
+
+    return response.json();
+  },
+
   // Material Units APIs
   async getMaterialUnits(params = {}) {
     const queryParams = new URLSearchParams();
@@ -1317,6 +1331,20 @@ export const api = {
 
     if (!response.ok) {
       throw new Error('Failed to update transfer request');
+    }
+
+    return response.json();
+  },
+
+  async patchTransferRequest(id, partialData) {
+    const response = await fetch(`${API_BASE_URL}/materials/transfer-requests/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(partialData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to patch transfer request');
     }
 
     return response.json();

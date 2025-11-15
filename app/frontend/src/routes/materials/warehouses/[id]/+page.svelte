@@ -6,6 +6,7 @@
   import { _ } from '$lib/i18n';
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
+  import { createFormTracker } from '$lib/utils/formTracking';
 
   let warehouse = null;
   let materials = [];
@@ -17,6 +18,7 @@
   let currentPage = 1;
   let pageSize = 20;
   let totalItems = 0;
+  let formTracker = null; // For tracking changed fields when editing
 
   // Form data for editing warehouse
   let warehouseForm = {
@@ -150,11 +152,30 @@
 
     isSaving = true;
     try {
-      await api.updateWarehouse(warehouseId, warehouseForm);
+      // For updates, detect and send only changed fields
+      const changedFields = formTracker ? formTracker.detectChanges(warehouseForm) : warehouseForm;
 
-      warehouse = { ...warehouse, ...warehouseForm };
+      // Apply type conversions to changed fields
+      const payload = {};
+      for (const key in changedFields) {
+        if (key === 'capacity' || key === 'locationId' || key === 'responsiblePersonId') {
+          payload[key] = changedFields[key] ? parseInt(changedFields[key]) : 0;
+        } else {
+          payload[key] = changedFields[key];
+        }
+      }
+
+      // Only send PATCH if there are changes
+      if (Object.keys(payload).length > 0) {
+        await api.patchWarehouse(warehouseId, payload);
+        warehouse = { ...warehouse, ...warehouseForm };
+        alert($_('materials.messages.warehouseCreateSuccess'));
+      } else {
+        // No changes
+        alert($_('materials.messages.noChanges') || 'No changes to save');
+      }
+
       showEditModal = false;
-      alert($_('materials.messages.warehouseCreateSuccess'));
     } catch (error) {
       console.error('Error updating warehouse:', error);
       alert($_('materials.messages.warehouseCreateFailed') + ': ' + error.message);
@@ -174,6 +195,9 @@
         locationId: warehouse.locationId || 0,
         responsiblePersonId: warehouse.responsiblePersonId || 0
       };
+
+      // Create form tracker with original data for change detection
+      formTracker = createFormTracker(warehouseForm);
     }
     console.log('Setting showEditModal to true');
     showEditModal = true;

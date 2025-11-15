@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import { _ } from '$lib/i18n';
 	import { api } from '$lib/api';
+	import { createFormTracker } from '$lib/utils/formTracking';
 
 	let transferRequest = null;
 	let warehouses = [];
@@ -15,6 +16,7 @@
 	let saving = false;
 	let error = '';
 	let success = '';
+	let formTracker = null; // For tracking changed fields when editing
 
 	let formData = {
 		transferType: 'warehouse-to-warehouse',
@@ -112,6 +114,9 @@
 						condition: 'good',
 						location: ''
 					};
+
+					// Create form tracker with original data for change detection
+					formTracker = createFormTracker(formData);
 				}
 			}
 		} catch (err) {
@@ -127,7 +132,7 @@
 		saving = true;
 
 		try {
-			const requestData = {
+			const fullRequestData = {
 				transferType: formData.transferType,
 				sourceWarehouseId: (formData.transferType === 'vehicle-to-warehouse') ? null : formData.sourceWarehouseId,
 				sourceVehicleId: (formData.transferType === 'vehicle-to-warehouse') ? formData.sourceVehicleId : null,
@@ -145,12 +150,38 @@
 			};
 
 			if (isNewRequest) {
-				await api.createTransferRequest(requestData);
+				await api.createTransferRequest(fullRequestData);
 				success = $_('materials.transferRequests.messages.createSuccess');
 				setTimeout(() => goto('/materials/transfer-requests'), 1500);
 			} else {
-				await api.updateTransferRequest(requestId, requestData);
-				success = $_('materials.transferRequests.messages.updateSuccess');
+				// For updates, detect and send only changed fields
+				const changedFields = formTracker ? formTracker.detectChanges(fullRequestData) : fullRequestData;
+
+				// Apply type conversions to changed fields
+				const payload = {};
+				for (const key in changedFields) {
+					if (key === 'materialId' || key === 'sourceWarehouseId' || key === 'destinationWarehouseId' ||
+						key === 'sourceVehicleId' || key === 'destinationVehicleId' || key === 'destinationEmployeeId' ||
+						key === 'vehicleInventoryItemId' || key === 'priority') {
+						payload[key] = changedFields[key] ? parseInt(changedFields[key]) : null;
+					} else if (key === 'quantity') {
+						payload[key] = parseFloat(changedFields[key]);
+					} else if (key === 'autoApprove') {
+						payload[key] = Boolean(changedFields[key]);
+					} else {
+						payload[key] = changedFields[key];
+					}
+				}
+
+				// Only send PATCH if there are changes
+				if (Object.keys(payload).length > 0) {
+					await api.patchTransferRequest(requestId, payload);
+					success = $_('materials.transferRequests.messages.updateSuccess');
+				} else {
+					// No changes
+					success = $_('materials.messages.noChanges') || 'No changes to save';
+				}
+
 				await loadData();
 			}
 		} catch (err) {
