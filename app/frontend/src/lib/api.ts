@@ -2032,6 +2032,20 @@ export const api = {
     return response.json();
   },
 
+  async patchVehicleInventoryAssignment(id, partialData) {
+    const response = await fetch(`${API_BASE_URL}/vehicle-inventory/assignments/${id}`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(partialData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to patch vehicle inventory assignment');
+    }
+
+    return response.json();
+  },
+
   async removeVehicleInventoryAssignment(id) {
     const response = await fetch(`${API_BASE_URL}/vehicle-inventory/assignments/${id}`, {
       method: 'DELETE',

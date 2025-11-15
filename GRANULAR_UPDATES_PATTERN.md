@@ -118,22 +118,11 @@ async patchEntity(id, partialData) {
 8. Material Detail Form (`src/routes/materials/[id]/+page.svelte`)
 9. Maintenance Work Orders - List Form (`src/routes/maintenance/+page.svelte`)
 10. Maintenance Work Orders - Detail Form (`src/routes/maintenance/work-orders/[id]/+page.svelte`)
+11. Vehicle Inventory Assignments (`src/lib/components/VehicleInventoryManager.svelte`)
 
 ## Forms Remaining to Update
 
 Based on the codebase exploration, these forms still need the pattern applied:
-
-### High Priority (Complex Data)
-
-1. **Maintenance Work Orders - Detail** (`src/routes/maintenance/work-orders/[id]/+page.svelte`)
-   - Location: Line ~240
-   - API: `api.updateWorkOrder(workOrder.id, updateData)`
-   - Note: `api.patchWorkOrder()` already exists
-
-2. **Vehicle Inventory Assignments** (`src/lib/components/VehicleInventoryManager.svelte`)
-   - Location: Line ~248
-   - API: `api.updateVehicleInventoryAssignment(selectedAssignment.assignment.id, assignmentData)`
-   - Add: `api.patchVehicleInventoryAssignment()`
 
 ### Medium Priority (Reference Data)
 

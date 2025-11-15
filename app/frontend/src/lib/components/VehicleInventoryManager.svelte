@@ -4,6 +4,7 @@
 	import { api } from '$lib/api';
 	import { _ } from '$lib/i18n';
 	import Modal from '$lib/components/Modal.svelte';
+	import { createFormTracker } from '$lib/utils/formTracking';
 
 	export let vehicleId;
 	export let title = null;
@@ -13,6 +14,7 @@
 	let categories = [];
 	let loading = true;
 	let error = null;
+	let formTracker = null; // For tracking changed fields when editing
 
 	// Modal state
 	let showAddModal = false;
@@ -162,6 +164,8 @@
 				: '',
 			notes: assignment.assignment.notes || ''
 		};
+		// Create form tracker with original data for change detection
+		formTracker = createFormTracker(formData);
 		showEditModal = true;
 	}
 
@@ -230,7 +234,7 @@
 
 	async function handleEditSubmit() {
 		try {
-			const assignmentData = {
+			const fullAssignmentData = {
 				itemId: parseInt(formData.itemId),
 				quantity: parseInt(formData.quantity),
 				serialNumber: formData.serialNumber || null,
@@ -245,7 +249,28 @@
 				notes: formData.notes || null
 			};
 
-			await api.updateVehicleInventoryAssignment(selectedAssignment.assignment.id, assignmentData);
+			// For updates, detect and send only changed fields
+			const changedFields = formTracker ? formTracker.detectChanges(fullAssignmentData) : fullAssignmentData;
+
+			// Apply type conversions to changed fields
+			const payload = {};
+			for (const key in changedFields) {
+				if (key === 'itemId' || key === 'quantity') {
+					payload[key] = parseInt(changedFields[key]);
+				} else if (key === 'expirationDate' || key === 'manufactureDate' || key === 'certificationExpiryDate') {
+					payload[key] = changedFields[key] ? new Date(changedFields[key]).getTime() : null;
+				} else {
+					payload[key] = changedFields[key];
+				}
+			}
+
+			// Only send PATCH if there are changes
+			if (Object.keys(payload).length > 0) {
+				await api.patchVehicleInventoryAssignment(selectedAssignment.assignment.id, payload);
+				alert($_('inventory.messages.updateSuccess') || 'Assignment updated successfully');
+			} else {
+				alert($_('inventory.messages.noChanges') || 'No changes to save');
+			}
 			showEditModal = false;
 			selectedAssignment = null;
 			await loadAssignments();
