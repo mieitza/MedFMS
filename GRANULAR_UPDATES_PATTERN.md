@@ -115,6 +115,8 @@ async patchEntity(id, partialData) {
 5. Material List Form (`src/routes/materials/+page.svelte`)
 6. Warehouse Form (`src/routes/materials/warehouses/[id]/+page.svelte`)
 7. Transfer Requests Form (`src/routes/materials/transfer-requests/[id]/+page.svelte`)
+8. Material Detail Form (`src/routes/materials/[id]/+page.svelte`)
+9. Maintenance Work Orders - List Form (`src/routes/maintenance/+page.svelte`)
 
 ## Forms Remaining to Update
 
@@ -122,22 +124,12 @@ Based on the codebase exploration, these forms still need the pattern applied:
 
 ### High Priority (Complex Data)
 
-1. **Material Detail Form** (`src/routes/materials/[id]/+page.svelte`)
-   - Location: Line ~324
-   - API: `api.updateMaterial(material.id, materialForm)`
-   - Note: `api.patchMaterial()` already exists
-
-2. **Maintenance Work Orders - List** (`src/routes/maintenance/+page.svelte`)
-   - Location: Line ~420
-   - API: `api.updateWorkOrder(editingWorkOrder.id, submitData)`
-   - Already has: `api.updateWorkOrder()` (uses PUT)
-
-3. **Maintenance Work Orders - Detail** (`src/routes/maintenance/work-orders/[id]/+page.svelte`)
+1. **Maintenance Work Orders - Detail** (`src/routes/maintenance/work-orders/[id]/+page.svelte`)
    - Location: Line ~240
    - API: `api.updateWorkOrder(workOrder.id, updateData)`
-   - Already has: `api.updateWorkOrder()` (uses PUT)
+   - Note: `api.patchWorkOrder()` already exists
 
-4. **Vehicle Inventory Assignments** (`src/lib/components/VehicleInventoryManager.svelte`)
+2. **Vehicle Inventory Assignments** (`src/lib/components/VehicleInventoryManager.svelte`)
    - Location: Line ~248
    - API: `api.updateVehicleInventoryAssignment(selectedAssignment.assignment.id, assignmentData)`
    - Add: `api.patchVehicleInventoryAssignment()`
