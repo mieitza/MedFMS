@@ -146,14 +146,9 @@
       const warehousesResponse = await api.getWarehouses();
       warehouses = warehousesResponse.data;
 
-      // For now, we'll use mock units data since there's no units endpoint yet
-      units = [
-        { id: 1, unitName: 'Pieces', unitCode: 'PCS' },
-        { id: 2, unitName: 'Liters', unitCode: 'L' },
-        { id: 3, unitName: 'Kilograms', unitCode: 'KG' },
-        { id: 4, unitName: 'Meters', unitCode: 'M' },
-        { id: 5, unitName: 'Boxes', unitCode: 'BOX' }
-      ];
+      // Load material units from API
+      const unitsResponse = await api.getMaterialUnits({ active: true });
+      units = unitsResponse.data || [];
     } catch (error) {
       console.error('Error loading form data:', error);
     }
