@@ -597,8 +597,20 @@
         "efficiencyTrend": "Tendință Eficiență Combustibil"
       },
       "messages": {
-        "exportNotImplemented": "Funcționalitatea de export în curând"
+        "exportNotImplemented": "Funcționalitatea de export în curând",
+        "noDataToExport": "Nu există date de exportat"
       },
+      "sundayFueling": {
+        "title": "Raport Alimentări Duminică",
+        "description": "Raport cu toate alimentările efectuate în zilele de duminică",
+        "noTransactions": "Nu s-au găsit alimentări efectuate duminică pentru criteriile selectate"
+      },
+      "month": "Lună",
+      "allMonths": "Toate lunile",
+      "startDate": "Data Început",
+      "endDate": "Data Sfârșit",
+      "totalFuelVolume": "Volum Total Combustibil",
+      "exportToCSV": "Exportă CSV",
       "fleet": {
         "pageTitle": "RAPORT ANALIZĂ UTILIZARE COMBUSTIBIL",
         "subtitle": "Export Card Combustibil UTA",

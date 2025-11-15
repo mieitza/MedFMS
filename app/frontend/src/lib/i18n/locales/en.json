@@ -597,8 +597,21 @@
         "efficiencyTrend": "Fuel Efficiency Trend"
       },
       "messages": {
-        "exportNotImplemented": "Export functionality coming soon"
-      }
+        "exportNotImplemented": "Export functionality coming soon",
+        "noDataToExport": "No data to export"
+      },
+      "sundayFueling": {
+        "title": "Sunday Fueling Report",
+        "description": "Report of all fuel transactions made on Sundays",
+        "noTransactions": "No Sunday fuel transactions found for the selected criteria"
+      },
+      "month": "Month",
+      "allMonths": "All Months",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "totalFuelVolume": "Total Fuel Volume",
+      "exportToCSV": "Export CSV",
+      "uniqueVehicles": "Unique Vehicles"
     }
   },
   "materials": {
