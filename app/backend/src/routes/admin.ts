@@ -16,7 +16,7 @@ const DATA_TYPE_CONFIG = {
     table: schema.brands,
     schema: z.object({
       brandName: z.string().min(1).max(100),
-      description: z.string().optional(),
+      description: z.string().optional().nullable(),
       active: z.boolean().optional(),
     }),
     nameField: 'brandName',
@@ -26,7 +26,7 @@ const DATA_TYPE_CONFIG = {
     schema: z.object({
       modelName: z.string().min(1).max(100),
       brandId: z.number().positive(),
-      description: z.string().optional(),
+      description: z.string().optional().nullable(),
       active: z.boolean().optional(),
     }),
     nameField: 'modelName',
@@ -34,11 +34,16 @@ const DATA_TYPE_CONFIG = {
   locations: {
     table: schema.locations,
     schema: z.object({
+      locationCode: z.string().min(1).max(50),
       locationName: z.string().min(1).max(100),
-      address: z.string().optional(),
-      city: z.string().optional(),
-      contactNumber: z.string().optional(),
-      description: z.string().optional(),
+      parentLocationId: z.number().positive().optional().nullable(),
+      level: z.number().positive().optional(),
+      locationPath: z.string().optional().nullable(),
+      responsiblePersonId: z.number().positive().optional().nullable(),
+      address: z.string().optional().nullable(),
+      cityId: z.number().positive().optional().nullable(),
+      phoneNumber: z.string().optional().nullable(),
+      capacity: z.number().optional().nullable(),
       active: z.boolean().optional(),
     }),
     nameField: 'locationName',
@@ -47,8 +52,8 @@ const DATA_TYPE_CONFIG = {
     table: schema.departments,
     schema: z.object({
       departmentName: z.string().min(1).max(100),
-      departmentCode: z.string().optional(),
-      description: z.string().optional(),
+      departmentCode: z.string().optional().nullable(),
+      description: z.string().optional().nullable(),
       active: z.boolean().optional(),
     }),
     nameField: 'departmentName',
@@ -81,7 +86,7 @@ const DATA_TYPE_CONFIG = {
     table: schema.vehicleTypes,
     schema: z.object({
       typeName: z.string().min(1).max(100),
-      description: z.string().optional(),
+      description: z.string().optional().nullable(),
       active: z.boolean().optional(),
     }),
     nameField: 'typeName',
@@ -89,8 +94,10 @@ const DATA_TYPE_CONFIG = {
   vehicleStatuses: {
     table: schema.vehicleStatuses,
     schema: z.object({
+      statusCode: z.string().min(1).max(50),
       statusName: z.string().min(1).max(100),
-      description: z.string().optional(),
+      description: z.string().optional().nullable(),
+      colorCode: z.string().optional().nullable(),
       active: z.boolean().optional(),
     }),
     nameField: 'statusName',

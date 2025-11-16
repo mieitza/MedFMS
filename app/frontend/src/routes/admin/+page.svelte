@@ -4,6 +4,7 @@
   import { goto } from '$app/navigation';
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
+  import { createFormTracker } from '$lib/utils/formTracking';
 
   // Data type configurations
   const DATA_TYPES = {
@@ -42,18 +43,17 @@
     locations: {
       label: 'Locations',
       fields: [
+        { key: 'locationCode', label: 'Location Code', type: 'text', required: true },
         { key: 'locationName', label: 'Location Name', type: 'text', required: true },
         { key: 'address', label: 'Address', type: 'text' },
-        { key: 'city', label: 'City', type: 'text' },
-        { key: 'contactNumber', label: 'Contact Number', type: 'text' },
-        { key: 'description', label: 'Description', type: 'textarea' },
+        { key: 'phoneNumber', label: 'Phone Number', type: 'text' },
         { key: 'active', label: 'Active', type: 'checkbox' },
       ],
       columns: [
         { key: 'id', label: 'ID', sortable: true },
+        { key: 'locationCode', label: 'Code', sortable: true },
         { key: 'locationName', label: 'Location Name', sortable: true },
-        { key: 'city', label: 'City', sortable: true },
-        { key: 'contactNumber', label: 'Contact', sortable: false },
+        { key: 'phoneNumber', label: 'Phone', sortable: false },
         { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
         { key: 'actions', label: 'Actions', sortable: false },
       ],
@@ -130,12 +130,15 @@
     vehicleStatuses: {
       label: 'Vehicle Statuses',
       fields: [
+        { key: 'statusCode', label: 'Status Code', type: 'text', required: true },
         { key: 'statusName', label: 'Status Name', type: 'text', required: true },
         { key: 'description', label: 'Description', type: 'textarea' },
+        { key: 'colorCode', label: 'Color Code', type: 'text' },
         { key: 'active', label: 'Active', type: 'checkbox' },
       ],
       columns: [
         { key: 'id', label: 'ID', sortable: true },
+        { key: 'statusCode', label: 'Code', sortable: true },
         { key: 'statusName', label: 'Status Name', sortable: true },
         { key: 'description', label: 'Description', sortable: false },
         { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
@@ -278,6 +281,7 @@
   let modalMode = 'create'; // 'create' or 'edit'
   let currentItem = null;
   let formData = {};
+  let formTracker = null; // For tracking changed fields when editing
 
   // Pagination
   let currentPage = 1;
@@ -374,6 +378,8 @@
       const response = await api.getReferenceDataItem(selectedDataType, id);
       currentItem = response.data;
       formData = { ...currentItem };
+      // Create form tracker with original data for change detection
+      formTracker = createFormTracker(formData);
       modalMode = 'edit';
       showModal = true;
     } catch (error) {
@@ -400,7 +406,7 @@
   async function handleSubmit() {
     try {
       // Convert string values to appropriate types
-      const submitData = {};
+      const fullSubmitData = {};
       config.fields.forEach(field => {
         let value = formData[field.key];
 
@@ -410,15 +416,39 @@
           value = !!value;
         }
 
-        submitData[field.key] = value;
+        fullSubmitData[field.key] = value;
       });
 
       if (modalMode === 'create') {
-        await api.createReferenceData(selectedDataType, submitData);
+        await api.createReferenceData(selectedDataType, fullSubmitData);
         alert('Item created successfully');
       } else {
-        await api.updateReferenceData(selectedDataType, currentItem.id, submitData);
-        alert('Item updated successfully');
+        // For updates, detect and send only changed fields
+        const changedFields = formTracker ? formTracker.detectChanges(fullSubmitData) : fullSubmitData;
+
+        // Apply type conversions to changed fields
+        const payload = {};
+        config.fields.forEach(field => {
+          if (changedFields.hasOwnProperty(field.key)) {
+            let value = changedFields[field.key];
+
+            if (field.type === 'select' || field.type === 'number') {
+              payload[field.key] = value ? parseInt(value) : undefined;
+            } else if (field.type === 'checkbox') {
+              payload[field.key] = !!value;
+            } else {
+              payload[field.key] = value;
+            }
+          }
+        });
+
+        // Only send PATCH if there are changes
+        if (Object.keys(payload).length > 0) {
+          await api.patchReferenceData(selectedDataType, currentItem.id, payload);
+          alert('Item updated successfully');
+        } else {
+          alert('No changes to save');
+        }
       }
 
       showModal = false;

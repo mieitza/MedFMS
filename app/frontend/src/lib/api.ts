@@ -1661,6 +1661,24 @@ export const api = {
     return response.json();
   },
 
+  async patchReferenceData(dataType, id, partialData) {
+    const response = await fetch(`${API_BASE_URL}/admin/${dataType}/${id}`, {
+      method: 'PUT',
+      headers: {
+        ...api.getAuthHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(partialData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || `Failed to patch ${dataType}`);
+    }
+
+    return response.json();
+  },
+
   async deleteReferenceData(dataType, id) {
     const response = await fetch(`${API_BASE_URL}/admin/${dataType}/${id}`, {
       method: 'DELETE',
