@@ -1710,4 +1710,161 @@ router.get('/employees/:employeeId/materials', authorize('admin', 'manager', 'op
   }
 });
 
+// ========== Warehouse Inventory Import (from Excel) ==========
+
+// POST /api/materials/import/warehouse-inventory - Import warehouse inventory from Excel
+router.post('/import/warehouse-inventory', authorize('admin', 'manager'), async (req: AuthRequest, res, next) => {
+  try {
+    logger.info('Warehouse inventory import started', { itemCount: req.body.items?.length });
+    const db = getDb();
+
+    const importData = z.array(z.object({
+      productName: z.string(),
+      unit: z.string(),
+      quantity: z.number(),
+      category: z.string(), // Sheet name (MEDICATIE, MATERIALE SANITARE, ECHIPAMENTE)
+    })).parse(req.body.items);
+
+    // Get or create WH-MAIN warehouse
+    let [whMain] = await db.select()
+      .from(warehouses)
+      .where(eq(warehouses.warehouseCode, 'WH-MAIN'))
+      .limit(1);
+
+    if (!whMain) {
+      // Create WH-MAIN warehouse if it doesn't exist
+      [whMain] = await db.insert(warehouses).values({
+        warehouseCode: 'WH-MAIN',
+        warehouseName: 'Main Warehouse',
+        description: 'Main warehouse for all inventory items',
+        active: true
+      }).returning();
+
+      logger.info('Created WH-MAIN warehouse', { id: whMain.id });
+    }
+
+    const results = {
+      success: 0,
+      updated: 0,
+      created: 0,
+      failed: 0,
+      errors: [] as Array<{ row: number; productName: string; error: string }>
+    };
+
+    // Process each item
+    for (let i = 0; i < importData.length; i++) {
+      const item = importData[i];
+
+      try {
+        // Get or create unit first
+        let [unitRecord] = await db.select()
+          .from(materialUnits)
+          .where(eq(materialUnits.unitCode, item.unit.toUpperCase()))
+          .limit(1);
+
+        if (!unitRecord) {
+          [unitRecord] = await db.insert(materialUnits).values({
+            unitCode: item.unit.toUpperCase(),
+            unitName: item.unit,
+            abbreviation: item.unit.substring(0, 10),
+            active: true
+          }).returning();
+        }
+
+        // Check if material already exists (by name and warehouse)
+        const [existing] = await db.select()
+          .from(materials)
+          .where(
+            and(
+              eq(materials.materialName, item.productName),
+              eq(materials.warehouseId, whMain.id)
+            )
+          )
+          .limit(1);
+
+        if (existing) {
+          // Update existing material quantity
+          await db.update(materials)
+            .set({
+              currentStock: item.quantity,
+              updatedAt: new Date()
+            })
+            .where(eq(materials.id, existing.id));
+
+          results.updated++;
+          results.success++;
+        } else {
+          // Create new material
+          // Generate unique material code
+          const categoryPrefix = item.category === 'MEDICATIE' ? 'MED' :
+                                 item.category === 'MATERIALE SANITARE' ? 'MAT' : 'EQP';
+          const nameSlug = item.productName
+            .substring(0, 20)
+            .replace(/[^a-zA-Z0-9]/g, '')
+            .toUpperCase();
+
+          // Generate unique code by appending a sequential number if needed
+          let materialCode = `${categoryPrefix}-${nameSlug}`;
+          let codeAttempt = 1;
+          let codeExists = true;
+
+          while (codeExists) {
+            const [existingCode] = await db.select()
+              .from(materials)
+              .where(eq(materials.materialCode, materialCode))
+              .limit(1);
+
+            if (!existingCode) {
+              codeExists = false;
+            } else {
+              materialCode = `${categoryPrefix}-${nameSlug}-${codeAttempt}`;
+              codeAttempt++;
+            }
+          }
+
+          // Set expiration date to 2 years from now for imported items
+          const expirationDate = new Date();
+          expirationDate.setFullYear(expirationDate.getFullYear() + 2);
+
+          await db.insert(materials).values({
+            materialCode: materialCode,
+            materialName: item.productName,
+            description: `Imported from ${item.category}`,
+            unitId: unitRecord.id,
+            currentStock: item.quantity,
+            warehouseId: whMain.id,
+            expirationDate: expirationDate,
+            active: true,
+            customField1: item.category, // Store category in custom field
+          });
+
+          results.created++;
+          results.success++;
+        }
+
+      } catch (error: any) {
+        logger.error(`Error importing item ${i + 1}:`, error);
+        results.failed++;
+        results.errors.push({
+          row: i + 1,
+          productName: item.productName,
+          error: error.message || 'Unknown error'
+        });
+      }
+    }
+
+    logger.info('Warehouse inventory import completed', results);
+
+    res.json({
+      success: true,
+      data: results,
+      message: `Import completed: ${results.success} successful (${results.created} created, ${results.updated} updated), ${results.failed} failed`
+    });
+
+  } catch (error: any) {
+    logger.error('Warehouse inventory import failed:', error);
+    next(error);
+  }
+});
+
 export default router;
