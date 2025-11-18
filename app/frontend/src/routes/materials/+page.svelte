@@ -663,7 +663,7 @@
       <button
         type="button"
         on:click={() => showMaterialModal = false}
-        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+        class="btn btn-outline"
         disabled={isSaving}
       >
         {$_('common.cancel')}
@@ -671,7 +671,7 @@
       <button
         type="submit"
         disabled={isSaving}
-        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        class="btn btn-primary disabled:opacity-50"
       >
         {isSaving ? $_('materials.messages.saving') : (isEditing ? $_('materials.updateMaterial') : $_('materials.createMaterial'))}
       </button>
@@ -739,7 +739,7 @@
       <button
         type="button"
         on:click={() => showWarehouseModal = false}
-        class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+        class="btn btn-outline"
         disabled={isSaving}
       >
         {$_('common.cancel')}
@@ -747,7 +747,7 @@
       <button
         type="submit"
         disabled={isSaving}
-        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        class="btn btn-primary disabled:opacity-50"
       >
         {isSaving ? $_('materials.messages.saving') : $_('materials.createWarehouse')}
       </button>
