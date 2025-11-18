@@ -66,6 +66,19 @@
         $_('maintenance.reports.warehouse.expirationReport.features.expiredValue'),
         $_('maintenance.reports.warehouse.expirationReport.features.configThresholds')
       ]
+    },
+    {
+      title: $_('maintenance.reports.warehouse.usageReport.title') || 'Raport Utilizare Materiale',
+      description: $_('maintenance.reports.warehouse.usageReport.description') || 'Analiză detaliată a consumului de materiale pe categorii',
+      href: '/warehouse/reports/usage',
+      icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+      color: 'orange',
+      features: [
+        $_('maintenance.reports.warehouse.usageReport.features.categoryBreakdown') || 'Defalcare pe categorii de materiale',
+        $_('maintenance.reports.warehouse.usageReport.features.topUsed') || 'Top 10 materiale cel mai utilizate',
+        $_('maintenance.reports.warehouse.usageReport.features.usageRates') || 'Rate de consum și trend-uri',
+        $_('maintenance.reports.warehouse.usageReport.features.criticalIssues') || 'Alerte stoc negativ și epuizări'
+      ]
     }
   ];
 
@@ -94,6 +107,12 @@
         border: 'border-red-200',
         icon: 'text-red-600',
         hover: 'hover:border-red-300'
+      },
+      orange: {
+        bg: 'from-orange-50 to-orange-100',
+        border: 'border-orange-200',
+        icon: 'text-orange-600',
+        hover: 'hover:border-orange-300'
       }
     };
     return colors[color] || colors.blue;

@@ -1343,6 +1343,17 @@
             "expiredValue": "Track total value of expired stock",
             "configThresholds": "Configurable expiration thresholds"
           }
+        },
+        "usageReport": {
+          "title": "Material Usage Report",
+          "pageTitle": "Material Usage Report - MedFMS",
+          "description": "Detailed analysis of material consumption by category",
+          "features": {
+            "categoryBreakdown": "Breakdown by material categories",
+            "topUsed": "Top 10 most used materials",
+            "usageRates": "Consumption rates and trends",
+            "criticalIssues": "Negative stock and depletion alerts"
+          }
         }
       },
       "messages": {

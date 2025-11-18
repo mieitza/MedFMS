@@ -1395,6 +1395,17 @@
             "expiredValue": "Urmărire valoare totală stoc expirat",
             "configThresholds": "Praguri de expirare configurabile"
           }
+        },
+        "usageReport": {
+          "title": "Raport Utilizare Materiale",
+          "pageTitle": "Raport Utilizare Materiale - MedFMS",
+          "description": "Analiză detaliată a consumului de materiale pe categorii",
+          "features": {
+            "categoryBreakdown": "Defalcare pe categorii de materiale",
+            "topUsed": "Top 10 materiale cel mai utilizate",
+            "usageRates": "Rate de consum și tendințe",
+            "criticalIssues": "Alerte stoc negativ și epuizări"
+          }
         }
       },
       "messages": {

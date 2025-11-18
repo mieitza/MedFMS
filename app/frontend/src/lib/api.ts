@@ -1507,6 +1507,25 @@ export const api = {
     return response.json();
   },
 
+  async getMaterialUsageReport(params = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.warehouseId) queryParams.append('warehouseId', params.warehouseId.toString());
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+    if (params.month) queryParams.append('month', params.month.toString());
+    if (params.year) queryParams.append('year', params.year.toString());
+
+    const response = await fetch(`${API_BASE_URL}/materials/reports/usage?${queryParams}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch material usage report');
+    }
+
+    return response.json();
+  },
+
   // Reports API
   async getFleetOverviewReport(params = {}) {
     const queryParams = new URLSearchParams();

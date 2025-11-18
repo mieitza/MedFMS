@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { getDb } from '../db/index.js';
 import { materials, materialTransactions, warehouses, warehouseTransferRequests, materialUnits } from '../db/schema/materials.js';
+import { materialCategories } from '../db/schema/reference.js';
 import { vehicles } from '../db/schema/vehicles.js';
 import { users } from '../db/schema/users.js';
 import { eq, like, or, sql, desc, and, gte, lte } from 'drizzle-orm';
@@ -364,6 +365,250 @@ router.get('/reports/expiration', authorize('admin', 'manager', 'operator'), asy
     });
   } catch (error) {
     logger.error('Error generating expiration report:', error);
+    next(error);
+  }
+});
+
+// GET /api/materials/reports/usage - Material usage breakdown report by category
+router.get('/reports/usage', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
+  try {
+    const db = getDb();
+    const { warehouseId, startDate, endDate, month, year } = req.query;
+
+    // Determine date range
+    let start: Date, end: Date;
+    if (month && year) {
+      start = new Date(parseInt(year as string), parseInt(month as string) - 1, 1);
+      end = new Date(parseInt(year as string), parseInt(month as string), 0, 23, 59, 59);
+    } else if (startDate && endDate) {
+      start = new Date(startDate as string);
+      end = new Date(endDate as string);
+    } else {
+      // Default to current month
+      const now = new Date();
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    }
+
+    // Get all materials with their categories and units
+    let materialsQuery = db.select({
+      material: materials,
+      category: materialCategories,
+      unit: materialUnits,
+      warehouse: warehouses
+    })
+    .from(materials)
+    .leftJoin(materialCategories, eq(materials.categoryId, materialCategories.id))
+    .leftJoin(materialUnits, eq(materials.unitId, materialUnits.id))
+    .leftJoin(warehouses, eq(materials.warehouseId, warehouses.id))
+    .where(eq(materials.active, true));
+
+    if (warehouseId) {
+      materialsQuery = materialsQuery.where(eq(materials.warehouseId, parseInt(warehouseId as string)));
+    }
+
+    const allMaterials = await materialsQuery;
+
+    // Get all transactions in the date range
+    let transactionsQuery = db.select({
+      transaction: materialTransactions,
+      material: materials,
+      category: materialCategories,
+      unit: materialUnits
+    })
+    .from(materialTransactions)
+    .innerJoin(materials, eq(materialTransactions.materialId, materials.id))
+    .leftJoin(materialCategories, eq(materials.categoryId, materialCategories.id))
+    .leftJoin(materialUnits, eq(materials.unitId, materialUnits.id))
+    .where(
+      and(
+        gte(materialTransactions.transactionDate, start),
+        lte(materialTransactions.transactionDate, end)
+      )
+    );
+
+    if (warehouseId) {
+      transactionsQuery = transactionsQuery.where(eq(materialTransactions.warehouseId, parseInt(warehouseId as string)));
+    }
+
+    const transactions = await transactionsQuery;
+
+    // Group materials by category
+    const categoryGroups = new Map<string, any[]>();
+    allMaterials.forEach(item => {
+      const categoryName = item.category?.categoryName || 'Uncategorized';
+      if (!categoryGroups.has(categoryName)) {
+        categoryGroups.set(categoryName, []);
+      }
+      categoryGroups.get(categoryName)!.push(item);
+    });
+
+    // Calculate usage statistics per material
+    const materialStats = new Map<number, any>();
+    allMaterials.forEach(item => {
+      materialStats.set(item.material.id, {
+        material: item.material,
+        category: item.category,
+        unit: item.unit,
+        warehouse: item.warehouse,
+        transactions: {
+          entries: 0,
+          exits: 0,
+          transfers: 0
+        },
+        totalIn: 0,
+        totalOut: 0,
+        netChange: 0,
+        usageRate: 0,
+        currentStock: item.material.currentStock,
+        criticalLevel: item.material.criticalLevel || 10
+      });
+    });
+
+    // Process transactions
+    transactions.forEach(t => {
+      const stat = materialStats.get(t.material.id);
+      if (stat) {
+        const quantity = Math.abs(t.transaction.quantity);
+        if (t.transaction.transactionType === 'entry') {
+          stat.transactions.entries++;
+          stat.totalIn += quantity;
+        } else if (t.transaction.transactionType === 'exit') {
+          stat.transactions.exits++;
+          stat.totalOut += quantity;
+        } else if (t.transaction.transactionType === 'transfer') {
+          stat.transactions.transfers++;
+          // Transfers can be in or out depending on sign
+          if (t.transaction.quantity > 0) {
+            stat.totalIn += quantity;
+          } else {
+            stat.totalOut += quantity;
+          }
+        }
+      }
+    });
+
+    // Calculate usage rates and identify issues
+    materialStats.forEach((stat, materialId) => {
+      stat.netChange = stat.totalIn - stat.totalOut;
+      // Calculate stock at beginning of period
+      const beginningStock = stat.currentStock - stat.netChange;
+      // Usage rate = (exits / beginning stock) * 100
+      if (beginningStock > 0) {
+        stat.usageRate = (stat.totalOut / beginningStock) * 100;
+      } else if (stat.totalOut > 0) {
+        stat.usageRate = 100; // If we had no stock but used some, 100%
+      }
+      stat.beginningStock = Math.max(0, beginningStock);
+      stat.isNegativeStock = stat.currentStock < 0;
+      stat.isLowStock = stat.currentStock > 0 && stat.currentStock < stat.criticalLevel;
+      stat.isHighUsage = stat.usageRate > 50;
+      stat.isDepleted = stat.currentStock === 0 && stat.totalOut > 0;
+      stat.isOverCapacity = stat.usageRate > 100;
+    });
+
+    // Build category reports
+    const categoryReports = [];
+    for (const [categoryName, items] of categoryGroups.entries()) {
+      const categoryStats = items.map(item => materialStats.get(item.material.id)).filter(s => s);
+
+      // Calculate category-level metrics
+      const totalItems = categoryStats.length;
+      const activelyUsed = categoryStats.filter(s => s.totalOut > 0).length;
+      const totalUsage = categoryStats.reduce((sum, s) => sum + s.totalOut, 0);
+      const avgUsageRate = activelyUsed > 0
+        ? categoryStats.reduce((sum, s) => sum + s.usageRate, 0) / categoryStats.length
+        : 0;
+
+      // Identify issues
+      const negativeStock = categoryStats.filter(s => s.isNegativeStock);
+      const lowStock = categoryStats.filter(s => s.isLowStock);
+      const highUsage = categoryStats.filter(s => s.isHighUsage);
+      const depleted = categoryStats.filter(s => s.isDepleted);
+      const overCapacity = categoryStats.filter(s => s.isOverCapacity);
+
+      // Sort by usage (totalOut) descending
+      const topUsed = categoryStats
+        .filter(s => s.totalOut > 0)
+        .sort((a, b) => b.totalOut - a.totalOut)
+        .slice(0, 10)
+        .map(s => ({
+          materialCode: s.material.materialCode,
+          materialName: s.material.materialName,
+          quantity: s.totalOut,
+          unit: s.unit?.abbreviation || s.unit?.unitName || 'units',
+          usageRate: Math.round(s.usageRate * 10) / 10,
+          currentStock: s.currentStock,
+          beginningStock: s.beginningStock,
+          isOverCapacity: s.isOverCapacity,
+          isNegativeStock: s.isNegativeStock
+        }));
+
+      categoryReports.push({
+        categoryName,
+        overview: {
+          totalItems,
+          activelyUsed,
+          totalUsage: Math.round(totalUsage),
+          avgUsageRate: Math.round(avgUsageRate * 10) / 10
+        },
+        topUsed,
+        criticalIssues: {
+          negativeStockCount: negativeStock.length,
+          negativeStockItems: negativeStock.map(s => ({
+            materialCode: s.material.materialCode,
+            materialName: s.material.materialName,
+            currentStock: s.currentStock,
+            unit: s.unit?.abbreviation || 'units'
+          })),
+          lowStockCount: lowStock.length,
+          highUsageCount: highUsage.length,
+          depletedCount: depleted.length,
+          depletedItems: depleted.map(s => ({
+            materialCode: s.material.materialCode,
+            materialName: s.material.materialName,
+            unit: s.unit?.abbreviation || 'units'
+          })),
+          overCapacityCount: overCapacity.length,
+          overCapacityItems: overCapacity.map(s => ({
+            materialCode: s.material.materialCode,
+            materialName: s.material.materialName,
+            usageRate: Math.round(s.usageRate * 10) / 10,
+            unit: s.unit?.abbreviation || 'units'
+          }))
+        }
+      });
+    }
+
+    // Sort categories by total usage
+    categoryReports.sort((a, b) => b.overview.totalUsage - a.overview.totalUsage);
+
+    // Calculate overall statistics
+    const allStats = Array.from(materialStats.values());
+    const overallStats = {
+      totalMaterials: allStats.length,
+      totalActivelyUsed: allStats.filter(s => s.totalOut > 0).length,
+      totalUsage: allStats.reduce((sum, s) => sum + s.totalOut, 0),
+      totalNegativeStock: allStats.filter(s => s.isNegativeStock).length,
+      totalLowStock: allStats.filter(s => s.isLowStock).length,
+      totalHighUsage: allStats.filter(s => s.isHighUsage).length,
+      totalDepleted: allStats.filter(s => s.isDepleted).length,
+      periodStart: start.toISOString().split('T')[0],
+      periodEnd: end.toISOString().split('T')[0]
+    };
+
+    res.json({
+      success: true,
+      period: {
+        start: start.toISOString(),
+        end: end.toISOString(),
+        description: `${start.toLocaleString('default', { month: 'long', year: 'numeric' })}`
+      },
+      overallStats,
+      categories: categoryReports
+    });
+  } catch (error) {
+    logger.error('Error generating usage report:', error);
     next(error);
   }
 });
