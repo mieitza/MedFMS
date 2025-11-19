@@ -64,6 +64,7 @@ const DATA_TYPE_CONFIG = {
   cities: {
     table: schema.cities,
     schema: z.object({
+      cityCode: z.string().min(1).max(50).optional(),
       cityName: z.string().min(1).max(100),
       region: z.string().optional(),
       country: z.string().optional(),
@@ -288,6 +289,14 @@ router.post('/:dataType', authorize('admin', 'manager'), async (req, res, next) 
     // For models, auto-generate modelCode from modelName
     if (dataType === 'models' && !insertData.modelCode) {
       insertData.modelCode = insertData.modelName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '_')
+        .substring(0, 50);
+    }
+
+    // For cities, auto-generate cityCode from cityName
+    if (dataType === 'cities' && !insertData.cityCode) {
+      insertData.cityCode = insertData.cityName
         .toUpperCase()
         .replace(/[^A-Z0-9]/g, '_')
         .substring(0, 50);
