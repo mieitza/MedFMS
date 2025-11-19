@@ -282,10 +282,8 @@ router.post('/:dataType', authorize('admin', 'manager'), async (req, res, next) 
         .toUpperCase()
         .replace(/[^A-Z0-9]/g, '_')
         .substring(0, 50);
-      console.log('[ADMIN] Auto-generated brandCode:', insertData.brandCode, 'from brandName:', insertData.brandName);
     }
 
-    console.log('[ADMIN] Inserting data for', dataType, ':', insertData);
     const result = await db.insert(config.table).values(insertData).returning();
 
     res.status(201).json({
