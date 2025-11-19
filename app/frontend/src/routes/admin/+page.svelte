@@ -467,134 +467,122 @@
 </script>
 
 <svelte:head>
-  <title>Admin Settings - MedFMS</title>
+  <title>Reference Data - MedFMS</title>
 </svelte:head>
 
-<div class="flex h-screen bg-gray-100">
-  <!-- Sidebar -->
-  <div class="w-64 bg-white shadow-lg">
-    <div class="p-6 border-b">
-      <h1 class="text-2xl font-bold text-gray-900">Admin Settings</h1>
-      <p class="text-sm text-gray-600 mt-1">Reference Data Management</p>
-    </div>
-
-    <!-- Back to Dashboard Button -->
-    <div class="p-4 border-b">
+<div class="container mx-auto px-6 py-8">
+  <!-- Page Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-4 mb-4">
       <button
         on:click={() => goto('/dashboard')}
-        class="w-full flex items-center px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+        class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+        title="Back to Dashboard"
       >
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
-        Back to Dashboard
+      </button>
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Reference Data</h1>
+        <p class="text-gray-600 mt-1">Manage system reference data and configurations</p>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="flex gap-2 mb-6">
+      <button
+        on:click={() => goto('/admin/users')}
+        class="btn btn-outline text-sm"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        User Management
+      </button>
+      <button
+        on:click={() => goto('/admin/material-units')}
+        class="btn btn-outline text-sm"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+        </svg>
+        Material Units
       </button>
     </div>
 
-    <!-- System Management Links -->
-    <div class="p-4 border-b">
-      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">System</p>
-      <div class="space-y-1">
-        <button
-          on:click={() => goto('/admin/users')}
-          class="w-full flex items-center px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-          </svg>
-          User Management
-        </button>
-        <button
-          on:click={() => goto('/admin/material-units')}
-          class="w-full flex items-center px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-          </svg>
-          Material Units
-        </button>
-        <button
-          on:click={() => goto('/profile')}
-          class="w-full flex items-center px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-        >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          My Profile
-        </button>
-      </div>
-    </div>
-
-    <!-- Reference Data Navigation -->
-    <div class="px-4 pt-4 pb-2">
-      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Reference Data</p>
-    </div>
-    <nav class="p-4 pt-2">
-      <ul class="space-y-1">
+    <!-- Tabs Navigation -->
+    <div class="border-b border-gray-200 overflow-x-auto">
+      <nav class="flex space-x-1 min-w-max" aria-label="Reference Data Tabs">
         {#each Object.entries(DATA_TYPES) as [key, type]}
-          <li>
-            <button
-              on:click={() => changeDataType(key)}
-              class="w-full text-left px-4 py-2 rounded-lg transition-colors {selectedDataType === key
-                ? 'bg-blue-100 text-blue-700 font-medium'
-                : 'text-gray-700 hover:bg-gray-100'}"
-            >
-              {type.label}
-            </button>
-          </li>
+          <button
+            on:click={() => changeDataType(key)}
+            class="px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap {selectedDataType === key
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
+          >
+            {type.label}
+          </button>
         {/each}
-      </ul>
-    </nav>
+      </nav>
+    </div>
   </div>
 
-  <!-- Main Content -->
-  <div class="flex-1 overflow-auto">
-    <div class="container mx-auto px-6 py-8">
-      <!-- Header -->
-      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex justify-between items-center">
-          <div>
-            <h2 class="text-2xl font-bold text-gray-900">{config?.label}</h2>
-            <p class="text-sm text-gray-600 mt-1">
-              Manage {config?.label.toLowerCase()} in the system
-            </p>
-          </div>
-          <button
-            on:click={openCreateModal}
-            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Add New
-          </button>
-        </div>
+  <!-- Content Area -->
+  <div class="card">
+    <!-- Table Header with Add Button -->
+    <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900">{config?.label}</h2>
+        <p class="text-sm text-gray-600 mt-1">
+          {data.length} {data.length === 1 ? 'record' : 'records'}
+        </p>
       </div>
-
-      <!-- Data Table -->
-      {#if loading}
-        <div class="bg-white rounded-lg shadow-md p-12 text-center">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p class="text-gray-600 mt-4">Loading data...</p>
-        </div>
-      {:else}
-        <div class="bg-white rounded-lg shadow-md">
-          <DataTable
-            {data}
-            columns={tableColumns}
-            {currentPage}
-            {pageSize}
-            totalItems={data.length}
-            on:pageChange={(event) => {
-              currentPage = event.detail.page;
-            }}
-            on:sort={(event) => {
-              console.log('Sort by:', event.detail);
-            }}
-          />
-        </div>
-      {/if}
+      <button
+        on:click={openCreateModal}
+        class="btn btn-primary flex items-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Add New
+      </button>
     </div>
+
+    <!-- Data Table -->
+    {#if loading}
+      <div class="p-12 text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p class="text-gray-600 mt-4">Loading data...</p>
+      </div>
+    {:else if data.length === 0}
+      <div class="p-12 text-center">
+        <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+        </svg>
+        <p class="text-gray-600 mb-4">No {config?.label.toLowerCase()} found</p>
+        <button
+          on:click={openCreateModal}
+          class="btn btn-primary"
+        >
+          Add First {config?.label.slice(0, -1)}
+        </button>
+      </div>
+    {:else}
+      <DataTable
+        {data}
+        columns={tableColumns}
+        {currentPage}
+        {pageSize}
+        totalItems={data.length}
+        on:pageChange={(event) => {
+          currentPage = event.detail.page;
+        }}
+        on:sort={(event) => {
+          console.log('Sort by:', event.detail);
+        }}
+      />
+    {/if}
   </div>
 </div>
 
