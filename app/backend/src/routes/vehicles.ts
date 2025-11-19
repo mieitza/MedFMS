@@ -210,13 +210,17 @@ router.post('/', authorize('admin', 'manager', 'operator'), async (req, res, nex
       throw new AppError('Vehicle code or license plate already exists', 409);
     }
 
-    // Convert ANMDM date strings to timestamps if provided
+    // Convert ANMDM date strings to timestamps if provided (only if not empty)
     const insertData: any = { ...data };
-    if (data.anmdmIssueDate) {
+    if (data.anmdmIssueDate && data.anmdmIssueDate.trim() !== '') {
       insertData.anmdmIssueDate = new Date(data.anmdmIssueDate);
+    } else {
+      delete insertData.anmdmIssueDate;
     }
-    if (data.anmdmExpiryDate) {
+    if (data.anmdmExpiryDate && data.anmdmExpiryDate.trim() !== '') {
       insertData.anmdmExpiryDate = new Date(data.anmdmExpiryDate);
+    } else {
+      delete insertData.anmdmExpiryDate;
     }
 
     const result = await db.insert(vehicles).values(insertData).returning();
@@ -238,13 +242,17 @@ router.put('/:id', authorize('admin', 'manager', 'operator'), async (req, res, n
 
     const db = getDb();
 
-    // Convert ANMDM date strings to timestamps if provided
+    // Convert ANMDM date strings to timestamps if provided (only if not empty)
     const updateData: any = { ...data };
-    if (data.anmdmIssueDate) {
+    if (data.anmdmIssueDate && data.anmdmIssueDate.trim() !== '') {
       updateData.anmdmIssueDate = new Date(data.anmdmIssueDate);
+    } else if (data.anmdmIssueDate === '') {
+      updateData.anmdmIssueDate = null;
     }
-    if (data.anmdmExpiryDate) {
+    if (data.anmdmExpiryDate && data.anmdmExpiryDate.trim() !== '') {
       updateData.anmdmExpiryDate = new Date(data.anmdmExpiryDate);
+    } else if (data.anmdmExpiryDate === '') {
+      updateData.anmdmExpiryDate = null;
     }
 
     const result = await db.update(vehicles)
