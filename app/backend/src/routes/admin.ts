@@ -75,6 +75,7 @@ const DATA_TYPE_CONFIG = {
   suppliers: {
     table: schema.suppliers,
     schema: z.object({
+      supplierCode: z.string().min(1).max(50).optional(),
       supplierName: z.string().min(1).max(100),
       contactPerson: z.string().optional(),
       contactNumber: z.string().optional(),
@@ -85,6 +86,7 @@ const DATA_TYPE_CONFIG = {
       active: z.boolean().optional(),
     }),
     nameField: 'supplierName',
+    codeField: 'supplierCode',
   },
   vehicleTypes: {
     table: schema.vehicleTypes,
@@ -297,6 +299,14 @@ router.post('/:dataType', authorize('admin', 'manager'), async (req, res, next) 
     // For cities, auto-generate cityCode from cityName
     if (dataType === 'cities' && !insertData.cityCode) {
       insertData.cityCode = insertData.cityName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '_')
+        .substring(0, 50);
+    }
+
+    // For suppliers, auto-generate supplierCode from supplierName
+    if (dataType === 'suppliers' && !insertData.supplierCode) {
+      insertData.supplierCode = insertData.supplierName
         .toUpperCase()
         .replace(/[^A-Z0-9]/g, '_')
         .substring(0, 50);
