@@ -111,11 +111,11 @@ const DATA_TYPE_CONFIG = {
   fuelTypes: {
     table: schema.fuelTypes,
     schema: z.object({
-      fuelCode: z.string().min(1).max(50),
+      fuelCode: z.string().min(1).max(50).optional(),
       fuelName: z.string().min(1).max(100),
       description: z.string().optional(),
       unit: z.string().optional(),
-      currentPrice: z.number().optional(),
+      currentPrice: z.number(),
       density: z.number().optional(),
       active: z.boolean().optional(),
     }),
@@ -307,6 +307,14 @@ router.post('/:dataType', authorize('admin', 'manager'), async (req, res, next) 
     // For suppliers, auto-generate supplierCode from supplierName
     if (dataType === 'suppliers' && !insertData.supplierCode) {
       insertData.supplierCode = insertData.supplierName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '_')
+        .substring(0, 50);
+    }
+
+    // For fuelTypes, auto-generate fuelCode from fuelName
+    if (dataType === 'fuelTypes' && !insertData.fuelCode) {
+      insertData.fuelCode = insertData.fuelName
         .toUpperCase()
         .replace(/[^A-Z0-9]/g, '_')
         .substring(0, 50);
