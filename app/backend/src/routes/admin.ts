@@ -15,8 +15,10 @@ const DATA_TYPE_CONFIG = {
   brands: {
     table: schema.brands,
     schema: z.object({
+      brandCode: z.string().min(1).max(50).optional(),
       brandName: z.string().min(1).max(100),
       description: z.string().optional().nullable(),
+      country: z.string().optional().nullable(),
       active: z.boolean().optional(),
     }),
     nameField: 'brandName',
