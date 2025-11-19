@@ -271,7 +271,18 @@ router.post('/:dataType', authorize('admin', 'manager'), async (req, res, next) 
     const data = config.schema.parse(req.body);
     const db = getDb();
 
-    const result = await db.insert(config.table).values(data).returning();
+    // Auto-generate code fields if not provided
+    const insertData: any = { ...data };
+
+    // For brands, auto-generate brandCode from brandName
+    if (dataType === 'brands' && !insertData.brandCode) {
+      insertData.brandCode = insertData.brandName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '_')
+        .substring(0, 50);
+    }
+
+    const result = await db.insert(config.table).values(insertData).returning();
 
     res.status(201).json({
       success: true,
