@@ -26,6 +26,7 @@ const DATA_TYPE_CONFIG = {
   models: {
     table: schema.models,
     schema: z.object({
+      modelCode: z.string().min(1).max(50).optional(),
       modelName: z.string().min(1).max(100),
       brandId: z.number().positive(),
       description: z.string().optional().nullable(),
@@ -279,6 +280,14 @@ router.post('/:dataType', authorize('admin', 'manager'), async (req, res, next) 
     // For brands, auto-generate brandCode from brandName
     if (dataType === 'brands' && !insertData.brandCode) {
       insertData.brandCode = insertData.brandName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '_')
+        .substring(0, 50);
+    }
+
+    // For models, auto-generate modelCode from modelName
+    if (dataType === 'models' && !insertData.modelCode) {
+      insertData.modelCode = insertData.modelName
         .toUpperCase()
         .replace(/[^A-Z0-9]/g, '_')
         .substring(0, 50);
