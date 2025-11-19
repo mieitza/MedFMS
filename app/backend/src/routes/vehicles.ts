@@ -210,7 +210,16 @@ router.post('/', authorize('admin', 'manager', 'operator'), async (req, res, nex
       throw new AppError('Vehicle code or license plate already exists', 409);
     }
 
-    const result = await db.insert(vehicles).values(data).returning();
+    // Convert ANMDM date strings to timestamps if provided
+    const insertData: any = { ...data };
+    if (data.anmdmIssueDate) {
+      insertData.anmdmIssueDate = new Date(data.anmdmIssueDate);
+    }
+    if (data.anmdmExpiryDate) {
+      insertData.anmdmExpiryDate = new Date(data.anmdmExpiryDate);
+    }
+
+    const result = await db.insert(vehicles).values(insertData).returning();
 
     res.status(201).json({
       success: true,
