@@ -1400,17 +1400,57 @@ router.post('/transfer-requests/:id/complete', authorize('admin', 'manager', 'op
         );
 
       // Create vehicle inventory assignment
-      const { vehicleInventoryAssignments, vehicleInventoryItems } = await import('../db/schema/vehicleInventory.js');
+      const { vehicleInventoryAssignments, vehicleInventoryItems, vehicleInventoryCategories } = await import('../db/schema/vehicleInventory.js');
 
       // Find the vehicle inventory item that corresponds to this material
       // Look for a vehicleInventoryItem that has this materialId
-      const [inventoryItem] = await db.select()
+      let [inventoryItem] = await db.select()
         .from(vehicleInventoryItems)
         .where(eq(vehicleInventoryItems.materialId, existingRequest.materialId))
         .limit(1);
 
+      // If no vehicle inventory item exists, auto-create one based on the material
       if (!inventoryItem) {
-        throw new AppError('No vehicle inventory item found for this material. Please create a vehicle inventory item linked to this material first.', 400);
+        // Get the material details
+        const [materialDetails] = await db.select()
+          .from(materials)
+          .where(eq(materials.id, existingRequest.materialId))
+          .limit(1);
+
+        if (!materialDetails) {
+          throw new AppError('Material not found', 404);
+        }
+
+        // Get or create the GENERAL category
+        let [generalCategory] = await db.select()
+          .from(vehicleInventoryCategories)
+          .where(eq(vehicleInventoryCategories.categoryCode, 'GENERAL'))
+          .limit(1);
+
+        if (!generalCategory) {
+          // Create the GENERAL category if it doesn't exist
+          [generalCategory] = await db.insert(vehicleInventoryCategories).values({
+            categoryCode: 'GENERAL',
+            categoryName: 'General Supplies',
+            description: 'General medical supplies transferred from warehouse',
+            requiresExpiration: false,
+            requiresSerialNumber: false,
+            active: true
+          }).returning();
+        }
+
+        // Create a vehicle inventory item linked to this material
+        [inventoryItem] = await db.insert(vehicleInventoryItems).values({
+          itemCode: `VEH-${materialDetails.materialCode}`,
+          itemName: materialDetails.materialName,
+          categoryId: generalCategory.id,
+          materialId: existingRequest.materialId,
+          description: materialDetails.description || `Auto-created from warehouse material: ${materialDetails.materialName}`,
+          unitOfMeasure: 'unit',
+          active: true
+        }).returning();
+
+        logger.info(`Auto-created vehicle inventory item for material: ${materialDetails.materialCode}`);
       }
 
       await db.insert(vehicleInventoryAssignments).values({
