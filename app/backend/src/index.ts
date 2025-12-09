@@ -53,14 +53,14 @@ app.use(compression());
 
 // Skip body parsing for upload routes entirely
 app.use((req, res, next) => {
-  if (req.url.includes('/api/documents/photos/upload') || req.url.includes('/api/documents/upload')) {
+  if (req.url.includes('/api/documents/photos/upload') || req.url.includes('/api/documents/upload') || req.url.includes('/anmdm-document')) {
     return next();
   }
   express.json({ limit: '10mb' })(req, res, next);
 });
 
 app.use((req, res, next) => {
-  if (req.url.includes('/api/documents/photos/upload') || req.url.includes('/api/documents/upload')) {
+  if (req.url.includes('/api/documents/photos/upload') || req.url.includes('/api/documents/upload') || req.url.includes('/anmdm-document')) {
     return next();
   }
   express.urlencoded({ extended: true, limit: '10mb' })(req, res, next);

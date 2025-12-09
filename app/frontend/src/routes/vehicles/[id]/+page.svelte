@@ -243,6 +243,25 @@
 			return { status: 'valid', color: 'bg-green-100 text-green-800 border-green-200', message: $_('vehicles.anmdmValid') };
 		}
 	}
+
+	async function downloadAnmdmDocument() {
+		if (!vehicle?.id) return;
+
+		try {
+			const blob = await api.downloadAnmdmDocument(vehicle.id);
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `ANMDM_${vehicle.licensePlate || vehicle.id}.pdf`;
+			document.body.appendChild(a);
+			a.click();
+			window.URL.revokeObjectURL(url);
+			document.body.removeChild(a);
+		} catch (err) {
+			console.error('Failed to download ANMDM document:', err);
+			alert($_('vehicles.anmdmDocumentDownloadFailed'));
+		}
+	}
 </script>
 
 <svelte:head>
@@ -470,6 +489,22 @@
 							<div class="md:col-span-2 lg:col-span-3">
 								<label class="block text-sm font-medium text-gray-500">{$_('vehicles.anmdmNotes')}</label>
 								<p class="mt-1 text-sm text-gray-900">{vehicle.anmdmNotes}</p>
+							</div>
+						{/if}
+
+						<!-- ANMDM Document -->
+						{#if vehicle.anmdmDocumentPath}
+							<div class="md:col-span-2 lg:col-span-3 pt-4 border-t border-gray-200">
+								<label class="block text-sm font-medium text-gray-500 mb-2">{$_('vehicles.anmdmDocument')}</label>
+								<button
+									on:click={downloadAnmdmDocument}
+									class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-md text-red-700 hover:bg-red-100 transition-colors"
+								>
+									<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+										<path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+									</svg>
+									<span>{$_('vehicles.downloadAnmdmDocument')}</span>
+								</button>
 							</div>
 						{/if}
 					</div>

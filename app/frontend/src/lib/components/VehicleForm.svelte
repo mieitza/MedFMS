@@ -44,6 +44,13 @@
 	let errors = {};
 	let formTracker = null; // For tracking changed fields when editing
 
+	// ANMDM Document state
+	let anmdmDocumentFile = null;
+	let anmdmDocumentUploading = false;
+	let anmdmDocumentError = '';
+	let hasAnmdmDocument = false;
+	let anmdmFileInput;
+
 	// Initialize form with vehicle data if editing
 	onMount(() => {
 		if (vehicle) {
@@ -71,6 +78,9 @@
 			};
 			updateFilteredModels();
 
+			// Check if vehicle has ANMDM document
+			hasAnmdmDocument = !!vehicle.anmdmDocumentPath;
+
 			// Create form tracker with original data for change detection
 			formTracker = createFormTracker(formData);
 		}
@@ -90,6 +100,77 @@
 
 	function handleBrandChange() {
 		updateFilteredModels();
+	}
+
+	// ANMDM Document handling functions
+	function handleAnmdmFileSelect(event) {
+		const file = event.target.files?.[0];
+		if (file) {
+			if (file.type !== 'application/pdf') {
+				anmdmDocumentError = $_('vehicles.anmdmDocumentPdfOnly');
+				return;
+			}
+			if (file.size > 10 * 1024 * 1024) {
+				anmdmDocumentError = $_('vehicles.anmdmDocumentTooLarge');
+				return;
+			}
+			anmdmDocumentFile = file;
+			anmdmDocumentError = '';
+		}
+	}
+
+	async function uploadAnmdmDocument() {
+		if (!anmdmDocumentFile || !vehicle?.id) return;
+
+		anmdmDocumentUploading = true;
+		anmdmDocumentError = '';
+
+		try {
+			await api.uploadAnmdmDocument(vehicle.id, anmdmDocumentFile);
+			hasAnmdmDocument = true;
+			anmdmDocumentFile = null;
+			if (anmdmFileInput) anmdmFileInput.value = '';
+			dispatch('documentUploaded');
+		} catch (err) {
+			anmdmDocumentError = err.message || $_('vehicles.anmdmDocumentUploadFailed');
+		} finally {
+			anmdmDocumentUploading = false;
+		}
+	}
+
+	async function downloadAnmdmDocument() {
+		if (!vehicle?.id) return;
+
+		try {
+			const blob = await api.downloadAnmdmDocument(vehicle.id);
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `ANMDM_${vehicle.licensePlate || vehicle.id}.pdf`;
+			document.body.appendChild(a);
+			a.click();
+			window.URL.revokeObjectURL(url);
+			document.body.removeChild(a);
+		} catch (err) {
+			anmdmDocumentError = err.message || $_('vehicles.anmdmDocumentDownloadFailed');
+		}
+	}
+
+	async function deleteAnmdmDocument() {
+		if (!vehicle?.id || !confirm($_('vehicles.confirmDeleteAnmdmDocument'))) return;
+
+		try {
+			await api.deleteAnmdmDocument(vehicle.id);
+			hasAnmdmDocument = false;
+			dispatch('documentDeleted');
+		} catch (err) {
+			anmdmDocumentError = err.message || $_('vehicles.anmdmDocumentDeleteFailed');
+		}
+	}
+
+	function clearAnmdmFileSelection() {
+		anmdmDocumentFile = null;
+		if (anmdmFileInput) anmdmFileInput.value = '';
 	}
 
 	function validateForm() {
@@ -539,6 +620,111 @@
 						placeholder={$_('vehicles.placeholders.anmdmNotes')}
 					></textarea>
 				</div>
+
+				<!-- ANMDM Document Upload (only shown when editing existing vehicle) -->
+				{#if vehicle?.id}
+					<div class="md:col-span-2 mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+						<label class="block text-sm font-medium text-gray-700 mb-3">
+							{$_('vehicles.anmdmDocument')}
+						</label>
+
+						{#if anmdmDocumentError}
+							<div class="mb-3 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+								{anmdmDocumentError}
+							</div>
+						{/if}
+
+						{#if hasAnmdmDocument}
+							<!-- Document exists - show download/delete options -->
+							<div class="flex items-center gap-3 p-3 bg-white rounded-md border border-gray-200">
+								<svg class="w-8 h-8 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+									<path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+								</svg>
+								<div class="flex-1">
+									<p class="text-sm font-medium text-gray-900">{$_('vehicles.anmdmDocumentUploaded')}</p>
+									<p class="text-xs text-gray-500">{$_('vehicles.anmdmDocumentClickToDownload')}</p>
+								</div>
+								<button
+									type="button"
+									on:click={downloadAnmdmDocument}
+									class="px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-md hover:bg-primary-100 transition-colors"
+								>
+									{$_('common.download')}
+								</button>
+								<button
+									type="button"
+									on:click={deleteAnmdmDocument}
+									class="px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 transition-colors"
+								>
+									{$_('common.delete')}
+								</button>
+							</div>
+						{:else}
+							<!-- No document - show upload interface -->
+							<div class="flex items-center gap-3">
+								<input
+									bind:this={anmdmFileInput}
+									type="file"
+									accept="application/pdf"
+									on:change={handleAnmdmFileSelect}
+									class="hidden"
+									id="anmdmDocumentInput"
+								/>
+
+								{#if anmdmDocumentFile}
+									<!-- File selected - show file info and upload button -->
+									<div class="flex-1 flex items-center gap-3 p-3 bg-white rounded-md border border-gray-200">
+										<svg class="w-8 h-8 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+											<path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+										</svg>
+										<div class="flex-1 min-w-0">
+											<p class="text-sm font-medium text-gray-900 truncate">{anmdmDocumentFile.name}</p>
+											<p class="text-xs text-gray-500">{(anmdmDocumentFile.size / 1024).toFixed(1)} KB</p>
+										</div>
+										<button
+											type="button"
+											on:click={clearAnmdmFileSelection}
+											class="p-1 text-gray-400 hover:text-gray-600"
+											title={$_('common.remove')}
+										>
+											<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+											</svg>
+										</button>
+									</div>
+									<button
+										type="button"
+										on:click={uploadAnmdmDocument}
+										disabled={anmdmDocumentUploading}
+										class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+									>
+										{#if anmdmDocumentUploading}
+											<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+												<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+												<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+											</svg>
+											{$_('common.uploading')}
+										{:else}
+											{$_('common.upload')}
+										{/if}
+									</button>
+								{:else}
+									<!-- No file selected - show select button -->
+									<label
+										for="anmdmDocumentInput"
+										class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-primary-400 hover:bg-gray-50 transition-colors"
+									>
+										<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+										</svg>
+										<span class="text-sm text-gray-600">{$_('vehicles.anmdmDocumentSelectPdf')}</span>
+									</label>
+								{/if}
+							</div>
+							<p class="mt-2 text-xs text-gray-500">{$_('vehicles.anmdmDocumentHint')}</p>
+						{/if}
+					</div>
+				{/if}
 			</div>
 		</div>
 

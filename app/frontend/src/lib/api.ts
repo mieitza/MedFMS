@@ -236,6 +236,50 @@ export const api = {
     return response.json();
   },
 
+  // ANMDM Document APIs
+  async uploadAnmdmDocument(vehicleId: number, file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append('anmdmDocument', file);
+
+    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}/anmdm-document`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(false), // Don't set Content-Type for FormData
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to upload ANMDM document' }));
+      throw new Error(error.message || 'Failed to upload ANMDM document');
+    }
+
+    return response.json();
+  },
+
+  async downloadAnmdmDocument(vehicleId: number): Promise<Blob> {
+    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}/anmdm-document`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to download ANMDM document');
+    }
+
+    return response.blob();
+  },
+
+  async deleteAnmdmDocument(vehicleId: number): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}/anmdm-document`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete ANMDM document');
+    }
+
+    return response.json();
+  },
+
   // System APIs for dropdowns
   async getBrands(): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/system/brands`, {

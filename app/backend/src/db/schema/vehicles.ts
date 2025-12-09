@@ -43,6 +43,7 @@ export const vehicles = sqliteTable('vehicles', {
   anmdmExpiryDate: integer('anmdm_expiry_date', { mode: 'timestamp' }),
   anmdmIssuingAuthority: text('anmdm_issuing_authority'),
   anmdmNotes: text('anmdm_notes'),
+  anmdmDocumentPath: text('anmdm_document_path'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });

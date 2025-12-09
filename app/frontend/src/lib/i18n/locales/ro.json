@@ -21,7 +21,11 @@
     "yes": "Da",
     "no": "Nu",
     "welcomeBack": "Bine ai revenit",
-    "logout": "Deconectare"
+    "logout": "Deconectare",
+    "upload": "Încarcă",
+    "uploading": "Se încarcă...",
+    "download": "Descarcă",
+    "remove": "Elimină"
   },
   "auth": {
     "signIn": "Autentificare",
@@ -473,7 +477,19 @@
     "anmdmNotes": "Observații ANMDM",
     "anmdmExpired": "Aviz expirat",
     "anmdmExpiringSoon": "Aviz expiră în curând",
-    "anmdmValid": "Aviz valid"
+    "anmdmValid": "Aviz valid",
+    "anmdmDocument": "Document ANMDM (PDF)",
+    "anmdmDocumentUploaded": "Document ANMDM Încărcat",
+    "anmdmDocumentClickToDownload": "Click pe descarcă pentru a obține documentul",
+    "anmdmDocumentSelectPdf": "Selectați documentul PDF pentru încărcare",
+    "anmdmDocumentHint": "Încărcați documentul de autorizare ANMDM în format PDF (max 10MB)",
+    "anmdmDocumentPdfOnly": "Sunt permise doar fișiere PDF",
+    "anmdmDocumentTooLarge": "Dimensiunea fișierului depășește limita de 10MB",
+    "anmdmDocumentUploadFailed": "Încărcarea documentului a eșuat",
+    "anmdmDocumentDownloadFailed": "Descărcarea documentului a eșuat",
+    "anmdmDocumentDeleteFailed": "Ștergerea documentului a eșuat",
+    "confirmDeleteAnmdmDocument": "Sigur doriți să ștergeți documentul ANMDM?",
+    "downloadAnmdmDocument": "Descarcă Document ANMDM"
   },
   "fuel": {
     "title": "Gestionare Combustibil",

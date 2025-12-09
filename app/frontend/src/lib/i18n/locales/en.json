@@ -21,7 +21,11 @@
     "yes": "Yes",
     "no": "No",
     "welcomeBack": "Welcome back",
-    "logout": "Logout"
+    "logout": "Logout",
+    "upload": "Upload",
+    "uploading": "Uploading...",
+    "download": "Download",
+    "remove": "Remove"
   },
   "auth": {
     "signIn": "Sign In",
@@ -473,7 +477,19 @@
     "anmdmNotes": "ANMDM Notes",
     "anmdmExpired": "Authorization expired",
     "anmdmExpiringSoon": "Authorization expiring soon",
-    "anmdmValid": "Authorization valid"
+    "anmdmValid": "Authorization valid",
+    "anmdmDocument": "ANMDM Document (PDF)",
+    "anmdmDocumentUploaded": "ANMDM Document Uploaded",
+    "anmdmDocumentClickToDownload": "Click download to get the document",
+    "anmdmDocumentSelectPdf": "Select PDF document to upload",
+    "anmdmDocumentHint": "Upload the ANMDM authorization document in PDF format (max 10MB)",
+    "anmdmDocumentPdfOnly": "Only PDF files are allowed",
+    "anmdmDocumentTooLarge": "File size exceeds 10MB limit",
+    "anmdmDocumentUploadFailed": "Failed to upload document",
+    "anmdmDocumentDownloadFailed": "Failed to download document",
+    "anmdmDocumentDeleteFailed": "Failed to delete document",
+    "confirmDeleteAnmdmDocument": "Are you sure you want to delete the ANMDM document?",
+    "downloadAnmdmDocument": "Download ANMDM Document"
   },
   "fuel": {
     "title": "Fuel Management",
