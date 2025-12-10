@@ -425,6 +425,24 @@ export interface DriverFormData {
   notes?: string | null;
 }
 
+export interface FuelTransactionFormData {
+  vehicleId: number;
+  driverId?: number | null;
+  fuelTypeId: number;
+  fuelStationId?: number | null;
+  quantity: number;
+  pricePerUnit?: number | null;
+  totalCost?: number | null;
+  odometer?: number | null;
+  transactionDate: string;
+  deliveryDate?: string | null;
+  invoiceDate?: string | null;
+  invoiceNumber?: string | null;
+  cardNumber?: string | null;
+  costCenter?: string | null;
+  notes?: string | null;
+}
+
 // Navigation types for command palette
 export interface NavigationItem {
   title: string;
