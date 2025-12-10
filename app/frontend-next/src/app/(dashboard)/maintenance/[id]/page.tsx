@@ -52,6 +52,7 @@ import {
   useUpdateWorkOrderStatus,
 } from '@/lib/hooks';
 import type { MaintenanceWorkOrder } from '@/types';
+import { WorkOrderFiles } from '@/components/shared/work-order-files';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -397,6 +398,13 @@ export default function MaintenanceWorkOrderDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Files */}
+      <WorkOrderFiles
+        workOrderId={workOrder.id}
+        title="Fișiere comandă de lucru"
+        description="Documente și fotografii atașate acestei comenzi de lucru"
+      />
 
       {/* Timestamps */}
       <Card>
