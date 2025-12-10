@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { browser } from '$app/environment';
+  import { _ } from '$lib/i18n';
 
   export let file = null; // File object or Blob
   export let url = null; // URL to PDF
@@ -34,7 +35,7 @@
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.4.394/build/pdf.worker.min.mjs';
     } catch (err) {
       console.error('Failed to load PDF.js:', err);
-      error = 'Failed to load PDF library';
+      error = $_('pdf.loadFailed');
       loading = false;
       return;
     }
@@ -155,7 +156,7 @@
     } catch (err) {
       if (err.name !== 'RenderingCancelledException' && isMounted) {
         console.error('Error rendering PDF page:', err);
-        error = 'Failed to render PDF preview';
+        error = $_('pdf.renderFailed');
       }
     }
   }
@@ -170,7 +171,7 @@
     <div class="flex items-center justify-center bg-gray-100 rounded" style="width: {width}px; height: {height}px;">
       <div class="text-center">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p class="text-xs text-gray-600 mt-2">Loading PDF...</p>
+        <p class="text-xs text-gray-600 mt-2">{$_('pdf.loading')}</p>
       </div>
     </div>
   {:else if error}
@@ -179,7 +180,7 @@
         <svg class="w-8 h-8 text-red-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <p class="text-xs text-red-600">PDF Error</p>
+        <p class="text-xs text-red-600">{$_('pdf.error')}</p>
       </div>
     </div>
   {:else}

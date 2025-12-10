@@ -5,314 +5,339 @@
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import { createFormTracker } from '$lib/utils/formTracking';
+  import { _ } from '$lib/i18n';
 
-  // Data type configurations
+  // Helper function to get translated field label
+  function getFieldLabel(key) {
+    return $_(`admin.fields.${key}`) || key;
+  }
+
+  // Helper function to get translated data type label
+  function getDataTypeLabel(key) {
+    return $_(`admin.dataTypes.${key}`) || key;
+  }
+
+  // Helper function to render status column
+  function renderStatus(val) {
+    const activeText = $_('admin.fields.active');
+    const inactiveText = $_('admin.fields.inactive');
+    return val
+      ? `<span class="text-green-600">${activeText}</span>`
+      : `<span class="text-gray-400">${inactiveText}</span>`;
+  }
+
+  // Data type configurations (keys only, labels from i18n)
   const DATA_TYPES = {
     brands: {
-      label: 'Brands',
+      labelKey: 'brands',
       fields: [
-        { key: 'brandName', label: 'Brand Name', type: 'text', required: true },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'brandName', labelKey: 'brandName', type: 'text', required: true },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'brandName', label: 'Brand Name', sortable: true },
-        { key: 'description', label: 'Description', sortable: false },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'brandName', labelKey: 'brandName', sortable: true },
+        { key: 'description', labelKey: 'description', sortable: false },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     models: {
-      label: 'Models',
+      labelKey: 'models',
       fields: [
-        { key: 'modelName', label: 'Model Name', type: 'text', required: true },
-        { key: 'brandId', label: 'Brand', type: 'select', required: true, relatedType: 'brands' },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'modelName', labelKey: 'modelName', type: 'text', required: true },
+        { key: 'brandId', labelKey: 'brand', type: 'select', required: true, relatedType: 'brands' },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'modelName', label: 'Model Name', sortable: true },
-        { key: 'brandId', label: 'Brand ID', sortable: true },
-        { key: 'description', label: 'Description', sortable: false },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'modelName', labelKey: 'modelName', sortable: true },
+        { key: 'brandId', labelKey: 'brandId', sortable: true },
+        { key: 'description', labelKey: 'description', sortable: false },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     locations: {
-      label: 'Locations',
+      labelKey: 'locations',
       fields: [
-        { key: 'locationCode', label: 'Location Code', type: 'text', required: true },
-        { key: 'locationName', label: 'Location Name', type: 'text', required: true },
-        { key: 'address', label: 'Address', type: 'text' },
-        { key: 'phoneNumber', label: 'Phone Number', type: 'text' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'locationCode', labelKey: 'locationCode', type: 'text', required: true },
+        { key: 'locationName', labelKey: 'locationName', type: 'text', required: true },
+        { key: 'address', labelKey: 'address', type: 'text' },
+        { key: 'phoneNumber', labelKey: 'phoneNumber', type: 'text' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'locationCode', label: 'Code', sortable: true },
-        { key: 'locationName', label: 'Location Name', sortable: true },
-        { key: 'phoneNumber', label: 'Phone', sortable: false },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'locationCode', labelKey: 'code', sortable: true },
+        { key: 'locationName', labelKey: 'locationName', sortable: true },
+        { key: 'phoneNumber', labelKey: 'phone', sortable: false },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     departments: {
-      label: 'Departments',
+      labelKey: 'departments',
       fields: [
-        { key: 'departmentName', label: 'Department Name', type: 'text', required: true },
-        { key: 'departmentCode', label: 'Department Code', type: 'text' },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'departmentName', labelKey: 'departmentName', type: 'text', required: true },
+        { key: 'departmentCode', labelKey: 'departmentCode', type: 'text' },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'departmentCode', label: 'Code', sortable: true },
-        { key: 'departmentName', label: 'Department Name', sortable: true },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'departmentCode', labelKey: 'code', sortable: true },
+        { key: 'departmentName', labelKey: 'departmentName', sortable: true },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     cities: {
-      label: 'Cities',
+      labelKey: 'cities',
       fields: [
-        { key: 'cityName', label: 'City Name', type: 'text', required: true },
-        { key: 'region', label: 'Region', type: 'text' },
-        { key: 'country', label: 'Country', type: 'text' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'cityName', labelKey: 'cityName', type: 'text', required: true },
+        { key: 'region', labelKey: 'region', type: 'text' },
+        { key: 'country', labelKey: 'country', type: 'text' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'cityName', label: 'City Name', sortable: true },
-        { key: 'region', label: 'Region', sortable: true },
-        { key: 'country', label: 'Country', sortable: true },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'cityName', labelKey: 'cityName', sortable: true },
+        { key: 'region', labelKey: 'region', sortable: true },
+        { key: 'country', labelKey: 'country', sortable: true },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     suppliers: {
-      label: 'Suppliers',
+      labelKey: 'suppliers',
       fields: [
-        { key: 'supplierName', label: 'Supplier Name', type: 'text', required: true },
-        { key: 'contactPerson', label: 'Contact Person', type: 'text' },
-        { key: 'contactNumber', label: 'Contact Number', type: 'text' },
-        { key: 'email', label: 'Email', type: 'email' },
-        { key: 'address', label: 'Address', type: 'text' },
-        { key: 'taxId', label: 'Tax ID', type: 'text' },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'supplierName', labelKey: 'supplierName', type: 'text', required: true },
+        { key: 'contactPerson', labelKey: 'contactPerson', type: 'text' },
+        { key: 'contactNumber', labelKey: 'contactNumber', type: 'text' },
+        { key: 'email', labelKey: 'email', type: 'email' },
+        { key: 'address', labelKey: 'address', type: 'text' },
+        { key: 'taxId', labelKey: 'taxId', type: 'text' },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'supplierName', label: 'Supplier Name', sortable: true },
-        { key: 'contactPerson', label: 'Contact', sortable: true },
-        { key: 'contactNumber', label: 'Phone', sortable: false },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'supplierName', labelKey: 'supplierName', sortable: true },
+        { key: 'contactPerson', labelKey: 'contact', sortable: true },
+        { key: 'contactNumber', labelKey: 'phone', sortable: false },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     vehicleTypes: {
-      label: 'Vehicle Types',
+      labelKey: 'vehicleTypes',
       fields: [
-        { key: 'typeName', label: 'Type Name', type: 'text', required: true },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'typeName', labelKey: 'typeName', type: 'text', required: true },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'typeName', label: 'Type Name', sortable: true },
-        { key: 'description', label: 'Description', sortable: false },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'typeName', labelKey: 'typeName', sortable: true },
+        { key: 'description', labelKey: 'description', sortable: false },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     vehicleStatuses: {
-      label: 'Vehicle Statuses',
+      labelKey: 'vehicleStatuses',
       fields: [
-        { key: 'statusCode', label: 'Status Code', type: 'text', required: true },
-        { key: 'statusName', label: 'Status Name', type: 'text', required: true },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'colorCode', label: 'Color Code', type: 'text' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'statusCode', labelKey: 'statusCode', type: 'text', required: true },
+        { key: 'statusName', labelKey: 'statusName', type: 'text', required: true },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'colorCode', labelKey: 'colorCode', type: 'text' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'statusCode', label: 'Code', sortable: true },
-        { key: 'statusName', label: 'Status Name', sortable: true },
-        { key: 'description', label: 'Description', sortable: false },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'statusCode', labelKey: 'code', sortable: true },
+        { key: 'statusName', labelKey: 'statusName', sortable: true },
+        { key: 'description', labelKey: 'description', sortable: false },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     fuelTypes: {
-      label: 'Fuel Types',
+      labelKey: 'fuelTypes',
       fields: [
-        { key: 'fuelCode', label: 'Fuel Code', type: 'text', required: true },
-        { key: 'fuelName', label: 'Fuel Name', type: 'text', required: true },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'unit', label: 'Unit', type: 'text' },
-        { key: 'currentPrice', label: 'Current Price', type: 'number' },
-        { key: 'density', label: 'Density (kg/L)', type: 'number' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'fuelCode', labelKey: 'fuelCode', type: 'text', required: true },
+        { key: 'fuelName', labelKey: 'fuelName', type: 'text', required: true },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'unit', labelKey: 'unit', type: 'text' },
+        { key: 'currentPrice', labelKey: 'currentPrice', type: 'number' },
+        { key: 'density', labelKey: 'density', type: 'number' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'fuelCode', label: 'Code', sortable: true },
-        { key: 'fuelName', label: 'Fuel Type', sortable: true },
-        { key: 'unit', label: 'Unit', sortable: false },
-        { key: 'currentPrice', label: 'Price', sortable: true, render: (val) => val ? `${parseFloat(val).toFixed(2)} RON` : '-' },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'fuelCode', labelKey: 'code', sortable: true },
+        { key: 'fuelName', labelKey: 'fuelType', sortable: true },
+        { key: 'unit', labelKey: 'unit', sortable: false },
+        { key: 'currentPrice', labelKey: 'price', sortable: true, render: (val) => val ? `${parseFloat(val).toFixed(2)} RON` : '-' },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     fuelStations: {
-      label: 'Fuel Stations',
+      labelKey: 'fuelStations',
       fields: [
-        { key: 'stationName', label: 'Station Name', type: 'text', required: true },
-        { key: 'stationCode', label: 'Station Code', type: 'text', required: true },
-        { key: 'address', label: 'Address', type: 'text' },
-        { key: 'city', label: 'City', type: 'text' },
-        { key: 'state', label: 'State/Province', type: 'text' },
-        { key: 'postalCode', label: 'Postal Code', type: 'text' },
-        { key: 'country', label: 'Country', type: 'text' },
-        { key: 'phone', label: 'Phone', type: 'text' },
-        { key: 'email', label: 'Email', type: 'email' },
-        { key: 'operatingHours', label: 'Operating Hours', type: 'text' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'stationName', labelKey: 'stationName', type: 'text', required: true },
+        { key: 'stationCode', labelKey: 'stationCode', type: 'text', required: true },
+        { key: 'address', labelKey: 'address', type: 'text' },
+        { key: 'city', labelKey: 'city', type: 'text' },
+        { key: 'state', labelKey: 'state', type: 'text' },
+        { key: 'postalCode', labelKey: 'postalCode', type: 'text' },
+        { key: 'country', labelKey: 'country', type: 'text' },
+        { key: 'phone', labelKey: 'phone', type: 'text' },
+        { key: 'email', labelKey: 'email', type: 'email' },
+        { key: 'operatingHours', labelKey: 'operatingHours', type: 'text' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'stationCode', label: 'Code', sortable: true },
-        { key: 'stationName', label: 'Station Name', sortable: true },
-        { key: 'city', label: 'City', sortable: true },
-        { key: 'phone', label: 'Phone', sortable: false },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'stationCode', labelKey: 'code', sortable: true },
+        { key: 'stationName', labelKey: 'stationName', sortable: true },
+        { key: 'city', labelKey: 'city', sortable: true },
+        { key: 'phone', labelKey: 'phone', sortable: false },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     units: {
-      label: 'Units',
+      labelKey: 'units',
       fields: [
-        { key: 'unitCode', label: 'Unit Code', type: 'text', required: true },
-        { key: 'unitName', label: 'Unit Name', type: 'text', required: true },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'unitCode', labelKey: 'unitCode', type: 'text', required: true },
+        { key: 'unitName', labelKey: 'unitName', type: 'text', required: true },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'unitCode', label: 'Code', sortable: true },
-        { key: 'unitName', label: 'Unit Name', sortable: true },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'unitCode', labelKey: 'code', sortable: true },
+        { key: 'unitName', labelKey: 'unitName', sortable: true },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     materialTypes: {
-      label: 'Material Types',
+      labelKey: 'materialTypes',
       fields: [
-        { key: 'typeCode', label: 'Type Code', type: 'text', required: true },
-        { key: 'typeName', label: 'Type Name', type: 'text', required: true },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'typeCode', labelKey: 'typeCode', type: 'text', required: true },
+        { key: 'typeName', labelKey: 'typeName', type: 'text', required: true },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'typeCode', label: 'Code', sortable: true },
-        { key: 'typeName', label: 'Type Name', sortable: true },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'typeCode', labelKey: 'code', sortable: true },
+        { key: 'typeName', labelKey: 'typeName', sortable: true },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     materialCategories: {
-      label: 'Material Categories',
+      labelKey: 'materialCategories',
       fields: [
-        { key: 'categoryCode', label: 'Category Code', type: 'text', required: true },
-        { key: 'categoryName', label: 'Category Name', type: 'text', required: true },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'categoryCode', labelKey: 'categoryCode', type: 'text', required: true },
+        { key: 'categoryName', labelKey: 'categoryName', type: 'text', required: true },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'categoryCode', label: 'Code', sortable: true },
-        { key: 'categoryName', label: 'Category Name', sortable: true },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'categoryCode', labelKey: 'code', sortable: true },
+        { key: 'categoryName', labelKey: 'categoryName', sortable: true },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     positions: {
-      label: 'Positions',
+      labelKey: 'positions',
       fields: [
-        { key: 'positionCode', label: 'Position Code', type: 'text', required: true },
-        { key: 'positionName', label: 'Position Name', type: 'text', required: true },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'positionCode', labelKey: 'positionCode', type: 'text', required: true },
+        { key: 'positionName', labelKey: 'positionName', type: 'text', required: true },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'positionCode', label: 'Code', sortable: true },
-        { key: 'positionName', label: 'Position Name', sortable: true },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'positionCode', labelKey: 'code', sortable: true },
+        { key: 'positionName', labelKey: 'positionName', sortable: true },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     licenseTypes: {
-      label: 'License Types',
+      labelKey: 'licenseTypes',
       fields: [
-        { key: 'typeCode', label: 'Type Code', type: 'text', required: true },
-        { key: 'typeName', label: 'Type Name', type: 'text', required: true },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'typeCode', labelKey: 'typeCode', type: 'text', required: true },
+        { key: 'typeName', labelKey: 'typeName', type: 'text', required: true },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'typeCode', label: 'Code', sortable: true },
-        { key: 'typeName', label: 'Type Name', sortable: true },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'typeCode', labelKey: 'code', sortable: true },
+        { key: 'typeName', labelKey: 'typeName', sortable: true },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     inspectionTypes: {
-      label: 'Inspection Types',
+      labelKey: 'inspectionTypes',
       fields: [
-        { key: 'typeName', label: 'Type Name', type: 'text', required: true },
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'typeName', labelKey: 'typeName', type: 'text', required: true },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'typeCode', label: 'Code', sortable: true },
-        { key: 'typeName', label: 'Type Name', sortable: true },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'typeCode', labelKey: 'code', sortable: true },
+        { key: 'typeName', labelKey: 'typeName', sortable: true },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
     maintenanceTypes: {
-      label: 'Maintenance Types',
+      labelKey: 'maintenanceTypes',
       fields: [
-        { key: 'typeName', label: 'Type Name', type: 'text', required: true },
-        { key: 'category', label: 'Category', type: 'select', required: true, options: [
-          { value: 'preventive', label: 'Preventive' },
-          { value: 'corrective', label: 'Corrective' },
-          { value: 'emergency', label: 'Emergency' },
-          { value: 'inspection', label: 'Inspection' },
-        ]},
-        { key: 'description', label: 'Description', type: 'textarea' },
-        { key: 'estimatedDuration', label: 'Estimated Duration (minutes)', type: 'number' },
-        { key: 'estimatedCost', label: 'Estimated Cost', type: 'number' },
-        { key: 'priority', label: 'Priority (1-5)', type: 'number' },
-        { key: 'active', label: 'Active', type: 'checkbox' },
+        { key: 'typeName', labelKey: 'typeName', type: 'text', required: true },
+        { key: 'category', labelKey: 'category', type: 'select', required: true, optionsKey: 'categories' },
+        { key: 'description', labelKey: 'description', type: 'textarea' },
+        { key: 'estimatedDuration', labelKey: 'estimatedDuration', type: 'number' },
+        { key: 'estimatedCost', labelKey: 'estimatedCost', type: 'number' },
+        { key: 'priority', labelKey: 'priorityRange', type: 'number' },
+        { key: 'active', labelKey: 'active', type: 'checkbox' },
       ],
       columns: [
-        { key: 'id', label: 'ID', sortable: true },
-        { key: 'typeCode', label: 'Code', sortable: true },
-        { key: 'typeName', label: 'Type Name', sortable: true },
-        { key: 'category', label: 'Category', sortable: true },
-        { key: 'priority', label: 'Priority', sortable: true },
-        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
-        { key: 'actions', label: 'Actions', sortable: false },
+        { key: 'id', labelKey: 'id', sortable: true },
+        { key: 'typeCode', labelKey: 'code', sortable: true },
+        { key: 'typeName', labelKey: 'typeName', sortable: true },
+        { key: 'category', labelKey: 'category', sortable: true },
+        { key: 'priority', labelKey: 'priority', sortable: true },
+        { key: 'active', labelKey: 'status', sortable: true, renderStatus: true },
+        { key: 'actions', labelKey: 'actions', sortable: false },
       ],
     },
   };
+
+  // Get category options for maintenance types
+  function getCategoryOptions() {
+    return [
+      { value: 'preventive', label: $_('admin.categories.preventive') },
+      { value: 'corrective', label: $_('admin.categories.corrective') },
+      { value: 'emergency', label: $_('admin.categories.emergency') },
+      { value: 'inspection', label: $_('admin.categories.inspection') },
+    ];
+  }
 
   let selectedDataType = 'brands';
   let data = [];
@@ -329,29 +354,43 @@
   let pageSize = 20;
 
   $: config = DATA_TYPES[selectedDataType];
+  $: currentLabel = config ? getDataTypeLabel(config.labelKey) : '';
   $: tableColumns = config?.columns.map(col => {
+    const baseCol = {
+      ...col,
+      label: getFieldLabel(col.labelKey),
+    };
+
     if (col.key === 'actions') {
       return {
-        ...col,
+        ...baseCol,
         render: (value, row) => `
           <div class="flex gap-2">
             <button
               onclick="window.editItem(${row.id})"
               class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
             >
-              Edit
+              ${$_('common.edit')}
             </button>
             <button
               onclick="window.deleteItem(${row.id})"
               class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
             >
-              Delete
+              ${$_('common.delete')}
             </button>
           </div>
         `,
       };
     }
-    return col;
+
+    if (col.renderStatus) {
+      return {
+        ...baseCol,
+        render: renderStatus,
+      };
+    }
+
+    return baseCol;
   });
 
   onMount(() => {
@@ -388,7 +427,7 @@
         goto('/');
         return;
       }
-      alert('Failed to load data: ' + error.message);
+      alert($_('admin.failedToLoad') + ': ' + error.message);
     } finally {
       loading = false;
     }
@@ -430,17 +469,17 @@
   }
 
   async function deleteItem(id) {
-    if (!confirm('Are you sure you want to delete this item?')) {
+    if (!confirm($_('admin.deleteConfirm'))) {
       return;
     }
 
     try {
       await api.deleteReferenceData(selectedDataType, id);
-      alert('Item deleted successfully');
+      alert($_('admin.itemDeleted'));
       await loadData();
     } catch (error) {
       console.error('Error deleting item:', error);
-      alert('Failed to delete item: ' + error.message);
+      alert($_('admin.failedToDelete') + ': ' + error.message);
     }
   }
 
@@ -466,7 +505,7 @@
 
       if (modalMode === 'create') {
         await api.createReferenceData(selectedDataType, fullSubmitData);
-        alert('Item created successfully');
+        alert($_('admin.itemCreated'));
       } else {
         // For updates, detect and send only changed fields
         const changedFields = formTracker ? formTracker.detectChanges(fullSubmitData) : fullSubmitData;
@@ -493,9 +532,9 @@
         // Only send PATCH if there are changes
         if (Object.keys(payload).length > 0) {
           await api.patchReferenceData(selectedDataType, currentItem.id, payload);
-          alert('Item updated successfully');
+          alert($_('admin.itemUpdated'));
         } else {
-          alert('No changes to save');
+          alert($_('admin.noChanges'));
         }
       }
 
@@ -503,7 +542,7 @@
       await loadData();
     } catch (error) {
       console.error('Error saving item:', error);
-      alert('Failed to save item: ' + error.message);
+      alert($_('admin.failedToSave') + ': ' + error.message);
     }
   }
 
@@ -515,7 +554,7 @@
 </script>
 
 <svelte:head>
-  <title>Reference Data - MedFMS</title>
+  <title>{$_('admin.pageTitle')}</title>
 </svelte:head>
 
 <div class="container mx-auto px-6 py-8">
@@ -525,15 +564,15 @@
       <button
         on:click={() => goto('/dashboard')}
         class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-        title="Back to Dashboard"
+        title={$_('admin.backToDashboard')}
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">Reference Data</h1>
-        <p class="text-gray-600 mt-1">Manage system reference data and configurations</p>
+        <h1 class="text-3xl font-bold text-gray-900">{$_('admin.referenceData')}</h1>
+        <p class="text-gray-600 mt-1">{$_('admin.manageReferenceData')}</p>
       </div>
     </div>
 
@@ -546,7 +585,7 @@
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
         </svg>
-        User Management
+        {$_('admin.userManagement')}
       </button>
       <button
         on:click={() => goto('/admin/material-units')}
@@ -555,7 +594,7 @@
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
         </svg>
-        Material Units
+        {$_('admin.materialUnits.title')}
       </button>
     </div>
 
@@ -569,7 +608,7 @@
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
           >
-            {type.label}
+            {getDataTypeLabel(type.labelKey)}
           </button>
         {/each}
       </nav>
@@ -581,9 +620,9 @@
     <!-- Table Header with Add Button -->
     <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
       <div>
-        <h2 class="text-xl font-semibold text-gray-900">{config?.label}</h2>
+        <h2 class="text-xl font-semibold text-gray-900">{currentLabel}</h2>
         <p class="text-sm text-gray-600 mt-1">
-          {data.length} {data.length === 1 ? 'record' : 'records'}
+          {data.length} {data.length === 1 ? $_('admin.record') : $_('admin.records')}
         </p>
       </div>
       <button
@@ -593,7 +632,7 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Add New
+        {$_('admin.addNew')}
       </button>
     </div>
 
@@ -601,19 +640,19 @@
     {#if loading}
       <div class="p-12 text-center">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        <p class="text-gray-600 mt-4">Loading data...</p>
+        <p class="text-gray-600 mt-4">{$_('admin.loadingData')}</p>
       </div>
     {:else if data.length === 0}
       <div class="p-12 text-center">
         <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
         </svg>
-        <p class="text-gray-600 mb-4">No {config?.label.toLowerCase()} found</p>
+        <p class="text-gray-600 mb-4">{$_('admin.noDataFound', { type: currentLabel.toLowerCase() })}</p>
         <button
           on:click={openCreateModal}
           class="btn btn-primary"
         >
-          Add First {config?.label.slice(0, -1)}
+          {$_('admin.addFirst', { type: currentLabel })}
         </button>
       </div>
     {:else}
@@ -635,12 +674,12 @@
 </div>
 
 <!-- Create/Edit Modal -->
-<Modal bind:open={showModal} title="{modalMode === 'create' ? 'Create' : 'Edit'} {config?.label}">
+<Modal bind:open={showModal} title="{modalMode === 'create' ? $_('admin.create') : $_('common.edit')} {currentLabel}">
   <form on:submit|preventDefault={handleSubmit} class="space-y-4">
     {#each config?.fields || [] as field}
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
-          {field.label}
+          {getFieldLabel(field.labelKey)}
           {#if field.required}
             <span class="text-red-500">*</span>
           {/if}
@@ -665,12 +704,12 @@
             required={field.required}
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="">Select {field.label}</option>
-            {#if field.options}
-              {#each field.options as option}
+            <option value="">{$_('admin.select', { field: getFieldLabel(field.labelKey) })}</option>
+            {#if field.optionsKey === 'categories'}
+              {#each getCategoryOptions() as option}
                 <option value={option.value}>{option.label}</option>
               {/each}
-            {:else}
+            {:else if field.relatedType}
               {#each relatedData[field.relatedType] || [] as option}
                 <option value={option.id}>
                   {option.brandName || option.typeName || option.categoryName || option.name || `ID: ${option.id}`}
@@ -709,13 +748,13 @@
         on:click={closeModal}
         class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
       >
-        Cancel
+        {$_('common.cancel')}
       </button>
       <button
         type="submit"
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
       >
-        {modalMode === 'create' ? 'Create' : 'Save Changes'}
+        {modalMode === 'create' ? $_('admin.create') : $_('admin.saveChanges')}
       </button>
     </div>
   </form>

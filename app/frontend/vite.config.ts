@@ -13,17 +13,7 @@ export default defineConfig({
 		}
 	},
 	optimizeDeps: {
-		// Exclude pdfjs-dist from pre-bundling to avoid worker issues
-		exclude: ['pdfjs-dist']
-	},
-	build: {
-		// Ensure pdfjs-dist worker files are handled correctly
-		rollupOptions: {
-			output: {
-				manualChunks: {
-					pdfjs: ['pdfjs-dist']
-				}
-			}
-		}
+		// Include pdfjs-dist in pre-bundling for proper build handling
+		include: ['pdfjs-dist']
 	}
 });

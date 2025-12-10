@@ -1,11 +1,12 @@
 <script>
 	import { onMount, tick } from 'svelte';
 	import { api } from '$lib/api';
+	import { _ } from '$lib/i18n';
 	import Modal from './Modal.svelte';
 
 	export let entityType;
 	export let entityId;
-	export let title = 'Photos';
+	export let title = null;
 	export let maxFileSize = 10 * 1024 * 1024; // 10MB default
 	export let maxFiles = 10; // Maximum files per upload
 
@@ -321,7 +322,7 @@
 
 <div class="bg-white rounded-lg shadow p-6">
 	<div class="flex justify-between items-center mb-4">
-		<h3 class="text-lg font-semibold text-gray-900">{title}</h3>
+		<h3 class="text-lg font-semibold text-gray-900">{title || $_('photos.title')}</h3>
 		<button
 			on:click={() => showUploadModal = true}
 			class="btn btn-primary btn-sm"
@@ -329,7 +330,7 @@
 			<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
 			</svg>
-			Upload Photo
+			{$_('photos.uploadPhoto')}
 		</button>
 	</div>
 
@@ -342,8 +343,8 @@
 			<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
 			</svg>
-			<h3 class="mt-2 text-sm font-medium text-gray-900">No photos</h3>
-			<p class="mt-1 text-sm text-gray-500">Get started by uploading a photo.</p>
+			<h3 class="mt-2 text-sm font-medium text-gray-900">{$_('photos.noPhotos')}</h3>
+			<p class="mt-1 text-sm text-gray-500">{$_('photos.getStarted')}</p>
 		</div>
 	{:else}
 		<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -366,7 +367,7 @@
 					{#if photo.isPrimary}
 						<div class="absolute top-2 left-2">
 							<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-								Primary
+								{$_('common.primary')}
 							</span>
 						</div>
 					{/if}
@@ -374,7 +375,7 @@
 						<button
 							on:click|stopPropagation={() => handleDelete(photo)}
 							class="p-1 bg-red-600 text-white rounded-full hover:bg-red-700"
-							title="Delete photo"
+							title={$_('photos.deletePhoto')}
 						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -394,7 +395,7 @@
 <!-- Upload Modal -->
 <Modal
 	open={showUploadModal}
-	title="Upload Photos"
+	title={$_('photos.uploadPhotos')}
 	size="lg"
 	on:close={closeUploadModal}
 >
@@ -410,9 +411,9 @@
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
 			</svg>
 			<p class="mt-2 text-sm text-gray-600">
-				Drag and drop images here, or
+				{$_('photos.dragAndDrop')}
 				<label for="photo-file-input" class="text-primary-600 hover:text-primary-500 cursor-pointer font-medium">
-					browse
+					{$_('common.browse')}
 				</label>
 			</p>
 			<input
@@ -424,14 +425,14 @@
 				accept="image/*"
 			/>
 			<p class="mt-1 text-xs text-gray-500">
-				Maximum {maxFiles} images, {formatFileSize(maxFileSize)} per file
+				{$_('photos.maxFiles', { values: { count: maxFiles, size: formatFileSize(maxFileSize) }})}
 			</p>
 		</div>
 
 		<!-- Selected files preview -->
 		{#if uploadFiles.length > 0}
 			<div class="space-y-2 max-h-64 overflow-y-auto">
-				<h4 class="text-sm font-medium text-gray-700">Selected Photos ({uploadFiles.length})</h4>
+				<h4 class="text-sm font-medium text-gray-700">{$_('photos.selectedPhotos')} ({uploadFiles.length})</h4>
 				{#each uploadFiles as file, index}
 					<div class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
 						<!-- Preview -->
@@ -450,7 +451,7 @@
 								bind:value={file.photoName}
 								on:input={() => updateFileName(file, index)}
 								class="w-full text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded px-2 py-1"
-								placeholder="Photo name"
+								placeholder={$_('common.name')}
 							/>
 							<p class="text-xs text-gray-500 mt-1">
 								{file.name} • {formatFileSize(file.size)}
@@ -468,7 +469,7 @@
 										</div>
 										<p class="text-xs text-gray-500 mt-0.5">{uploadProgress[index].progress}%</p>
 									{:else if uploadProgress[index].success}
-										<p class="text-xs text-green-600">✓ Uploaded successfully</p>
+										<p class="text-xs text-green-600">{$_('photos.uploadedSuccessfully')}</p>
 									{:else if uploadProgress[index].error}
 										<p class="text-xs text-red-600">✗ {uploadProgress[index].error}</p>
 									{/if}
@@ -495,18 +496,17 @@
 		<!-- Shared metadata for all photos -->
 		{#if uploadFiles.length > 0}
 			<div class="space-y-4 pt-4 border-t border-gray-200">
-				<h4 class="text-sm font-medium text-gray-700">Photo Details (applies to all photos)</h4>
+				<h4 class="text-sm font-medium text-gray-700">{$_('photos.photoDetails')}</h4>
 
 				<div>
 					<label for="photo-description" class="block text-sm font-medium text-gray-700 mb-2">
-						Description
+						{$_('common.description')}
 					</label>
 					<textarea
 						id="photo-description"
 						bind:value={uploadData.description}
 						rows="2"
 						class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-						placeholder="Enter description (optional)"
 					></textarea>
 				</div>
 
@@ -518,7 +518,7 @@
 						class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
 					/>
 					<label for="photo-primary" class="ml-2 block text-sm text-gray-900">
-						Set first photo as primary
+						{$_('photos.setAsPrimary')}
 					</label>
 				</div>
 			</div>
@@ -527,7 +527,7 @@
 
 	<svelte:fragment slot="footer">
 		<button type="button" class="btn btn-secondary" on:click={closeUploadModal}>
-			Cancel
+			{$_('common.cancel')}
 		</button>
 		<button
 			type="button"
@@ -540,9 +540,9 @@
 					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 				</svg>
-				Uploading...
+				{$_('common.uploading')}
 			{:else}
-				Upload {uploadFiles.length} Photo{uploadFiles.length !== 1 ? 's' : ''}
+				{uploadFiles.length === 1 ? $_('photos.uploadCount', { values: { count: uploadFiles.length }}) : $_('photos.uploadCountPlural', { values: { count: uploadFiles.length }})}
 			{/if}
 		</button>
 	</svelte:fragment>
@@ -551,7 +551,7 @@
 <!-- Photo View Modal -->
 <Modal
 	open={showViewModal}
-	title={selectedPhoto?.photoName || 'Photo'}
+	title={selectedPhoto?.photoName || $_('photos.title')}
 	size="lg"
 	on:close={closeViewModal}
 >
@@ -573,32 +573,32 @@
 
 			<div class="space-y-2">
 				<div class="flex justify-between">
-					<span class="text-sm font-medium text-gray-700">Name:</span>
+					<span class="text-sm font-medium text-gray-700">{$_('common.name')}:</span>
 					<span class="text-sm text-gray-900">{selectedPhoto.photoName}</span>
 				</div>
 
 				{#if selectedPhoto.description}
 					<div class="flex justify-between">
-						<span class="text-sm font-medium text-gray-700">Description:</span>
+						<span class="text-sm font-medium text-gray-700">{$_('common.description')}:</span>
 						<span class="text-sm text-gray-900">{selectedPhoto.description}</span>
 					</div>
 				{/if}
 
 				<div class="flex justify-between">
-					<span class="text-sm font-medium text-gray-700">Uploaded:</span>
+					<span class="text-sm font-medium text-gray-700">{$_('common.uploaded')}:</span>
 					<span class="text-sm text-gray-900">{formatDate(selectedPhoto.createdAt)}</span>
 				</div>
 
 				<div class="flex justify-between">
-					<span class="text-sm font-medium text-gray-700">File Size:</span>
+					<span class="text-sm font-medium text-gray-700">{$_('common.fileSize')}:</span>
 					<span class="text-sm text-gray-900">{formatFileSize(selectedPhoto.fileSize)}</span>
 				</div>
 
 				{#if selectedPhoto.isPrimary}
 					<div class="flex justify-between">
-						<span class="text-sm font-medium text-gray-700">Status:</span>
+						<span class="text-sm font-medium text-gray-700">{$_('common.status')}:</span>
 						<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-							Primary Photo
+							{$_('photos.primaryPhoto')}
 						</span>
 					</div>
 				{/if}
@@ -608,7 +608,7 @@
 
 	<svelte:fragment slot="footer">
 		<button type="button" class="btn btn-secondary" on:click={closeViewModal}>
-			Close
+			{$_('common.close')}
 		</button>
 		{#if selectedPhoto}
 			<button
@@ -616,7 +616,7 @@
 				class="btn btn-danger"
 				on:click={() => { handleDelete(selectedPhoto); closeViewModal(); }}
 			>
-				Delete Photo
+				{$_('photos.deletePhoto')}
 			</button>
 		{/if}
 	</svelte:fragment>

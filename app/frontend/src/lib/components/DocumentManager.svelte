@@ -2,11 +2,12 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { api } from '$lib/api';
+	import { _ } from '$lib/i18n';
 	import Modal from './Modal.svelte';
 
 	export let entityType;
 	export let entityId;
-	export let title = 'Documents';
+	export let title = null;
 	export let maxFileSize = 10 * 1024 * 1024; // 10MB default
 	export let maxFiles = 10; // Maximum files per upload
 
@@ -382,7 +383,7 @@
 
 <div class="bg-white rounded-lg shadow p-6">
 	<div class="flex justify-between items-center mb-4">
-		<h3 class="text-lg font-semibold text-gray-900">{title}</h3>
+		<h3 class="text-lg font-semibold text-gray-900">{title || $_('documents.title')}</h3>
 		<button
 			on:click={() => showUploadModal = true}
 			class="btn btn-primary btn-sm"
@@ -390,7 +391,7 @@
 			<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
 			</svg>
-			Upload Document
+			{$_('documents.uploadDocument')}
 		</button>
 	</div>
 
@@ -403,8 +404,8 @@
 			<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
 			</svg>
-			<h3 class="mt-2 text-sm font-medium text-gray-900">No documents</h3>
-			<p class="mt-1 text-sm text-gray-500">Get started by uploading a document.</p>
+			<h3 class="mt-2 text-sm font-medium text-gray-900">{$_('documents.noDocuments')}</h3>
+			<p class="mt-1 text-sm text-gray-500">{$_('documents.getStarted')}</p>
 		</div>
 	{:else}
 		<div class="space-y-3">
@@ -445,7 +446,7 @@
 							{/if}
 							{#if document.expiryDate}
 								<div class="text-sm text-orange-600 mt-1">
-									Expires: {formatDate(document.expiryDate)}
+									{$_('documents.expires')}: {formatDate(document.expiryDate)}
 								</div>
 							{/if}
 						</div>
@@ -454,7 +455,7 @@
 						<button
 							on:click|stopPropagation={() => handleView(document)}
 							class="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded"
-							title="View"
+							title={$_('documents.view')}
 						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -464,7 +465,7 @@
 						<button
 							on:click|stopPropagation={() => handleDownload(document)}
 							class="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded"
-							title="Download"
+							title={$_('common.download')}
 						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -473,7 +474,7 @@
 						<button
 							on:click|stopPropagation={() => handleDelete(document)}
 							class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded"
-							title="Delete"
+							title={$_('common.delete')}
 						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -489,7 +490,7 @@
 <!-- Upload Modal -->
 <Modal
 	open={showUploadModal}
-	title="Upload Documents"
+	title={$_('documents.uploadDocuments')}
 	size="lg"
 	on:close={closeUploadModal}
 >
@@ -505,9 +506,9 @@
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
 			</svg>
 			<p class="mt-2 text-sm text-gray-600">
-				Drag and drop files here, or
+				{$_('documents.dragAndDrop')}
 				<label for="document-file-input" class="text-primary-600 hover:text-primary-500 cursor-pointer font-medium">
-					browse
+					{$_('common.browse')}
 				</label>
 			</p>
 			<input
@@ -519,14 +520,14 @@
 				accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp"
 			/>
 			<p class="mt-1 text-xs text-gray-500">
-				Maximum {maxFiles} files, {formatFileSize(maxFileSize)} per file
+				{$_('documents.maxFiles', { values: { count: maxFiles, size: formatFileSize(maxFileSize) }})}
 			</p>
 		</div>
 
 		<!-- Selected files preview -->
 		{#if uploadFiles.length > 0}
 			<div class="space-y-2 max-h-64 overflow-y-auto">
-				<h4 class="text-sm font-medium text-gray-700">Selected Files ({uploadFiles.length})</h4>
+				<h4 class="text-sm font-medium text-gray-700">{$_('documents.selectedFiles', { values: { count: uploadFiles.length }})}</h4>
 				{#each uploadFiles as file, index}
 					<div class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
 						<!-- Preview -->
@@ -553,7 +554,7 @@
 								bind:value={file.documentName}
 								on:input={() => updateFileName(file, index)}
 								class="w-full text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded px-2 py-1"
-								placeholder="Document name"
+								placeholder={$_('documents.documentName')}
 							/>
 							<p class="text-xs text-gray-500 mt-1">
 								{file.name} • {formatFileSize(file.size)}
@@ -571,7 +572,7 @@
 										</div>
 										<p class="text-xs text-gray-500 mt-0.5">{uploadProgress[index].progress}%</p>
 									{:else if uploadProgress[index].success}
-										<p class="text-xs text-green-600">✓ Uploaded successfully</p>
+										<p class="text-xs text-green-600">{$_('documents.uploadedSuccessfully')}</p>
 									{:else if uploadProgress[index].error}
 										<p class="text-xs text-red-600">✗ {uploadProgress[index].error}</p>
 									{/if}
@@ -598,18 +599,18 @@
 		<!-- Shared metadata for all files -->
 		{#if uploadFiles.length > 0}
 			<div class="space-y-4 pt-4 border-t border-gray-200">
-				<h4 class="text-sm font-medium text-gray-700">Document Details (applies to all files)</h4>
+				<h4 class="text-sm font-medium text-gray-700">{$_('documents.documentDetails')}</h4>
 
 				<div>
 					<label for="document-category" class="block text-sm font-medium text-gray-700 mb-2">
-						Category
+						{$_('documents.category')}
 					</label>
 					<select
 						id="document-category"
 						bind:value={uploadData.categoryId}
 						class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 					>
-						<option value="">Select a category</option>
+						<option value="">{$_('documents.selectCategory')}</option>
 						{#each categories as category}
 							<option value={category.id}>{category.categoryName}</option>
 						{/each}
@@ -618,20 +619,20 @@
 
 				<div>
 					<label for="document-description" class="block text-sm font-medium text-gray-700 mb-2">
-						Description
+						{$_('common.description')}
 					</label>
 					<textarea
 						id="document-description"
 						bind:value={uploadData.description}
 						rows="2"
 						class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-						placeholder="Enter description (optional)"
+						placeholder={$_('common.description')}
 					></textarea>
 				</div>
 
 				<div>
 					<label for="document-expiry" class="block text-sm font-medium text-gray-700 mb-2">
-						Expiry Date
+						{$_('documents.expiryDate')}
 					</label>
 					<input
 						id="document-expiry"
@@ -649,7 +650,7 @@
 						class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
 					/>
 					<label for="document-public" class="ml-2 block text-sm text-gray-900">
-						Make these documents public
+						{$_('documents.makePublic')}
 					</label>
 				</div>
 			</div>
@@ -658,7 +659,7 @@
 
 	<svelte:fragment slot="footer">
 		<button type="button" class="btn btn-secondary" on:click={closeUploadModal}>
-			Cancel
+			{$_('common.cancel')}
 		</button>
 		<button
 			type="button"
@@ -671,9 +672,9 @@
 					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 					<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 				</svg>
-				Uploading...
+				{$_('documents.uploading')}
 			{:else}
-				Upload {uploadFiles.length} Document{uploadFiles.length !== 1 ? 's' : ''}
+				{uploadFiles.length === 1 ? $_('documents.uploadCount', { values: { count: uploadFiles.length }}) : $_('documents.uploadCountPlural', { values: { count: uploadFiles.length }})}
 			{/if}
 		</button>
 	</svelte:fragment>
@@ -692,26 +693,26 @@
 			<div class="bg-gray-50 p-4 rounded-lg">
 				<dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
 					<div>
-						<dt class="font-medium text-gray-500">Category</dt>
-						<dd class="text-gray-900">{selectedDocument.categoryName || 'Uncategorized'}</dd>
+						<dt class="font-medium text-gray-500">{$_('documents.category')}</dt>
+						<dd class="text-gray-900">{selectedDocument.categoryName || $_('documents.uncategorized')}</dd>
 					</div>
 					<div>
-						<dt class="font-medium text-gray-500">File Size</dt>
+						<dt class="font-medium text-gray-500">{$_('common.fileSize')}</dt>
 						<dd class="text-gray-900">{formatFileSize(selectedDocument.fileSize)}</dd>
 					</div>
 					<div>
-						<dt class="font-medium text-gray-500">Uploaded</dt>
+						<dt class="font-medium text-gray-500">{$_('common.uploaded')}</dt>
 						<dd class="text-gray-900">{formatDate(selectedDocument.createdAt)}</dd>
 					</div>
 					{#if selectedDocument.expiryDate}
 						<div>
-							<dt class="font-medium text-gray-500">Expires</dt>
+							<dt class="font-medium text-gray-500">{$_('documents.expires')}</dt>
 							<dd class="text-orange-600">{formatDate(selectedDocument.expiryDate)}</dd>
 						</div>
 					{/if}
 					{#if selectedDocument.description}
 						<div class="col-span-2">
-							<dt class="font-medium text-gray-500">Description</dt>
+							<dt class="font-medium text-gray-500">{$_('common.description')}</dt>
 							<dd class="text-gray-900">{selectedDocument.description}</dd>
 						</div>
 					{/if}
@@ -766,8 +767,8 @@
 						<div class="p-12 text-center">
 							<span class="text-6xl">{getFileIcon(selectedDocument.mimeType)}</span>
 							<p class="mt-4 text-gray-900 font-medium">{selectedDocument.documentName}</p>
-							<p class="mt-2 text-gray-600">Microsoft Office documents cannot be previewed directly</p>
-							<p class="text-sm text-gray-500 mt-2">Click download to open the file in the appropriate application</p>
+							<p class="mt-2 text-gray-600">{$_('documents.officeNoPreview')}</p>
+							<p class="text-sm text-gray-500 mt-2">{$_('documents.clickDownload')}</p>
 							<button
 								type="button"
 								class="btn btn-primary mt-4"
@@ -776,14 +777,14 @@
 								<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
 								</svg>
-								Download File
+								{$_('documents.downloadFile')}
 							</button>
 						</div>
 					{:else}
 						<div class="p-12 text-center">
 							<span class="text-6xl">{getFileIcon(selectedDocument.mimeType)}</span>
-							<p class="mt-4 text-gray-600">Preview not available for this file type</p>
-							<p class="text-sm text-gray-500 mt-2">Click download to view the file</p>
+							<p class="mt-4 text-gray-600">{$_('documents.previewNotAvailable')}</p>
+							<p class="text-sm text-gray-500 mt-2">{$_('documents.clickDownloadView')}</p>
 							<button
 								type="button"
 								class="btn btn-primary mt-4"
@@ -792,7 +793,7 @@
 								<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
 								</svg>
-								Download File
+								{$_('documents.downloadFile')}
 							</button>
 						</div>
 					{/if}
@@ -813,10 +814,10 @@
 				<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
 				</svg>
-				Download
+				{$_('common.download')}
 			</button>
 			<button type="button" class="btn btn-primary" on:click={closeViewerModal}>
-				Close
+				{$_('common.close')}
 			</button>
 		</svelte:fragment>
 	</Modal>

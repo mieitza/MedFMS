@@ -423,7 +423,7 @@
 	{#if loading}
 		<div class="text-center py-8">
 			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-			<p class="mt-2 text-sm text-gray-500">Loading inventory...</p>
+			<p class="mt-2 text-sm text-gray-500">{$_('common.loading')}</p>
 		</div>
 	{:else if error}
 		<div class="text-center py-8 text-red-500">
@@ -450,7 +450,7 @@
 					<div class="flex justify-between items-start">
 						<div class="flex-1">
 							<div class="flex items-center space-x-2 mb-2">
-								<h4 class="font-medium text-gray-900">{assignment.item?.itemName || 'Unknown Item'}</h4>
+								<h4 class="font-medium text-gray-900">{assignment.item?.itemName || $_('common.unknown')}</h4>
 								<span class="px-2 py-1 text-xs font-medium rounded-full {getConditionColor(assignment.assignment.condition)}">
 									{assignment.assignment.condition}
 								</span>
@@ -487,7 +487,7 @@
 
 							{#if assignment.category}
 								<div class="text-sm text-gray-500">
-									<span class="font-medium">Category:</span> {assignment.category.categoryName}
+									<span class="font-medium">{$_('inventory.category')}:</span> {assignment.category.categoryName}
 								</div>
 							{/if}
 						</div>
@@ -496,7 +496,7 @@
 							<button
 								on:click={() => openDispenseModal(assignment)}
 								class="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-								title="Dispense"
+								title={$_('inventory.dispense')}
 								disabled={assignment.assignment.quantity === 0}
 							>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -506,7 +506,7 @@
 							<button
 								on:click={() => openInspectionModal(assignment)}
 								class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-								title="Inspect"
+								title={$_('vehicles.inventory.recordInspection')}
 							>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
@@ -515,7 +515,7 @@
 							<button
 								on:click={() => openEditModal(assignment)}
 								class="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
-								title="Edit"
+								title={$_('common.edit')}
 							>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -524,7 +524,7 @@
 							<button
 								on:click={() => handleRemove(assignment)}
 								class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-								title="Remove"
+								title={$_('common.remove')}
 							>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -544,7 +544,7 @@
 		<div>
 			<label class="block text-sm font-medium text-gray-700 mb-1">{$_('inventory.itemName')} *</label>
 			<select bind:value={formData.itemId} required class="input">
-				<option value="">Select item...</option>
+				<option value="">{$_('vehicles.inventory.placeholders.selectItem')}</option>
 				{#each items as item}
 					<option value={item.item.id}>{item.item.itemName}</option>
 				{/each}
@@ -579,7 +579,7 @@
 
 		<div>
 			<label class="block text-sm font-medium text-gray-700 mb-1">{$_('inventory.location')}</label>
-			<input type="text" bind:value={formData.location} placeholder="e.g., trunk, cabin" class="input" />
+			<input type="text" bind:value={formData.location} placeholder={$_('vehicles.inventory.placeholders.location')} class="input" />
 		</div>
 
 		<div class="grid grid-cols-2 gap-4">
@@ -595,11 +595,11 @@
 
 		<div class="grid grid-cols-2 gap-4">
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">Certification Number</label>
+				<label class="block text-sm font-medium text-gray-700 mb-1">{$_('vehicles.inventory.certificationNumber')}</label>
 				<input type="text" bind:value={formData.certificationNumber} class="input" />
 			</div>
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">Certification Expiry</label>
+				<label class="block text-sm font-medium text-gray-700 mb-1">{$_('vehicles.inventory.certificationExpiry')}</label>
 				<input type="date" bind:value={formData.certificationExpiryDate} class="input" />
 			</div>
 		</div>
@@ -611,7 +611,7 @@
 
 		<div class="flex justify-end space-x-3 pt-4">
 			<button type="button" on:click={() => showAddModal = false} class="btn btn-secondary">
-				Cancel
+				{$_('common.cancel')}
 			</button>
 			<button type="submit" class="btn btn-primary">
 				{$_('inventory.addItem')}
@@ -686,20 +686,20 @@
 
 		<div class="flex justify-end space-x-3 pt-4">
 			<button type="button" on:click={() => { showEditModal = false; selectedAssignment = null; }} class="btn btn-secondary">
-				Cancel
+				{$_('common.cancel')}
 			</button>
 			<button type="submit" class="btn btn-primary">
-				Update
+				{$_('common.update')}
 			</button>
 		</div>
 	</form>
 </Modal>
 
 <!-- Inspection Modal -->
-<Modal open={showInspectionModal} title="Record Inspection" on:close={() => { showInspectionModal = false; selectedAssignment = null; }}>
+<Modal open={showInspectionModal} title={$_('vehicles.inventory.inspection.title')} on:close={() => { showInspectionModal = false; selectedAssignment = null; }}>
 	<form on:submit|preventDefault={handleInspectionSubmit} class="space-y-4">
 		<div>
-			<label class="block text-sm font-medium text-gray-700 mb-1">Item</label>
+			<label class="block text-sm font-medium text-gray-700 mb-1">{$_('vehicles.inventory.item')}</label>
 			<input type="text" value={selectedAssignment?.item?.itemName || ''} disabled class="input bg-gray-50" />
 		</div>
 
@@ -726,17 +726,17 @@
 		<div>
 			<label class="flex items-center space-x-2">
 				<input type="checkbox" bind:checked={inspectionData.passed} class="rounded" />
-				<span class="text-sm font-medium text-gray-700">Inspection Passed</span>
+				<span class="text-sm font-medium text-gray-700">{$_('vehicles.inventory.inspection.passed')}</span>
 			</label>
 		</div>
 
 		<div>
-			<label class="block text-sm font-medium text-gray-700 mb-1">Issues Found</label>
+			<label class="block text-sm font-medium text-gray-700 mb-1">{$_('vehicles.inventory.inspection.issuesFound')}</label>
 			<textarea bind:value={inspectionData.issuesFound} rows="2" class="input"></textarea>
 		</div>
 
 		<div>
-			<label class="block text-sm font-medium text-gray-700 mb-1">Action Taken</label>
+			<label class="block text-sm font-medium text-gray-700 mb-1">{$_('vehicles.inventory.inspection.actionTaken')}</label>
 			<textarea bind:value={inspectionData.actionTaken} rows="2" class="input"></textarea>
 		</div>
 
@@ -747,10 +747,10 @@
 
 		<div class="flex justify-end space-x-3 pt-4">
 			<button type="button" on:click={() => { showInspectionModal = false; selectedAssignment = null; }} class="btn btn-secondary">
-				Cancel
+				{$_('common.cancel')}
 			</button>
 			<button type="submit" class="btn btn-primary">
-				Record Inspection
+				{$_('vehicles.inventory.recordInspection')}
 			</button>
 		</div>
 	</form>
@@ -766,7 +766,7 @@
 				</svg>
 				<div class="text-sm">
 					<span class="font-medium text-gray-900">{selectedAssignment?.item?.itemName || ''}</span>
-					<span class="text-gray-600 ml-2">Available: {selectedAssignment?.assignment.quantity || 0}</span>
+					<span class="text-gray-600 ml-2">{$_('inventory.quantity')}: {selectedAssignment?.assignment.quantity || 0}</span>
 				</div>
 			</div>
 		</div>
@@ -807,7 +807,7 @@
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">{$_('inventory.dispensing.patientGender')}</label>
 					<select bind:value={dispensingData.patientGender} class="input">
-						<option value="">Select...</option>
+						<option value="">{$_('common.select')}...</option>
 						<option value="male">{$_('inventory.dispensing.male')}</option>
 						<option value="female">{$_('inventory.dispensing.female')}</option>
 						<option value="other">{$_('inventory.dispensing.other')}</option>
@@ -823,7 +823,7 @@
 			<div class="space-y-3">
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">{$_('inventory.dispensing.incidentType')}</label>
-					<input type="text" bind:value={dispensingData.incidentType} placeholder="e.g., emergency, routine" class="input" />
+					<input type="text" bind:value={dispensingData.incidentType} class="input" />
 				</div>
 
 				<div>
@@ -893,7 +893,7 @@
 
 		<div class="flex justify-end space-x-3 pt-4 border-t">
 			<button type="button" on:click={() => { showDispenseModal = false; selectedAssignment = null; }} class="btn btn-secondary">
-				Cancel
+				{$_('common.cancel')}
 			</button>
 			<button type="submit" class="btn btn-primary">
 				{$_('inventory.dispensing.confirmDispense')}

@@ -1,5 +1,6 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
+	import { _ } from '$lib/i18n';
 
 	export let data = [];
 	export let columns = [];
@@ -111,7 +112,7 @@
 					<h3 class="text-lg font-semibold text-gray-900">{title}</h3>
 				{/if}
 				<p class="text-sm text-gray-600 mt-1">
-					{computedTotalItems} {computedTotalItems === 1 ? 'item' : 'items'} total
+					{computedTotalItems === 1 ? $_('dataTable.itemTotal') : $_('dataTable.itemsTotal', { values: { count: computedTotalItems }})}
 				</p>
 			</div>
 
@@ -123,7 +124,7 @@
 						</svg>
 						<input
 							type="text"
-							placeholder="Search..."
+							placeholder={$_('dataTable.search')}
 							value={searchTerm}
 							on:input={handleSearch}
 							class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -140,7 +141,7 @@
 							<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
 							</svg>
-							Export
+							{$_('dataTable.export')}
 						</button>
 					</div>
 				{/if}
@@ -180,7 +181,7 @@
 					{/each}
 					{#if actions.length > 0}
 						<th class="sticky right-0 bg-gray-50 px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-200">
-							Actions
+							{$_('dataTable.actions')}
 						</th>
 					{/if}
 				</tr>
@@ -190,7 +191,7 @@
 					<tr>
 						<td colspan={columns.length + (actions.length > 0 ? 1 : 0)} class="px-6 py-12 text-center">
 							<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-							<p class="mt-2 text-gray-500">Loading...</p>
+							<p class="mt-2 text-gray-500">{$_('dataTable.loading')}</p>
 						</td>
 					</tr>
 				{:else if displayedData.length === 0}
@@ -199,7 +200,7 @@
 							<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
 							</svg>
-							<p class="mt-2 text-gray-500">No data available</p>
+							<p class="mt-2 text-gray-500">{$_('dataTable.noData')}</p>
 						</td>
 					</tr>
 				{:else}
@@ -247,7 +248,7 @@
 		<div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
 			<div class="flex items-center justify-between">
 				<div class="text-sm text-gray-700">
-					Showing {startItem} to {endItem} of {computedTotalItems} results
+					{$_('dataTable.showing', { values: { start: startItem, end: endItem, total: computedTotalItems }})}
 				</div>
 				<div class="flex items-center space-x-2">
 					<button
@@ -255,7 +256,7 @@
 						disabled={currentPage === 1}
 						on:click={() => handlePageChange(currentPage - 1)}
 					>
-						Previous
+						{$_('dataTable.previous')}
 					</button>
 
 					{#each Array(Math.min(5, totalPages)) as _, i}
@@ -282,7 +283,7 @@
 						disabled={currentPage === totalPages}
 						on:click={() => handlePageChange(currentPage + 1)}
 					>
-						Next
+						{$_('dataTable.next')}
 					</button>
 				</div>
 			</div>
