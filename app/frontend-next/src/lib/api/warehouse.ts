@@ -78,6 +78,13 @@ export const warehouseApi = {
     return api.delete(`/warehouse/materials/${id}`);
   },
 
+  // Import materials from CSV
+  importMaterials: async (file: File): Promise<{ imported: number; errors: string[] }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.upload<{ imported: number; errors: string[] }>('/warehouse/materials/import', formData);
+  },
+
   // Transfer Requests CRUD
   getTransferRequests: async (filters: TransferRequestFilters = {}): Promise<PaginatedResponse<TransferRequest>> => {
     return api.get<PaginatedResponse<TransferRequest>>('/warehouse/transfers', filters as Record<string, string | number | boolean | undefined>);

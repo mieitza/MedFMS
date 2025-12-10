@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -13,8 +14,15 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,20 +39,29 @@ import {
   Pencil,
   Trash2,
   Car,
-  Calendar,
   Gauge,
   Fuel,
   FileText,
-  Image,
+  ImageIcon,
   Wrench,
-  MapPin,
   Building,
   Hash,
+  Plus,
+  ExternalLink,
 } from 'lucide-react';
 import { useVehicle, useDeleteVehicle } from '@/lib/hooks';
+import { fuelApi, maintenanceApi } from '@/lib/api';
+import { DocumentManager } from '@/components/shared/document-manager';
+import { PhotoManager } from '@/components/shared/photo-manager';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+
+const workOrderStatusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  pending: { label: 'În așteptare', variant: 'secondary' },
+  in_progress: { label: 'În lucru', variant: 'default' },
+  completed: { label: 'Finalizat', variant: 'outline' },
+  cancelled: { label: 'Anulat', variant: 'destructive' },
+};
 
 export default function VehicleDetailPage() {
   const params = useParams();
@@ -53,6 +70,20 @@ export default function VehicleDetailPage() {
 
   const { data: vehicle, isLoading, isError } = useVehicle(id);
   const deleteVehicle = useDeleteVehicle();
+
+  // Fetch fuel transactions for this vehicle
+  const { data: fuelData } = useQuery({
+    queryKey: ['fuel', 'vehicle', id],
+    queryFn: () => fuelApi.getAll({ vehicleId: id!, pageSize: 10 }),
+    enabled: !!id,
+  });
+
+  // Fetch maintenance work orders for this vehicle
+  const { data: maintenanceData } = useQuery({
+    queryKey: ['maintenance', 'vehicle', id],
+    queryFn: () => maintenanceApi.getAll({ vehicleId: id!, pageSize: 10 }),
+    enabled: !!id,
+  });
 
   const handleDelete = async () => {
     if (!id) return;
@@ -86,6 +117,9 @@ export default function VehicleDetailPage() {
     if (!date) return '-';
     return format(new Date(date), 'dd MMMM yyyy', { locale: ro });
   };
+
+  const fuelTransactions = fuelData?.data || [];
+  const workOrders = maintenanceData?.data || [];
 
   return (
     <div className="space-y-6">
@@ -229,7 +263,7 @@ export default function VehicleDetailPage() {
             Documente
           </TabsTrigger>
           <TabsTrigger value="photos">
-            <Image className="mr-2 h-4 w-4" />
+            <ImageIcon className="mr-2 h-4 w-4" />
             Fotografii
           </TabsTrigger>
           <TabsTrigger value="maintenance">
@@ -330,54 +364,22 @@ export default function VehicleDetailPage() {
 
         {/* Documents Tab */}
         <TabsContent value="documents">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Documente</CardTitle>
-                  <CardDescription>
-                    Documente asociate vehiculului
-                  </CardDescription>
-                </div>
-                <Button variant="outline" size="sm">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Încarcă document
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                <FileText className="mb-2 h-8 w-8" />
-                <p>Nu există documente încărcate</p>
-              </div>
-            </CardContent>
-          </Card>
+          <DocumentManager
+            entityType="vehicle"
+            entityId={vehicle.id}
+            title="Documente vehicul"
+            description="Documente asociate acestui vehicul (ITP, RCA, Carte identitate, etc.)"
+          />
         </TabsContent>
 
         {/* Photos Tab */}
         <TabsContent value="photos">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Fotografii</CardTitle>
-                  <CardDescription>
-                    Imagini ale vehiculului
-                  </CardDescription>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Image className="mr-2 h-4 w-4" />
-                  Încarcă fotografii
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                <Image className="mb-2 h-8 w-8" />
-                <p>Nu există fotografii încărcate</p>
-              </div>
-            </CardContent>
-          </Card>
+          <PhotoManager
+            entityType="vehicle"
+            entityId={vehicle.id}
+            title="Fotografii vehicul"
+            description="Imagini ale vehiculului din diferite unghiuri"
+          />
         </TabsContent>
 
         {/* Maintenance Tab */}
@@ -388,20 +390,71 @@ export default function VehicleDetailPage() {
                 <div>
                   <CardTitle>Istoric mentenanță</CardTitle>
                   <CardDescription>
-                    Lucrări de mentenanță efectuate
+                    Lucrări de mentenanță efectuate pentru acest vehicul
                   </CardDescription>
                 </div>
-                <Button variant="outline" size="sm">
-                  <Wrench className="mr-2 h-4 w-4" />
-                  Comandă nouă
+                <Button asChild>
+                  <Link href={`/maintenance/new?vehicleId=${vehicle.id}`}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Comandă nouă
+                  </Link>
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                <Wrench className="mb-2 h-8 w-8" />
-                <p>Nu există înregistrări de mentenanță</p>
-              </div>
+              {workOrders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                  <Wrench className="mb-2 h-8 w-8" />
+                  <p>Nu există înregistrări de mentenanță</p>
+                </div>
+              ) : (
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nr. comandă</TableHead>
+                        <TableHead>Tip</TableHead>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Acțiuni</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {workOrders.map((wo) => {
+                        const statusConf = workOrderStatusConfig[wo.status] || workOrderStatusConfig.pending;
+                        return (
+                          <TableRow key={wo.id}>
+                            <TableCell className="font-medium">{wo.workOrderNumber}</TableCell>
+                            <TableCell>{wo.maintenanceType?.name || '-'}</TableCell>
+                            <TableCell>
+                              {format(new Date(wo.startDate || wo.createdAt), 'dd MMM yyyy', { locale: ro })}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={statusConf.variant}>{statusConf.label}</Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="sm" asChild>
+                                <Link href={`/maintenance/${wo.id}`}>
+                                  <ExternalLink className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+              {workOrders.length > 0 && (
+                <div className="mt-4 text-center">
+                  <Button variant="link" asChild>
+                    <Link href={`/maintenance?vehicleId=${vehicle.id}`}>
+                      Vezi toate comenzile de mentenanță
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -414,20 +467,66 @@ export default function VehicleDetailPage() {
                 <div>
                   <CardTitle>Istoric alimentări</CardTitle>
                   <CardDescription>
-                    Tranzacții de alimentare cu combustibil
+                    Tranzacții de alimentare cu combustibil pentru acest vehicul
                   </CardDescription>
                 </div>
-                <Button variant="outline" size="sm">
-                  <Fuel className="mr-2 h-4 w-4" />
-                  Alimentare nouă
+                <Button asChild>
+                  <Link href={`/fuel/new?vehicleId=${vehicle.id}`}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Alimentare nouă
+                  </Link>
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                <Fuel className="mb-2 h-8 w-8" />
-                <p>Nu există înregistrări de alimentări</p>
-              </div>
+              {fuelTransactions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                  <Fuel className="mb-2 h-8 w-8" />
+                  <p>Nu există înregistrări de alimentări</p>
+                </div>
+              ) : (
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Tip combustibil</TableHead>
+                        <TableHead className="text-right">Cantitate (L)</TableHead>
+                        <TableHead className="text-right">Cost (RON)</TableHead>
+                        <TableHead className="text-right">KM</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {fuelTransactions.map((tx) => (
+                        <TableRow key={tx.id}>
+                          <TableCell>
+                            {format(new Date(tx.transactionDate), 'dd MMM yyyy', { locale: ro })}
+                          </TableCell>
+                          <TableCell>{tx.fuelType?.name || '-'}</TableCell>
+                          <TableCell className="text-right">
+                            {tx.quantity.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {tx.totalCost?.toFixed(2) || '-'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {tx.odometer?.toLocaleString('ro-RO') || '-'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+              {fuelTransactions.length > 0 && (
+                <div className="mt-4 text-center">
+                  <Button variant="link" asChild>
+                    <Link href={`/fuel?vehicleId=${vehicle.id}`}>
+                      Vezi toate tranzacțiile
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

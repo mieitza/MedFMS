@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -14,6 +15,14 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,8 +49,13 @@ import {
   Fuel,
   CreditCard,
   AlertTriangle,
+  ImageIcon,
+  ExternalLink,
 } from 'lucide-react';
 import { useDriver, useDeleteDriver } from '@/lib/hooks';
+import { fuelApi, vehiclesApi } from '@/lib/api';
+import { DocumentManager } from '@/components/shared/document-manager';
+import { PhotoManager } from '@/components/shared/photo-manager';
 import { format, differenceInDays } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -53,6 +67,20 @@ export default function DriverDetailPage() {
 
   const { data: driver, isLoading, isError } = useDriver(id);
   const deleteDriver = useDeleteDriver();
+
+  // Fetch fuel transactions for this driver
+  const { data: fuelData } = useQuery({
+    queryKey: ['fuel', 'driver', id],
+    queryFn: () => fuelApi.getAll({ driverId: id!, pageSize: 10 }),
+    enabled: !!id,
+  });
+
+  // Fetch assigned vehicles (driver's vehicles from assignments or recent fuel transactions)
+  const { data: vehiclesData } = useQuery({
+    queryKey: ['vehicles', 'driver', id],
+    queryFn: () => vehiclesApi.getAll({ pageSize: 100 }),
+    enabled: !!id,
+  });
 
   const handleDelete = async () => {
     if (!id) return;
@@ -93,6 +121,12 @@ export default function DriverDetailPage() {
 
   const isLicenseExpiring = licenseExpiryDays !== null && licenseExpiryDays <= 30 && licenseExpiryDays > 0;
   const isLicenseExpired = licenseExpiryDays !== null && licenseExpiryDays < 0;
+
+  const fuelTransactions = fuelData?.data || [];
+
+  // Get unique vehicles from fuel transactions for this driver
+  const driverVehicleIds = new Set(fuelTransactions.map(tx => tx.vehicleId).filter(Boolean));
+  const assignedVehicles = vehiclesData?.data.filter(v => driverVehicleIds.has(v.id)) || [];
 
   return (
     <div className="space-y-6">
@@ -263,6 +297,10 @@ export default function DriverDetailPage() {
             <FileText className="mr-2 h-4 w-4" />
             Documente
           </TabsTrigger>
+          <TabsTrigger value="photos">
+            <ImageIcon className="mr-2 h-4 w-4" />
+            Fotografii
+          </TabsTrigger>
           <TabsTrigger value="vehicles">
             <Car className="mr-2 h-4 w-4" />
             Vehicule
@@ -366,44 +404,75 @@ export default function DriverDetailPage() {
 
         {/* Documents Tab */}
         <TabsContent value="documents">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Documente</CardTitle>
-                  <CardDescription>
-                    Documente asociate șoferului
-                  </CardDescription>
-                </div>
-                <Button variant="outline" size="sm">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Încarcă document
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                <FileText className="mb-2 h-8 w-8" />
-                <p>Nu există documente încărcate</p>
-              </div>
-            </CardContent>
-          </Card>
+          <DocumentManager
+            entityType="driver"
+            entityId={driver.id}
+            title="Documente șofer"
+            description="Documente asociate acestui șofer (Permis, Carte identitate, Atestate, etc.)"
+          />
+        </TabsContent>
+
+        {/* Photos Tab */}
+        <TabsContent value="photos">
+          <PhotoManager
+            entityType="driver"
+            entityId={driver.id}
+            title="Fotografii șofer"
+            description="Fotografii ale șoferului"
+          />
         </TabsContent>
 
         {/* Vehicles Tab */}
         <TabsContent value="vehicles">
           <Card>
             <CardHeader>
-              <CardTitle>Vehicule alocate</CardTitle>
+              <CardTitle>Vehicule conduse</CardTitle>
               <CardDescription>
-                Vehicule pe care acest șofer le poate conduce
+                Vehicule pe care acest șofer le-a condus (bazat pe alimentări)
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                <Car className="mb-2 h-8 w-8" />
-                <p>Nu există vehicule alocate</p>
-              </div>
+              {assignedVehicles.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                  <Car className="mb-2 h-8 w-8" />
+                  <p>Nu există vehicule asociate</p>
+                </div>
+              ) : (
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nr. înmatriculare</TableHead>
+                        <TableHead>Marca</TableHead>
+                        <TableHead>Model</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Acțiuni</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {assignedVehicles.map((vehicle) => (
+                        <TableRow key={vehicle.id}>
+                          <TableCell className="font-medium">{vehicle.licensePlate}</TableCell>
+                          <TableCell>{vehicle.brand?.name || '-'}</TableCell>
+                          <TableCell>{vehicle.model?.name || '-'}</TableCell>
+                          <TableCell>
+                            <Badge variant={vehicle.isActive ? 'default' : 'secondary'}>
+                              {vehicle.isActive ? 'Activ' : 'Inactiv'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm" asChild>
+                              <Link href={`/vehicles/${vehicle.id}`}>
+                                <ExternalLink className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -418,10 +487,52 @@ export default function DriverDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center justify-center py-12 text-slate-500">
-                <Fuel className="mb-2 h-8 w-8" />
-                <p>Nu există înregistrări de alimentări</p>
-              </div>
+              {fuelTransactions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                  <Fuel className="mb-2 h-8 w-8" />
+                  <p>Nu există înregistrări de alimentări</p>
+                </div>
+              ) : (
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Vehicul</TableHead>
+                        <TableHead>Tip combustibil</TableHead>
+                        <TableHead className="text-right">Cantitate (L)</TableHead>
+                        <TableHead className="text-right">Cost (RON)</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {fuelTransactions.map((tx) => (
+                        <TableRow key={tx.id}>
+                          <TableCell>
+                            {format(new Date(tx.transactionDate), 'dd MMM yyyy', { locale: ro })}
+                          </TableCell>
+                          <TableCell>{tx.vehicle?.licensePlate || '-'}</TableCell>
+                          <TableCell>{tx.fuelType?.name || '-'}</TableCell>
+                          <TableCell className="text-right">
+                            {tx.quantity.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {tx.totalCost?.toFixed(2) || '-'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+              {fuelTransactions.length > 0 && (
+                <div className="mt-4 text-center">
+                  <Button variant="link" asChild>
+                    <Link href={`/fuel?driverId=${driver.id}`}>
+                      Vezi toate tranzacțiile
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
