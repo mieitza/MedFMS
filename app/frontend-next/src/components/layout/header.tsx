@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { LanguageSwitcher } from '@/components/shared/language-switcher';
 
 const pathNameMap: Record<string, string> = {
   '': 'Dashboard',
@@ -114,6 +115,9 @@ export function Header() {
           <Command className="h-3 w-3" />K
         </kbd>
       </Button>
+
+      {/* Language Switcher */}
+      <LanguageSwitcher />
 
       {/* Notifications */}
       <Button variant="ghost" size="icon" className="relative">

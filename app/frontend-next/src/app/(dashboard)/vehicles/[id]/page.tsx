@@ -48,11 +48,13 @@ import {
   Hash,
   Plus,
   ExternalLink,
+  Package,
 } from 'lucide-react';
 import { useVehicle, useDeleteVehicle } from '@/lib/hooks';
 import { fuelApi, maintenanceApi } from '@/lib/api';
 import { DocumentManager } from '@/components/shared/document-manager';
 import { PhotoManager } from '@/components/shared/photo-manager';
+import { VehicleInventoryManager } from '@/components/shared/vehicle-inventory-manager';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -273,6 +275,10 @@ export default function VehicleDetailPage() {
           <TabsTrigger value="fuel">
             <Fuel className="mr-2 h-4 w-4" />
             Combustibil
+          </TabsTrigger>
+          <TabsTrigger value="inventory">
+            <Package className="mr-2 h-4 w-4" />
+            Inventar
           </TabsTrigger>
         </TabsList>
 
@@ -529,6 +535,11 @@ export default function VehicleDetailPage() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Inventory Tab */}
+        <TabsContent value="inventory">
+          <VehicleInventoryManager vehicleId={vehicle.id} />
         </TabsContent>
       </Tabs>
     </div>
