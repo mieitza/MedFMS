@@ -6,6 +6,7 @@ export { dashboardApi } from './dashboard';
 export { fuelApi } from './fuel';
 export { maintenanceApi } from './maintenance';
 export { warehouseApi } from './warehouse';
+export { adminApi } from './admin';
 
 // Re-export types
 export type { VehicleFilters } from './vehicles';
@@ -13,3 +14,27 @@ export type { DriverFilters } from './drivers';
 export type { FuelTransactionFilters, FuelStats } from './fuel';
 export type { MaintenanceWorkOrderFilters, MaintenanceStats, MaintenanceWorkOrderFormData } from './maintenance';
 export type { MaterialFilters, MaterialFormData, TransferRequestFilters, TransferRequestFormData, WarehouseStats } from './warehouse';
+export type {
+  ReferenceDataType,
+  UserFormData,
+  BrandFormData,
+  ModelFormData,
+  VehicleTypeFormData,
+  VehicleStatusFormData,
+  FuelTypeFormData,
+  FuelStationFormData,
+  MaintenanceTypeFormData,
+  DepartmentFormData,
+  LocationFormData,
+  CityFormData,
+  SupplierFormData,
+  MaterialUnitFormData,
+  MaterialCategoryFormData,
+  MaterialCategory,
+  PositionFormData,
+  Position,
+  LicenseTypeFormData,
+  LicenseType,
+  InspectionTypeFormData,
+  InspectionType,
+} from './admin';
