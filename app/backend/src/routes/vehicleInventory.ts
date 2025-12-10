@@ -483,14 +483,14 @@ router.post('/inspections', authorize('admin', 'manager', 'operator'), async (re
     const result = await db.insert(vehicleInventoryInspections).values({
       assignmentId: data.assignmentId,
       inspectionDate,
-      inspectorId: data.inspectorId,
+      inspectorId: data.inspectorId ?? undefined,
       inspectionType: data.inspectionType,
       condition: data.condition,
-      notes: data.notes,
-      issuesFound: data.issuesFound,
-      actionTaken: data.actionTaken,
-      nextInspectionDate,
-      passed: data.passed,
+      notes: data.notes ?? undefined,
+      issuesFound: data.issuesFound ?? undefined,
+      actionTaken: data.actionTaken ?? undefined,
+      nextInspectionDate: nextInspectionDate ?? undefined,
+      passed: data.passed ?? true,
       createdBy: userId
     }).returning();
 
@@ -499,7 +499,7 @@ router.post('/inspections', authorize('admin', 'manager', 'operator'), async (re
       .update(vehicleInventoryAssignments)
       .set({
         lastInspectionDate: inspectionDate,
-        nextInspectionDate: nextInspectionDate,
+        nextInspectionDate: nextInspectionDate ?? undefined,
         condition: data.condition,
         updatedAt: new Date()
       })
