@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { getDb } from '../db/index.js';
 import { brands, models, locations, departments, cities, vehicleTypes, vehicleStatuses } from '../db/schema/system.js';
+import { licenseTypes, inspectionTypes } from '../db/schema/reference.js';
 import { eq } from 'drizzle-orm';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
@@ -136,6 +137,36 @@ router.get('/vehicle-statuses', async (req, res, next) => {
   try {
     const db = getDb();
     const results = await db.select().from(vehicleStatuses);
+
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// License types endpoints
+router.get('/license-types', async (req, res, next) => {
+  try {
+    const db = getDb();
+    const results = await db.select().from(licenseTypes);
+
+    res.json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Inspection types endpoints
+router.get('/inspection-types', async (req, res, next) => {
+  try {
+    const db = getDb();
+    const results = await db.select().from(inspectionTypes);
 
     res.json({
       success: true,

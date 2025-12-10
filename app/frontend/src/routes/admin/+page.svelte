@@ -271,6 +271,47 @@
         { key: 'actions', label: 'Actions', sortable: false },
       ],
     },
+    inspectionTypes: {
+      label: 'Inspection Types',
+      fields: [
+        { key: 'typeName', label: 'Type Name', type: 'text', required: true },
+        { key: 'description', label: 'Description', type: 'textarea' },
+        { key: 'active', label: 'Active', type: 'checkbox' },
+      ],
+      columns: [
+        { key: 'id', label: 'ID', sortable: true },
+        { key: 'typeCode', label: 'Code', sortable: true },
+        { key: 'typeName', label: 'Type Name', sortable: true },
+        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
+        { key: 'actions', label: 'Actions', sortable: false },
+      ],
+    },
+    maintenanceTypes: {
+      label: 'Maintenance Types',
+      fields: [
+        { key: 'typeName', label: 'Type Name', type: 'text', required: true },
+        { key: 'category', label: 'Category', type: 'select', required: true, options: [
+          { value: 'preventive', label: 'Preventive' },
+          { value: 'corrective', label: 'Corrective' },
+          { value: 'emergency', label: 'Emergency' },
+          { value: 'inspection', label: 'Inspection' },
+        ]},
+        { key: 'description', label: 'Description', type: 'textarea' },
+        { key: 'estimatedDuration', label: 'Estimated Duration (minutes)', type: 'number' },
+        { key: 'estimatedCost', label: 'Estimated Cost', type: 'number' },
+        { key: 'priority', label: 'Priority (1-5)', type: 'number' },
+        { key: 'active', label: 'Active', type: 'checkbox' },
+      ],
+      columns: [
+        { key: 'id', label: 'ID', sortable: true },
+        { key: 'typeCode', label: 'Code', sortable: true },
+        { key: 'typeName', label: 'Type Name', sortable: true },
+        { key: 'category', label: 'Category', sortable: true },
+        { key: 'priority', label: 'Priority', sortable: true },
+        { key: 'active', label: 'Status', sortable: true, render: (val) => val ? '<span class="text-green-600">Active</span>' : '<span class="text-gray-400">Inactive</span>' },
+        { key: 'actions', label: 'Actions', sortable: false },
+      ],
+    },
   };
 
   let selectedDataType = 'brands';
@@ -410,11 +451,15 @@
       config.fields.forEach(field => {
         let value = formData[field.key];
 
-        if (field.type === 'select' || field.type === 'number') {
+        if (field.type === 'select' && field.relatedType) {
+          // Select with relatedType - parse as integer ID
           value = value ? parseInt(value) : undefined;
+        } else if (field.type === 'number') {
+          value = value ? parseFloat(value) : undefined;
         } else if (field.type === 'checkbox') {
           value = !!value;
         }
+        // Select with options - keep as string (enum value)
 
         fullSubmitData[field.key] = value;
       });
@@ -432,8 +477,11 @@
           if (changedFields.hasOwnProperty(field.key)) {
             let value = changedFields[field.key];
 
-            if (field.type === 'select' || field.type === 'number') {
+            if (field.type === 'select' && field.relatedType) {
+              // Select with relatedType - parse as integer ID
               payload[field.key] = value ? parseInt(value) : undefined;
+            } else if (field.type === 'number') {
+              payload[field.key] = value ? parseFloat(value) : undefined;
             } else if (field.type === 'checkbox') {
               payload[field.key] = !!value;
             } else {
@@ -618,11 +666,17 @@
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Select {field.label}</option>
-            {#each relatedData[field.relatedType] || [] as option}
-              <option value={option.id}>
-                {option.brandName || option.typeName || option.categoryName || option.name || `ID: ${option.id}`}
-              </option>
-            {/each}
+            {#if field.options}
+              {#each field.options as option}
+                <option value={option.value}>{option.label}</option>
+              {/each}
+            {:else}
+              {#each relatedData[field.relatedType] || [] as option}
+                <option value={option.id}>
+                  {option.brandName || option.typeName || option.categoryName || option.name || `ID: ${option.id}`}
+                </option>
+              {/each}
+            {/if}
           </select>
         {:else if field.type === 'email'}
           <input

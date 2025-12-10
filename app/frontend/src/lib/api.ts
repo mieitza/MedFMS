@@ -332,6 +332,29 @@ export const api = {
     return response.json();
   },
 
+  async getLicenseTypes(): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/system/license-types`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch license types');
+    }
+
+    return response.json();
+  },
+
+  async getInspectionTypes(): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/system/inspection-types`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch inspection types');
+    }
+
+    return response.json();
+  },
 
   async getLocations(): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/system/locations`, {

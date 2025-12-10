@@ -1410,6 +1410,7 @@
     "lastInspection": "Last Inspection",
     "nextInspection": "Next Inspection",
     "notes": "Notes",
+    "inspectionType": "Inspection Type",
     "dispensing": {
       "title": "Dispense Item",
       "patientInfo": "Patient Information",
@@ -1439,6 +1440,17 @@
       "success": "Item dispensed successfully",
       "history": "Dispensing History",
       "noHistory": "No dispensing records"
+    },
+    "messages": {
+      "loadFailed": "Failed to load inventory",
+      "saveFailed": "Failed to save inventory item",
+      "updateSuccess": "Inventory item updated successfully",
+      "updateFailed": "Failed to update inventory item",
+      "noChanges": "No changes to save",
+      "removeConfirm": "Are you sure you want to remove {itemName}?",
+      "removeFailed": "Failed to remove item",
+      "inspectionFailed": "Failed to record inspection",
+      "dispenseFailed": "Failed to dispense item"
     }
   }
 }

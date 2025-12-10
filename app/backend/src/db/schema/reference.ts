@@ -56,6 +56,17 @@ export const licenseTypes = sqliteTable('license_types', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
+// Inspection types (for vehicle inventory inspections)
+export const inspectionTypes = sqliteTable('inspection_types', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  typeCode: text('type_code').notNull().unique(),
+  typeName: text('type_name').notNull(),
+  description: text('description'),
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
 export type Unit = typeof units.$inferSelect;
 export type NewUnit = typeof units.$inferInsert;
 export type MaterialType = typeof materialTypes.$inferSelect;

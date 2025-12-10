@@ -41,7 +41,7 @@ app.use(cors({
   origin: process.env.CORS_ORIGINS?.split(',') || (
     process.env.NODE_ENV === 'production'
       ? [process.env.ORIGIN || 'https://medfms.cognitcube.com']
-      : ['http://localhost:5173', 'http://localhost:4173']
+      : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173']
   ),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

@@ -21,6 +21,7 @@
 	let cities = [];
 	let departments = [];
 	let positions = [];
+	let licenseTypes = [];
 
 	let columns = [];
 
@@ -124,13 +125,15 @@
 
 	async function loadDropdownData() {
 		try {
-			const [citiesResponse, departmentsResponse] = await Promise.all([
+			const [citiesResponse, departmentsResponse, licenseTypesResponse] = await Promise.all([
 				api.getLocations(), // Cities are stored as locations in the system API
-				api.getDepartments()
+				api.getDepartments(),
+				api.getLicenseTypes()
 			]);
 
 			cities = citiesResponse.data || [];
 			departments = departmentsResponse.data || [];
+			licenseTypes = licenseTypesResponse.data || [];
 			positions = []; // Positions will be a simple list for now
 		} catch (error) {
 			console.error('Failed to load dropdown data:', error);
@@ -279,6 +282,7 @@
 		{cities}
 		{departments}
 		{positions}
+		{licenseTypes}
 		on:success={handleFormSuccess}
 		on:error={handleFormError}
 		on:cancel={handleFormCancel}

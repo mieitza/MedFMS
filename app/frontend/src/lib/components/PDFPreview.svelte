@@ -25,9 +25,13 @@
 
     // Dynamically import pdfjs-dist only in the browser
     try {
-      pdfjsLib = await import('pdfjs-dist');
-      const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker.default;
+      // Import pdfjs-dist v5.x
+      const pdfjs = await import('pdfjs-dist');
+      pdfjsLib = pdfjs;
+
+      // For pdfjs-dist v5.x with Vite, use the worker from CDN or bundled asset
+      // Using unpkg CDN for reliable worker loading
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.4.394/build/pdf.worker.min.mjs';
     } catch (err) {
       console.error('Failed to load PDF.js:', err);
       error = 'Failed to load PDF library';

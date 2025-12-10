@@ -1462,6 +1462,7 @@
     "lastInspection": "Ultima Inspecție",
     "nextInspection": "Următoarea Inspecție",
     "notes": "Observații",
+    "inspectionType": "Tip Inspecție",
     "dispensing": {
       "title": "Dispensează Articol",
       "patientInfo": "Informații Pacient",
@@ -1491,6 +1492,17 @@
       "success": "Articol dispensat cu succes",
       "history": "Istoric Dispensare",
       "noHistory": "Nu există înregistrări de dispensare"
+    },
+    "messages": {
+      "loadFailed": "Încărcarea inventarului a eșuat",
+      "saveFailed": "Salvarea articolului a eșuat",
+      "updateSuccess": "Articol din inventar actualizat cu succes",
+      "updateFailed": "Actualizarea articolului a eșuat",
+      "noChanges": "Nu există modificări de salvat",
+      "removeConfirm": "Sigur doriți să eliminați {itemName}?",
+      "removeFailed": "Eliminarea articolului a eșuat",
+      "inspectionFailed": "Înregistrarea inspecției a eșuat",
+      "dispenseFailed": "Dispensarea articolului a eșuat"
     }
   }
 }

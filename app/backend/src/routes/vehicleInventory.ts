@@ -69,14 +69,14 @@ const assignmentSchema = z.object({
 const inspectionSchema = z.object({
   assignmentId: z.number().positive(),
   inspectionDate: z.number(),
-  inspectorId: z.number().optional(),
-  inspectionType: z.enum(['routine', 'emergency', 'certification', 'repair']),
+  inspectorId: z.number().optional().nullable(),
+  inspectionType: z.string().min(1), // Now dynamic - fetched from inspection_types table
   condition: z.enum(['excellent', 'good', 'fair', 'poor', 'damaged']),
-  notes: z.string().optional(),
-  issuesFound: z.string().optional(),
-  actionTaken: z.string().optional(),
-  nextInspectionDate: z.number().optional(),
-  passed: z.boolean().optional(),
+  notes: z.string().optional().nullable(),
+  issuesFound: z.string().optional().nullable(),
+  actionTaken: z.string().optional().nullable(),
+  nextInspectionDate: z.number().optional().nullable(),
+  passed: z.boolean().optional().nullable(),
 });
 
 const dispensingSchema = z.object({
@@ -476,8 +476,21 @@ router.post('/inspections', authorize('admin', 'manager', 'operator'), async (re
 
     const userId = (req as any).user?.id;
 
+    // Convert timestamp numbers to Date objects for drizzle's timestamp mode
+    const inspectionDate = new Date(data.inspectionDate);
+    const nextInspectionDate = data.nextInspectionDate ? new Date(data.nextInspectionDate) : null;
+
     const result = await db.insert(vehicleInventoryInspections).values({
-      ...data,
+      assignmentId: data.assignmentId,
+      inspectionDate,
+      inspectorId: data.inspectorId,
+      inspectionType: data.inspectionType,
+      condition: data.condition,
+      notes: data.notes,
+      issuesFound: data.issuesFound,
+      actionTaken: data.actionTaken,
+      nextInspectionDate,
+      passed: data.passed,
       createdBy: userId
     }).returning();
 
@@ -485,8 +498,8 @@ router.post('/inspections', authorize('admin', 'manager', 'operator'), async (re
     await db
       .update(vehicleInventoryAssignments)
       .set({
-        lastInspectionDate: data.inspectionDate,
-        nextInspectionDate: data.nextInspectionDate,
+        lastInspectionDate: inspectionDate,
+        nextInspectionDate: nextInspectionDate,
         condition: data.condition,
         updatedAt: new Date()
       })

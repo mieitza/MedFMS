@@ -36,6 +36,13 @@
       "when": 1763038505613,
       "tag": "0004_add_vehicle_inventory",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1765354787388,
+      "tag": "0005_huge_hellion",
+      "breakpoints": true
     }
   ]
 }

@@ -8,6 +8,7 @@
 	export let cities = [];
 	export let departments = [];
 	export let positions = [];
+	export let licenseTypes = [];
 
 	const dispatch = createEventDispatcher();
 
@@ -261,13 +262,9 @@
 					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 				>
 					<option value="">{$_('drivers.placeholders.selectLicenseType')}</option>
-					<option value="Class A">{$_('drivers.licenseTypes.classA')}</option>
-					<option value="Class B">{$_('drivers.licenseTypes.classB')}</option>
-					<option value="Class C">{$_('drivers.licenseTypes.classC')}</option>
-					<option value="CDL A">{$_('drivers.licenseTypes.cdlA')}</option>
-					<option value="CDL B">{$_('drivers.licenseTypes.cdlB')}</option>
-					<option value="CDL C">{$_('drivers.licenseTypes.cdlC')}</option>
-					<option value="Motorcycle">{$_('drivers.licenseTypes.motorcycle')}</option>
+					{#each licenseTypes as licenseType}
+						<option value={licenseType.typeName}>{licenseType.typeName}</option>
+					{/each}
 				</select>
 			</div>
 

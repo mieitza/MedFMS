@@ -18,6 +18,7 @@
 	let cities = [];
 	let departments = [];
 	let positions = [];
+	let licenseTypes = [];
 
 	// Inventory data
 	let materials = [];
@@ -55,13 +56,15 @@
 
 	async function loadDropdownData() {
 		try {
-			const [citiesResponse, departmentsResponse] = await Promise.all([
+			const [citiesResponse, departmentsResponse, licenseTypesResponse] = await Promise.all([
 				api.getLocations(),
-				api.getDepartments()
+				api.getDepartments(),
+				api.getLicenseTypes()
 			]);
 
 			cities = citiesResponse.data || [];
 			departments = departmentsResponse.data || [];
+			licenseTypes = licenseTypesResponse.data || [];
 			positions = [];
 		} catch (error) {
 			console.error('Failed to load dropdown data:', error);
@@ -444,6 +447,7 @@
 			{cities}
 			{departments}
 			{positions}
+			{licenseTypes}
 			on:success={handleFormSuccess}
 			on:error={handleFormError}
 			on:cancel={handleFormCancel}

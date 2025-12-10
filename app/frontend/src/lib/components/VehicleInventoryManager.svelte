@@ -12,6 +12,7 @@
 	let assignments = [];
 	let items = [];
 	let categories = [];
+	let inspectionTypes = [];
 	let loading = true;
 	let error = null;
 	let formTracker = null; // For tracking changed fields when editing
@@ -41,7 +42,7 @@
 
 	// Inspection form data
 	let inspectionData = {
-		inspectionType: 'routine',
+		inspectionType: '',
 		condition: 'good',
 		notes: '',
 		issuesFound: '',
@@ -88,7 +89,8 @@
 		await Promise.all([
 			loadAssignments(),
 			loadItems(),
-			loadCategories()
+			loadCategories(),
+			loadInspectionTypes()
 		]);
 	});
 
@@ -121,6 +123,15 @@
 			categories = response.data || [];
 		} catch (err) {
 			console.error('Failed to load categories:', err);
+		}
+	}
+
+	async function loadInspectionTypes() {
+		try {
+			const response = await api.getInspectionTypes();
+			inspectionTypes = response.data || [];
+		} catch (err) {
+			console.error('Failed to load inspection types:', err);
 		}
 	}
 
@@ -172,7 +183,7 @@
 	function openInspectionModal(assignment) {
 		selectedAssignment = assignment;
 		inspectionData = {
-			inspectionType: 'routine',
+			inspectionType: '',
 			condition: assignment.assignment.condition || 'good',
 			notes: '',
 			issuesFound: '',
@@ -694,12 +705,12 @@
 
 		<div class="grid grid-cols-2 gap-4">
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">Inspection Type *</label>
+				<label class="block text-sm font-medium text-gray-700 mb-1">{$_('inventory.inspectionType')} *</label>
 				<select bind:value={inspectionData.inspectionType} required class="input">
-					<option value="routine">Routine</option>
-					<option value="emergency">Emergency</option>
-					<option value="certification">Certification</option>
-					<option value="repair">Repair</option>
+					<option value="">{$_('common.select')}...</option>
+					{#each inspectionTypes as type}
+						<option value={type.typeName}>{type.typeName}</option>
+					{/each}
 				</select>
 			</div>
 			<div>

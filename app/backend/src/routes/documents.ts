@@ -95,6 +95,42 @@ router.get('/categories', async (req, res, next) => {
   }
 });
 
+// Download document - MUST be before /:entityType/:entityId to avoid route conflict
+router.get('/download/:id', authenticate, async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const db = getDb();
+
+    const [document] = await db.select()
+      .from(documents)
+      .where(and(eq(documents.id, id), eq(documents.active, true)))
+      .limit(1);
+
+    if (!document) {
+      throw new AppError('Document not found', 404);
+    }
+
+    // Check if user has access to document
+    if (!document.isPublic && req.user.role !== 'admin') {
+      // Additional access control logic can be added here
+    }
+
+    // Check if file exists
+    try {
+      await fs.access(document.filePath);
+    } catch {
+      throw new AppError('File not found on disk', 404);
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${document.originalFileName}"`);
+    res.setHeader('Content-Type', document.mimeType);
+    res.setHeader('Content-Length', document.fileSize);
+    res.sendFile(path.resolve(document.filePath));
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Get documents for an entity
 router.get('/:entityType/:entityId', async (req, res, next) => {
   try {
@@ -167,42 +203,6 @@ router.post('/upload', authorize('admin', 'manager', 'operator'), upload.single(
       // Clean up uploaded file if database insert fails
       fs.unlink(req.file.path).catch(console.error);
     }
-    next(error);
-  }
-});
-
-// Download document
-router.get('/download/:id', authenticate, async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    const db = getDb();
-
-    const [document] = await db.select()
-      .from(documents)
-      .where(and(eq(documents.id, id), eq(documents.active, true)))
-      .limit(1);
-
-    if (!document) {
-      throw new AppError('Document not found', 404);
-    }
-
-    // Check if user has access to document
-    if (!document.isPublic && req.user.role !== 'admin') {
-      // Additional access control logic can be added here
-    }
-
-    // Check if file exists
-    try {
-      await fs.access(document.filePath);
-    } catch {
-      throw new AppError('File not found on disk', 404);
-    }
-
-    res.setHeader('Content-Disposition', `attachment; filename="${document.originalFileName}"`);
-    res.setHeader('Content-Type', document.mimeType);
-    res.setHeader('Content-Length', document.fileSize);
-    res.sendFile(path.resolve(document.filePath));
-  } catch (error) {
     next(error);
   }
 });

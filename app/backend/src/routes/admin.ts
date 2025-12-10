@@ -91,6 +91,7 @@ const DATA_TYPE_CONFIG = {
   vehicleTypes: {
     table: schema.vehicleTypes,
     schema: z.object({
+      typeCode: z.string().min(1).max(50).optional(),
       typeName: z.string().min(1).max(100),
       description: z.string().optional().nullable(),
       active: z.boolean().optional(),
@@ -189,6 +190,30 @@ const DATA_TYPE_CONFIG = {
       typeCode: z.string().min(1).max(50),
       typeName: z.string().min(1).max(100),
       description: z.string().optional(),
+      active: z.boolean().optional(),
+    }),
+    nameField: 'typeName',
+  },
+  inspectionTypes: {
+    table: schema.inspectionTypes,
+    schema: z.object({
+      typeCode: z.string().min(1).max(50).optional(),
+      typeName: z.string().min(1).max(100),
+      description: z.string().optional(),
+      active: z.boolean().optional(),
+    }),
+    nameField: 'typeName',
+  },
+  maintenanceTypes: {
+    table: schema.maintenanceTypes,
+    schema: z.object({
+      typeCode: z.string().min(1).max(50).optional(),
+      typeName: z.string().min(1).max(100),
+      category: z.enum(['preventive', 'corrective', 'emergency', 'inspection']),
+      description: z.string().optional(),
+      estimatedDuration: z.number().optional(), // in minutes
+      estimatedCost: z.number().optional(),
+      priority: z.number().min(1).max(5).optional(),
       active: z.boolean().optional(),
     }),
     nameField: 'typeName',
@@ -315,6 +340,30 @@ router.post('/:dataType', authorize('admin', 'manager'), async (req, res, next) 
     // For fuelTypes, auto-generate fuelCode from fuelName
     if (dataType === 'fuelTypes' && !insertData.fuelCode) {
       insertData.fuelCode = insertData.fuelName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '_')
+        .substring(0, 50);
+    }
+
+    // For vehicleTypes, auto-generate typeCode from typeName
+    if (dataType === 'vehicleTypes' && !insertData.typeCode) {
+      insertData.typeCode = insertData.typeName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '_')
+        .substring(0, 50);
+    }
+
+    // For inspectionTypes, auto-generate typeCode from typeName
+    if (dataType === 'inspectionTypes' && !insertData.typeCode) {
+      insertData.typeCode = insertData.typeName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '_')
+        .substring(0, 50);
+    }
+
+    // For maintenanceTypes, auto-generate typeCode from typeName
+    if (dataType === 'maintenanceTypes' && !insertData.typeCode) {
+      insertData.typeCode = insertData.typeName
         .toUpperCase()
         .replace(/[^A-Z0-9]/g, '_')
         .substring(0, 50);
