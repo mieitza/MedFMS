@@ -1,0 +1,362 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  ArrowLeft,
+  Download,
+  Clock,
+  AlertTriangle,
+  XCircle,
+  DollarSign,
+  FileText,
+} from 'lucide-react';
+import { warehouseApi, type ExpirationReportResponse } from '@/lib/api/warehouse';
+import type { Warehouse } from '@/types';
+
+function StatCard({
+  title,
+  value,
+  suffix = '',
+  icon: Icon,
+  color,
+  loading = false,
+}: {
+  title: string;
+  value: string | number;
+  suffix?: string;
+  icon: React.ElementType;
+  color: string;
+  loading?: boolean;
+}) {
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="flex items-center gap-4">
+          <div className={`p-3 rounded-full ${color}`}>
+            <Icon className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-sm text-slate-500">{title}</p>
+            {loading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <p className="text-2xl font-bold">
+                {typeof value === 'number' ? value.toLocaleString('ro-RO', { maximumFractionDigits: 2 }) : value}
+                {suffix && <span className="text-sm font-normal text-slate-500 ml-1">{suffix}</span>}
+              </p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function ExpirationReportPage() {
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>('all');
+  const [daysThreshold, setDaysThreshold] = useState<number>(30);
+  const [includeExpired, setIncludeExpired] = useState(true);
+
+  // Fetch warehouses
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: () => warehouseApi.getWarehouses(),
+  });
+
+  // Fetch expiration report
+  const { data: reportData, isLoading } = useQuery({
+    queryKey: ['warehouse', 'reports', 'expiration', selectedWarehouseId, daysThreshold, includeExpired],
+    queryFn: () =>
+      warehouseApi.getExpirationReport({
+        ...(selectedWarehouseId !== 'all' ? { warehouseId: parseInt(selectedWarehouseId) } : {}),
+        daysThreshold,
+        includeExpired,
+      }),
+  });
+
+  const report = reportData as ExpirationReportResponse | undefined;
+
+  // Export to CSV
+  const exportToCSV = () => {
+    if (!report?.data || report.data.length === 0) {
+      alert('Nu există date pentru export');
+      return;
+    }
+
+    const headers = [
+      'Cod Material',
+      'Denumire',
+      'Depozit',
+      'Stoc Curent',
+      'Data Expirare',
+      'Zile Până la Expirare',
+      'Status',
+      'Valoare',
+    ];
+
+    const rows = report.data.map((item) => [
+      item.material.materialCode,
+      item.material.materialName,
+      item.warehouse?.warehouseName || 'N/A',
+      item.material.currentStock,
+      new Date(item.material.expirationDate).toLocaleDateString('ro-RO'),
+      item.daysUntilExpiration,
+      item.isExpired ? 'Expirat' : item.daysUntilExpiration <= 7 ? 'Critic' : item.daysUntilExpiration <= 30 ? 'În curând' : 'OK',
+      item.value.toFixed(2),
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `raport-expirari-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/warehouse/reports">
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Înapoi la Rapoarte
+              </Link>
+            </Button>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight">Raport Expirări</h1>
+          <p className="text-slate-500 dark:text-slate-400">
+            Materiale care expiră în curând sau au expirat deja
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={exportToCSV}
+          disabled={!report?.data || report.data.length === 0}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Export CSV
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtre</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label>Depozit</Label>
+              <Select value={selectedWarehouseId} onValueChange={setSelectedWarehouseId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selectează depozitul" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toate depozitele</SelectItem>
+                  {warehouses.map((warehouse: Warehouse) => (
+                    <SelectItem key={warehouse.id} value={String(warehouse.id)}>
+                      {warehouse.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Zile până la expirare</Label>
+              <Input
+                type="number"
+                value={daysThreshold}
+                onChange={(e) => setDaysThreshold(parseInt(e.target.value) || 30)}
+                min={1}
+                max={365}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2 pt-8">
+              <Checkbox
+                id="includeExpired"
+                checked={includeExpired}
+                onCheckedChange={(checked) => setIncludeExpired(checked === true)}
+              />
+              <Label htmlFor="includeExpired" className="cursor-pointer">
+                Include materialele expirate
+              </Label>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <StatCard
+          title="Total Articole"
+          value={report?.summary.totalExpiring || 0}
+          icon={Clock}
+          color="bg-blue-100 dark:bg-blue-900/30 text-blue-600"
+          loading={isLoading}
+        />
+        <StatCard
+          title="Deja Expirate"
+          value={report?.summary.alreadyExpired || 0}
+          icon={XCircle}
+          color="bg-red-100 dark:bg-red-900/30 text-red-600"
+          loading={isLoading}
+        />
+        <StatCard
+          title="Expiră în Curând"
+          value={report?.summary.expiringSoon || 0}
+          icon={AlertTriangle}
+          color="bg-amber-100 dark:bg-amber-900/30 text-amber-600"
+          loading={isLoading}
+        />
+        <StatCard
+          title="Valoare în Risc"
+          value={(report?.summary.totalExpiredValue || 0) + (report?.summary.totalExpiringValue || 0)}
+          suffix="RON"
+          icon={DollarSign}
+          color="bg-purple-100 dark:bg-purple-900/30 text-purple-600"
+          loading={isLoading}
+        />
+      </div>
+
+      {/* Value Breakdown */}
+      {report?.summary && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-500">Valoare Materiale Expirate</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {(report.summary.totalExpiredValue || 0).toLocaleString('ro-RO', { maximumFractionDigits: 2 })} RON
+                  </p>
+                </div>
+                <XCircle className="h-8 w-8 text-red-200" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-500">Valoare Materiale Care Expiră</p>
+                  <p className="text-2xl font-bold text-amber-600">
+                    {(report.summary.totalExpiringValue || 0).toLocaleString('ro-RO', { maximumFractionDigits: 2 })} RON
+                  </p>
+                </div>
+                <AlertTriangle className="h-8 w-8 text-amber-200" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Data Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Materiale cu Data de Expirare</CardTitle>
+          <CardDescription>
+            {report?.data?.length || 0} materiale găsite
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          ) : !report?.data || report.data.length === 0 ? (
+            <div className="py-12 text-center">
+              <FileText className="h-12 w-12 mx-auto text-slate-400 mb-4" />
+              <h3 className="text-lg font-medium mb-2">Nu există materiale</h3>
+              <p className="text-sm text-slate-500">
+                Nu au fost găsite materiale cu date de expirare conform filtrelor selectate.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-md border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cod Material</TableHead>
+                    <TableHead>Denumire</TableHead>
+                    <TableHead>Depozit</TableHead>
+                    <TableHead className="text-right">Stoc</TableHead>
+                    <TableHead>Data Expirare</TableHead>
+                    <TableHead className="text-right">Zile Rămase</TableHead>
+                    <TableHead className="text-right">Valoare</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {report.data.map((item) => {
+                    let statusBadge;
+                    if (item.isExpired) {
+                      statusBadge = <Badge variant="destructive">Expirat</Badge>;
+                    } else if (item.daysUntilExpiration <= 7) {
+                      statusBadge = <Badge variant="destructive">Critic</Badge>;
+                    } else if (item.daysUntilExpiration <= 30) {
+                      statusBadge = <Badge variant="secondary" className="bg-amber-100 text-amber-800">În curând</Badge>;
+                    } else {
+                      statusBadge = <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">OK</Badge>;
+                    }
+
+                    return (
+                      <TableRow key={item.material.id} className={item.isExpired ? 'bg-red-50 dark:bg-red-950/20' : ''}>
+                        <TableCell className="font-medium">{item.material.materialCode}</TableCell>
+                        <TableCell>{item.material.materialName}</TableCell>
+                        <TableCell>{item.warehouse?.warehouseName || 'N/A'}</TableCell>
+                        <TableCell className="text-right">{item.material.currentStock}</TableCell>
+                        <TableCell>{new Date(item.material.expirationDate).toLocaleDateString('ro-RO')}</TableCell>
+                        <TableCell className="text-right">
+                          <span className={item.isExpired ? 'text-red-600' : item.daysUntilExpiration <= 7 ? 'text-red-600 font-medium' : item.daysUntilExpiration <= 30 ? 'text-amber-600' : ''}>
+                            {item.isExpired ? `-${Math.abs(item.daysUntilExpiration)}` : item.daysUntilExpiration}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">{item.value.toFixed(2)} RON</TableCell>
+                        <TableCell>{statusBadge}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

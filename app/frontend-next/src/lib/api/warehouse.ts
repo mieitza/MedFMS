@@ -112,6 +112,149 @@ export const warehouseApi = {
   getMaterialCategories: async (): Promise<{ id: number; name: string }[]> => {
     return api.get<{ id: number; name: string }[]>('/system/material-categories');
   },
+
+  // Reports
+  getStockReport: async (filters?: { warehouseId?: number; lowStockOnly?: boolean }): Promise<StockReportResponse> => {
+    return api.get<StockReportResponse>('/materials/reports/stock', filters as Record<string, string | number | boolean | undefined>);
+  },
+
+  getPricingReport: async (filters?: { materialId?: number; supplierId?: number; startDate?: string; endDate?: string }): Promise<PricingReportResponse> => {
+    return api.get<PricingReportResponse>('/materials/reports/pricing', filters as Record<string, string | number | boolean | undefined>);
+  },
+
+  getTransfersReport: async (filters?: { status?: string; startDate?: string; endDate?: string }): Promise<TransfersReportResponse> => {
+    return api.get<TransfersReportResponse>('/materials/reports/transfers', filters as Record<string, string | number | boolean | undefined>);
+  },
+
+  getExpirationReport: async (filters?: { warehouseId?: number; daysThreshold?: number; includeExpired?: boolean }): Promise<ExpirationReportResponse> => {
+    return api.get<ExpirationReportResponse>('/materials/reports/expiration', filters as Record<string, string | number | boolean | undefined>);
+  },
+
+  getUsageReport: async (filters?: { warehouseId?: number; startDate?: string; endDate?: string; month?: number; year?: number }): Promise<UsageReportResponse> => {
+    return api.get<UsageReportResponse>('/materials/reports/usage', filters as Record<string, string | number | boolean | undefined>);
+  },
 };
+
+// Report response types
+export interface StockReportResponse {
+  data: StockReportItem[];
+  summary: {
+    totalItems: number;
+    totalValue: number;
+    lowStockItems: number;
+    outOfStockItems: number;
+  };
+}
+
+export interface StockReportItem {
+  material: {
+    id: number;
+    materialCode: string;
+    materialName: string;
+    currentStock: number;
+    criticalLevel: number | null;
+    standardPrice: number | null;
+  };
+  warehouse: { id: number; warehouseName: string } | null;
+  unit: { id: number; unitName: string; abbreviation: string } | null;
+}
+
+export interface PricingReportResponse {
+  data: PricingReportItem[];
+  summary: {
+    totalMaterials: number;
+    averagePriceChange: number;
+  };
+}
+
+export interface PricingReportItem {
+  material: { id: number; materialCode: string; materialName: string };
+  priceHistory: { date: string; price: number; supplier: string }[];
+  statistics: { min: number; max: number; avg: number; variance: number };
+}
+
+export interface TransfersReportResponse {
+  data: TransfersReportItem[];
+  summary: {
+    totalTransfers: number;
+    completed: number;
+    pending: number;
+    cancelled: number;
+    averageCompletionTime: number;
+  };
+}
+
+export interface TransfersReportItem {
+  transfer: {
+    id: number;
+    transferNumber: string;
+    status: string;
+    transferType: string;
+    createdAt: string;
+    completedAt: string | null;
+  };
+  sourceWarehouse: { id: number; warehouseName: string } | null;
+  destinationWarehouse: { id: number; warehouseName: string } | null;
+  itemCount: number;
+  totalValue: number;
+}
+
+export interface ExpirationReportResponse {
+  data: ExpirationReportItem[];
+  summary: {
+    totalExpiring: number;
+    alreadyExpired: number;
+    expiringSoon: number;
+    totalExpiredValue: number;
+    totalExpiringValue: number;
+  };
+}
+
+export interface ExpirationReportItem {
+  material: {
+    id: number;
+    materialCode: string;
+    materialName: string;
+    currentStock: number;
+    standardPrice: number | null;
+    expirationDate: string;
+  };
+  warehouse: { id: number; warehouseName: string } | null;
+  daysUntilExpiration: number;
+  isExpired: boolean;
+  value: number;
+}
+
+export interface UsageReportResponse {
+  data: {
+    categoryBreakdown: CategoryUsageItem[];
+    topUsedMaterials: TopUsedMaterialItem[];
+  };
+  summary: {
+    totalCategories: number;
+    totalMaterialsUsed: number;
+    totalConsumption: number;
+    totalValue: number;
+    period: { start: string; end: string };
+  };
+}
+
+export interface CategoryUsageItem {
+  category: string;
+  itemCount: number;
+  totalConsumption: number;
+  totalValue: number;
+  percentOfTotal: number;
+  topItems: { name: string; consumption: number; value: number }[];
+}
+
+export interface TopUsedMaterialItem {
+  materialCode: string;
+  materialName: string;
+  category: string;
+  totalConsumption: number;
+  totalValue: number;
+  averageConsumption: number;
+}
 
 export default warehouseApi;
