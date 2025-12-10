@@ -86,6 +86,21 @@ export const maintenanceApi = {
   getMaintenanceTypes: async (): Promise<MaintenanceType[]> => {
     return api.get<MaintenanceType[]>('/system/maintenance-types');
   },
+
+  // Get work orders pending approval (managers/admins only)
+  getPendingApproval: async (filters: MaintenanceWorkOrderFilters = {}): Promise<PaginatedResponse<MaintenanceWorkOrder>> => {
+    return api.get<PaginatedResponse<MaintenanceWorkOrder>>('/maintenance/work-orders/pending-approval', filters as Record<string, string | number | boolean | undefined>);
+  },
+
+  // Approve work order
+  approve: async (id: number, notes?: string): Promise<MaintenanceWorkOrder> => {
+    return api.put<MaintenanceWorkOrder>(`/maintenance/work-orders/${id}/status`, { status: 'approved', notes });
+  },
+
+  // Reject work order
+  reject: async (id: number, notes: string): Promise<MaintenanceWorkOrder> => {
+    return api.put<MaintenanceWorkOrder>(`/maintenance/work-orders/${id}/status`, { status: 'cancelled', notes });
+  },
 };
 
 export default maintenanceApi;

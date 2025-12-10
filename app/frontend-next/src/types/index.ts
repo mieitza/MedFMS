@@ -208,6 +208,7 @@ export interface MaintenanceWorkOrder {
   workOrderNumber: string;
   vehicleId: number;
   maintenanceTypeId: number;
+  title: string | null;
   status: 'pending' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
   priority: number;
   scheduledDate: string | null;
