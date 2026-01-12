@@ -33,7 +33,7 @@
 	let formData = {
 		username: '',
 		email: '',
-		pin: '',
+		password: '',
 		fullName: '',
 		role: 'viewer',
 		departmentId: null,
@@ -138,7 +138,7 @@
 		formData = {
 			username: '',
 			email: '',
-			pin: '',
+			password: '',
 			fullName: '',
 			role: 'viewer',
 			departmentId: null,
@@ -155,7 +155,7 @@
 		formData = {
 			username: user.username,
 			email: user.email,
-			pin: '',
+			password: '',
 			fullName: user.fullName,
 			role: user.role,
 			departmentId: user.departmentId,
@@ -179,11 +179,11 @@
 				// For updates, detect and send only changed fields
 				const changedFields = formTracker ? formTracker.detectChanges(formData) : formData;
 
-				// Remove username (can't be changed) and empty PIN
+				// Remove username (can't be changed) and empty password
 				const updateData = { ...changedFields };
 				delete updateData.username; // Can't change username
-				if (updateData.pin === '' || updateData.pin === null) {
-					delete updateData.pin; // Only update PIN if provided with a value
+				if (updateData.password === '' || updateData.password === null) {
+					delete updateData.password; // Only update password if provided with a value
 				}
 
 				// Only send PATCH if there are changes
@@ -229,21 +229,28 @@
 		}
 	}
 
-	async function resetUserPin(user) {
-		const newPin = prompt(`Enter new PIN for user "${user.username}" (4-8 digits):`);
-		if (!newPin) return;
+	async function resetUserPassword(user) {
+		const newPassword = prompt($_('users.messages.enterNewPassword', { values: { username: user.username } }) || `Enter new password for user "${user.username}" (8+ chars, uppercase, lowercase, number):`);
+		if (!newPassword) return;
 
-		if (newPin.length < 4 || newPin.length > 8) {
-			alert('PIN must be between 4 and 8 characters');
+		// Validate password complexity
+		const errors = [];
+		if (newPassword.length < 8) errors.push($_('users.passwordRules.minLength') || 'At least 8 characters');
+		if (!/[a-z]/.test(newPassword)) errors.push($_('users.passwordRules.lowercase') || 'One lowercase letter');
+		if (!/[A-Z]/.test(newPassword)) errors.push($_('users.passwordRules.uppercase') || 'One uppercase letter');
+		if (!/[0-9]/.test(newPassword)) errors.push($_('users.passwordRules.number') || 'One number');
+
+		if (errors.length > 0) {
+			alert($_('users.messages.passwordRequirements') + '\n' + errors.join('\n') || 'Password requirements not met:\n' + errors.join('\n'));
 			return;
 		}
 
 		try {
-			await api.resetUserPin(user.id, newPin);
-			alert('PIN reset successfully');
+			await api.resetUserPassword(user.id, newPassword);
+			alert($_('users.messages.passwordResetSuccess') || 'Password reset successfully');
 		} catch (err) {
-			console.error('Error resetting PIN:', err);
-			alert('Failed to reset PIN');
+			console.error('Error resetting password:', err);
+			alert(err.message || $_('users.messages.failedToResetPassword') || 'Failed to reset password');
 		}
 	}
 
@@ -274,7 +281,7 @@
 		const editLabel = $_('users.actions.edit');
 		const deactivateLabel = $_('users.actions.deactivate');
 		const activateLabel = $_('users.actions.activate');
-		const resetPinLabel = $_('users.actions.resetPin');
+		const resetPasswordLabel = $_('users.actions.resetPassword');
 		const deleteLabel = $_('users.actions.delete');
 
 		return `
@@ -284,7 +291,7 @@
 					? `<button onclick="toggleStatus(${row.id})" class="text-orange-600 hover:text-orange-800 text-sm">${deactivateLabel}</button>`
 					: `<button onclick="toggleStatus(${row.id})" class="text-green-600 hover:text-green-800 text-sm">${activateLabel}</button>`
 				}
-				${isAdminUser ? `<button onclick="resetPin(${row.id})" class="text-purple-600 hover:text-purple-800 text-sm">${resetPinLabel}</button>` : ''}
+				${isAdminUser ? `<button onclick="resetPassword(${row.id})" class="text-purple-600 hover:text-purple-800 text-sm">${resetPasswordLabel}</button>` : ''}
 				${isAdminUser && row.id !== currentUserId ? `<button onclick="deleteUser(${row.id})" class="text-red-600 hover:text-red-800 text-sm">${deleteLabel}</button>` : ''}
 			</div>
 		`;
@@ -304,9 +311,9 @@
 			const user = users.find(u => u.id === id);
 			if (user) toggleUserStatus(user);
 		};
-		window.resetPin = (id) => {
+		window.resetPassword = (id) => {
 			const user = users.find(u => u.id === id);
-			if (user) resetUserPin(user);
+			if (user) resetUserPassword(user);
 		};
 	}
 </script>
@@ -400,19 +407,21 @@
 			</div>
 
 			<div>
-				<label for="pin" class="block text-sm font-medium text-gray-700 mb-1">
-					{$_('users.pin')} {modalMode === 'create' ? '*' : `(${$_('users.leaveBlank')})`}
+				<label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+					{$_('users.password')} {modalMode === 'create' ? '*' : `(${$_('users.leaveBlank')})`}
 				</label>
 				<input
-					id="pin"
+					id="password"
 					type="password"
-					bind:value={formData.pin}
+					bind:value={formData.password}
 					required={modalMode === 'create'}
-					minlength="4"
-					maxlength="8"
+					minlength="8"
 					class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
 					placeholder={modalMode === 'edit' ? $_('users.leaveBlank') : ''}
 				/>
+				{#if modalMode === 'create'}
+					<p class="mt-1 text-xs text-gray-500">{$_('users.passwordHint') || '8+ characters, uppercase, lowercase, and number required'}</p>
+				{/if}
 			</div>
 
 			<div>

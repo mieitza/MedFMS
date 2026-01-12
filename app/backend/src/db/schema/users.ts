@@ -5,7 +5,9 @@ export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   username: text('username').notNull().unique(),
   email: text('email').notNull().unique(),
-  pin: text('pin').notNull(), // Hashed PIN
+  pin: text('pin'), // Legacy PIN field (deprecated, kept for migration)
+  password: text('password'), // Hashed password (bcrypt)
+  mustResetPassword: integer('must_reset_password', { mode: 'boolean' }).notNull().default(true),
   fullName: text('full_name').notNull(),
   role: text('role').notNull().default('user'), // admin, manager, operator, viewer
   departmentId: integer('department_id'),

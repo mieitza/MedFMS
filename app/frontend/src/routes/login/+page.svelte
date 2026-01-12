@@ -6,12 +6,12 @@
 	import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
 
 	let username = '';
-	let pin = '';
+	let password = '';
 	let error = '';
 	let loading = false;
 
 	async function handleLogin() {
-		if (!username || !pin) {
+		if (!username || !password) {
 			error = $_('auth.pleaseEnterCredentials');
 			return;
 		}
@@ -20,11 +20,17 @@
 		error = '';
 
 		try {
-			const response = await api.login({ username, pin });
+			const response = await api.login({ username, password });
 
 			if (response.success && response.data) {
 				auth.login(response.data.user, response.data.token);
-				goto('/dashboard');
+
+				// Check if user needs to reset password
+				if (response.data.mustResetPassword) {
+					goto('/reset-password');
+				} else {
+					goto('/dashboard');
+				}
 			} else {
 				error = $_('auth.invalidCredentials');
 			}
@@ -98,20 +104,18 @@
 				</div>
 
 				<div class="mb-6">
-					<label for="pin" class="block text-sm font-medium text-gray-700 mb-2">
-						{$_('auth.pin')}
+					<label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+						{$_('auth.password')}
 					</label>
 					<input
-						id="pin"
+						id="password"
 						type="password"
-						bind:value={pin}
+						bind:value={password}
 						on:keypress={handleKeyPress}
 						disabled={loading}
 						class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
-						placeholder={$_('auth.enterPin')}
+						placeholder={$_('auth.enterPassword')}
 						autocomplete="current-password"
-						inputmode="numeric"
-						maxlength="8"
 					/>
 				</div>
 

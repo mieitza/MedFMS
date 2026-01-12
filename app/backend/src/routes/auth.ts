@@ -9,25 +9,35 @@ import { eq } from 'drizzle-orm';
 import { AppError } from '../middleware/errorHandler.js';
 import { strictRateLimiter } from '../middleware/rateLimiter.js';
 import { createAuditLog } from '../middleware/audit.js';
+import { validatePassword, isLegacyPin } from '../utils/passwordValidation.js';
+import { authenticate, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
 
+// Login schema - accepts both legacy PIN (4-8 chars) and new password (8+ chars)
 const loginSchema = z.object({
   username: z.string().min(1),
-  pin: z.string().min(4).max(8)
+  password: z.string().min(4) // Min 4 to support legacy PIN during migration
 });
 
+// Register schema - requires strong password
 const registerSchema = z.object({
   username: z.string().min(3).max(50),
   email: z.string().email(),
-  pin: z.string().min(4).max(8),
+  password: z.string().min(8),
   fullName: z.string().min(1).max(100),
   role: z.enum(['admin', 'manager', 'operator', 'viewer']).optional()
 });
 
+// Password reset schema
+const resetPasswordSchema = z.object({
+  currentPassword: z.string().min(4), // Min 4 to support legacy PIN
+  newPassword: z.string().min(8)
+});
+
 router.post('/login', strictRateLimiter, async (req, res, next) => {
   try {
-    const { username, pin } = loginSchema.parse(req.body);
+    const { username, password } = loginSchema.parse(req.body);
 
     const db = getDb();
 
@@ -41,9 +51,15 @@ router.post('/login', strictRateLimiter, async (req, res, next) => {
       throw new AppError('Invalid credentials', 401);
     }
 
-    // Verify PIN
-    const validPin = await bcrypt.compare(pin, user.pin);
-    if (!validPin) {
+    // Get the stored hash (prefer password field, fallback to pin for migration)
+    const storedHash = user.password || user.pin;
+    if (!storedHash) {
+      throw new AppError('Invalid credentials', 401);
+    }
+
+    // Verify password/PIN
+    const validPassword = await bcrypt.compare(password, storedHash);
+    if (!validPassword) {
       throw new AppError('Invalid credentials', 401);
     }
 
@@ -84,6 +100,7 @@ router.post('/login', strictRateLimiter, async (req, res, next) => {
       success: true,
       data: {
         token,
+        mustResetPassword: user.mustResetPassword ?? false,
         user: {
           id: user.id,
           username: user.username,
@@ -102,6 +119,12 @@ router.post('/register', async (req, res, next) => {
   try {
     const data = registerSchema.parse(req.body);
 
+    // Validate password strength
+    const passwordValidation = validatePassword(data.password);
+    if (!passwordValidation.valid) {
+      throw new AppError(passwordValidation.errors.join('. '), 400);
+    }
+
     const db = getDb();
 
     // Check if user exists
@@ -114,14 +137,15 @@ router.post('/register', async (req, res, next) => {
       throw new AppError('Username already exists', 409);
     }
 
-    // Hash PIN
-    const hashedPin = await bcrypt.hash(data.pin, parseInt(process.env.PIN_SALT_ROUNDS || '10'));
+    // Hash password
+    const hashedPassword = await bcrypt.hash(data.password, parseInt(process.env.PASSWORD_SALT_ROUNDS || '10'));
 
-    // Create user
+    // Create user with password (no PIN, mustResetPassword = false for new users)
     const result = await db.insert(users).values({
       username: data.username,
       email: data.email,
-      pin: hashedPin,
+      password: hashedPassword,
+      mustResetPassword: false,
       fullName: data.fullName,
       role: data.role || 'viewer'
     }).returning();
@@ -137,6 +161,71 @@ router.post('/register', async (req, res, next) => {
         fullName: newUser.fullName,
         role: newUser.role
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Reset password endpoint (for forced password resets and voluntary changes)
+router.post('/reset-password', authenticate, async (req: AuthRequest, res, next) => {
+  try {
+    const { currentPassword, newPassword } = resetPasswordSchema.parse(req.body);
+
+    // Validate new password strength
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      throw new AppError(passwordValidation.errors.join('. '), 400);
+    }
+
+    const db = getDb();
+
+    // Get current user
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.id, req.user!.id))
+      .limit(1);
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Verify current password (check both password and legacy pin)
+    const storedHash = user.password || user.pin;
+    if (!storedHash) {
+      throw new AppError('No password set', 400);
+    }
+
+    const validCurrentPassword = await bcrypt.compare(currentPassword, storedHash);
+    if (!validCurrentPassword) {
+      throw new AppError('Current password is incorrect', 401);
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, parseInt(process.env.PASSWORD_SALT_ROUNDS || '10'));
+
+    // Update user with new password and clear mustResetPassword flag
+    await db.update(users)
+      .set({
+        password: hashedPassword,
+        mustResetPassword: false,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, req.user!.id));
+
+    // Audit log
+    await createAuditLog(
+      { id: user.id, username: user.username },
+      'UPDATE',
+      'auth',
+      user.id,
+      { action: 'password_reset' },
+      req
+    );
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully'
     });
   } catch (error) {
     next(error);

@@ -126,13 +126,34 @@
     "signIn": "Autentificare",
     "signingIn": "Se autentifică...",
     "username": "Nume utilizator",
-    "pin": "PIN",
+    "password": "Parolă",
     "enterUsername": "Introduceți numele de utilizator",
-    "enterPin": "Introduceți PIN-ul",
+    "enterPassword": "Introduceți parola",
     "invalidCredentials": "Date de autentificare invalide",
     "loginFailed": "Autentificarea a eșuat. Verificați datele introduse.",
-    "pleaseEnterCredentials": "Introduceți numele de utilizator și PIN-ul",
-    "copyright": "© 2025 MedFMS. Toate drepturile rezervate."
+    "pleaseEnterCredentials": "Introduceți numele de utilizator și parola",
+    "copyright": "© 2025 MedFMS. Toate drepturile rezervate.",
+    "resetPassword": "Resetare Parolă",
+    "resetPasswordDesc": "Parola dumneavoastră a expirat sau aceasta este prima autentificare. Vă rugăm să setați o parolă nouă.",
+    "currentPassword": "Parola Curentă",
+    "newPassword": "Parolă Nouă",
+    "confirmPassword": "Confirmă Parola Nouă",
+    "enterCurrentPassword": "Introduceți parola curentă",
+    "enterNewPassword": "Introduceți parola nouă",
+    "enterConfirmPassword": "Confirmați parola nouă",
+    "passwordMismatch": "Parolele nu coincid",
+    "currentPasswordRequired": "Parola curentă este obligatorie",
+    "passwordResetSuccess": "Parolă resetată cu succes! Se redirecționează...",
+    "passwordResetFailed": "Resetarea parolei a eșuat",
+    "resettingPassword": "Se resetează parola...",
+    "resetPasswordButton": "Resetează Parola",
+    "logoutAndCancel": "Deconectare și Anulare",
+    "passwordRules": {
+      "minLength": "Cel puțin 8 caractere",
+      "lowercase": "O literă mică",
+      "uppercase": "O literă mare",
+      "number": "O cifră"
+    }
   },
   "dashboard": {
     "title": "Panou de Control",
@@ -362,6 +383,81 @@
         "abbreviation": "ex: kg",
         "description": "Descriere opțională"
       }
+    },
+    "auditLogs": "Jurnal de Audit",
+    "auditLogsDesc": "Vizualizați activitatea sistemului și acțiunile utilizatorilor"
+  },
+  "audit": {
+    "title": "Jurnal de Audit",
+    "pageTitle": "Jurnal de Audit - MedFMS",
+    "backToAdmin": "Înapoi la Setări Administrator",
+    "filters": {
+      "title": "Filtre",
+      "action": "Acțiune",
+      "allActions": "Toate Acțiunile",
+      "resource": "Resursă",
+      "allResources": "Toate Resursele",
+      "user": "Utilizator",
+      "allUsers": "Toți Utilizatorii",
+      "startDate": "Data Început",
+      "endDate": "Data Sfârșit",
+      "search": "Căutare",
+      "searchPlaceholder": "Căutare în detalii...",
+      "applyFilters": "Aplică Filtre",
+      "reset": "Resetare"
+    },
+    "table": {
+      "timestamp": "Timp",
+      "user": "Utilizator",
+      "action": "Acțiune",
+      "resource": "Resursă",
+      "resourceId": "ID Resursă",
+      "ipAddress": "Adresă IP",
+      "details": "Detalii"
+    },
+    "actions": {
+      "create": "Creare",
+      "update": "Actualizare",
+      "delete": "Ștergere",
+      "login": "Autentificare",
+      "logout": "Deconectare",
+      "passwordReset": "Resetare Parolă",
+      "approve": "Aprobare",
+      "reject": "Respingere"
+    },
+    "resources": {
+      "user": "Utilizator",
+      "vehicle": "Vehicul",
+      "driver": "Șofer",
+      "fuel": "Combustibil",
+      "material": "Material",
+      "maintenance": "Întreținere",
+      "transfer": "Transfer",
+      "warehouse": "Depozit"
+    },
+    "detail": {
+      "title": "Detalii Jurnal Audit",
+      "previousValue": "Valoare Anterioară",
+      "newValue": "Valoare Nouă",
+      "changedFields": "Câmpuri Modificate",
+      "noChanges": "Nicio modificare înregistrată"
+    },
+    "stats": {
+      "title": "Statistici Activitate",
+      "totalActions": "Total Acțiuni",
+      "byAction": "După Acțiune",
+      "byResource": "După Resursă",
+      "recentActivity": "Activitate Recentă"
+    },
+    "messages": {
+      "loadFailed": "Încărcarea jurnalului de audit a eșuat",
+      "noLogs": "Nu s-au găsit înregistrări",
+      "noLogsDesc": "Nu a fost înregistrată nicio activitate pentru criteriile selectate."
+    },
+    "export": {
+      "title": "Exportă Jurnal Audit",
+      "csv": "Exportă în CSV",
+      "exporting": "Se exportă..."
     }
   },
   "users": {
@@ -373,7 +469,7 @@
     "username": "Nume utilizator",
     "fullName": "Nume Complet",
     "email": "Email",
-    "pin": "PIN",
+    "password": "Parolă",
     "role": "Rol",
     "department": "Departament",
     "location": "Locație",
@@ -382,6 +478,7 @@
     "never": "Niciodată",
     "cannotChange": "nu poate fi modificat",
     "leaveBlank": "lăsați gol pentru a păstra cel actual",
+    "passwordHint": "Minim 8 caractere, literă mare, literă mică și cifră obligatorii",
     "roles": {
       "admin": "Administrator",
       "manager": "Manager",
@@ -392,8 +489,14 @@
       "edit": "Editează",
       "deactivate": "Dezactivează",
       "activate": "Activează",
-      "resetPin": "Resetare PIN",
+      "resetPassword": "Resetare Parolă",
       "delete": "Șterge"
+    },
+    "passwordRules": {
+      "minLength": "Cel puțin 8 caractere",
+      "lowercase": "O literă mică",
+      "uppercase": "O literă mare",
+      "number": "O cifră"
     },
     "messages": {
       "createSuccess": "Utilizator creat cu succes",
@@ -402,31 +505,42 @@
       "failedToLoad": "Încărcarea utilizatorilor a eșuat",
       "failedToSave": "Salvarea utilizatorului a eșuat",
       "failedToDelete": "Ștergerea utilizatorului a eșuat",
-      "failedToUpdateStatus": "Actualizarea statusului utilizatorului a eșuat"
+      "failedToUpdateStatus": "Actualizarea statusului utilizatorului a eșuat",
+      "enterNewPassword": "Introduceți parola nouă pentru utilizatorul \"{username}\" (min 8 caractere, literă mare, literă mică, cifră):",
+      "passwordRequirements": "Cerințele parolei nu sunt îndeplinite:",
+      "passwordResetSuccess": "Parola a fost resetată cu succes",
+      "failedToResetPassword": "Resetarea parolei a eșuat",
+      "noChanges": "Nu există modificări de salvat"
     }
   },
   "profile": {
     "title": "Profilul Meu",
     "backToDashboard": "Înapoi la Panou",
     "profileInformation": "Informații Profil",
-    "changePin": "Schimbă PIN",
-    "changePinDesc": "Actualizați PIN-ul de autentificare pentru securitate",
-    "currentPin": "PIN Actual",
-    "newPin": "PIN Nou (4-8 caractere)",
-    "confirmPin": "Confirmă PIN Nou",
+    "changePassword": "Schimbă Parola",
+    "changePasswordDesc": "Actualizați parola de autentificare pentru securitate",
+    "currentPassword": "Parola Curentă",
+    "newPassword": "Parolă Nouă",
+    "confirmPassword": "Confirmă Parola Nouă",
     "updateProfile": "Actualizare Profil",
-    "changingPin": "Se schimbă PIN-ul...",
+    "changingPassword": "Se schimbă parola...",
     "saving": "Se salvează...",
     "userId": "ID Utilizator",
     "lastLogin": "Ultima Autentificare",
+    "passwordRules": {
+      "minLength": "Cel puțin 8 caractere",
+      "lowercase": "O literă mică",
+      "uppercase": "O literă mare",
+      "number": "O cifră"
+    },
     "messages": {
       "profileUpdated": "Profil actualizat cu succes",
-      "pinChanged": "PIN schimbat cu succes",
-      "pinMismatch": "PIN-ul nou și confirmarea nu coincid",
-      "pinLength": "PIN-ul trebuie să aibă între 4 și 8 caractere",
+      "passwordChanged": "Parolă schimbată cu succes",
+      "passwordMismatch": "Parolele nu coincid",
       "failedToLoad": "Încărcarea profilului a eșuat",
       "failedToUpdate": "Actualizarea profilului a eșuat",
-      "failedToChangePin": "Schimbarea PIN-ului a eșuat"
+      "failedToChangePassword": "Schimbarea parolei a eșuat",
+      "noChanges": "Nu există modificări de salvat"
     }
   },
   "drivers": {

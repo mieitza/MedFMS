@@ -8,7 +8,7 @@
 
 	let loading = false;
 	let saving = false;
-	let changingPin = false;
+	let changingPassword = false;
 	let error = '';
 	let success = '';
 	let formTracker = null; // For tracking changed fields
@@ -20,12 +20,34 @@
 		phoneNumber: ''
 	};
 
-	// PIN change form
-	let pinData = {
-		currentPin: '',
-		newPin: '',
-		confirmPin: ''
+	// Password change form
+	let passwordData = {
+		currentPassword: '',
+		newPassword: '',
+		confirmPassword: ''
 	};
+
+	// Password validation
+	function validatePassword(password: string): string[] {
+		const errors: string[] = [];
+		if (!password || password.length < 8) {
+			errors.push($_('profile.passwordRules.minLength'));
+		}
+		if (!/[a-z]/.test(password)) {
+			errors.push($_('profile.passwordRules.lowercase'));
+		}
+		if (!/[A-Z]/.test(password)) {
+			errors.push($_('profile.passwordRules.uppercase'));
+		}
+		if (!/[0-9]/.test(password)) {
+			errors.push($_('profile.passwordRules.number'));
+		}
+		return errors;
+	}
+
+	$: passwordErrors = validatePassword(passwordData.newPassword);
+	$: isPasswordValid = passwordErrors.length === 0 && passwordData.newPassword.length > 0;
+	$: passwordsMatch = passwordData.newPassword === passwordData.confirmPassword && passwordData.confirmPassword.length > 0;
 
 	onMount(async () => {
 		await loadProfile();
@@ -90,33 +112,33 @@
 		}
 	}
 
-	async function handleChangePin() {
-		if (pinData.newPin !== pinData.confirmPin) {
-			error = $_('profile.messages.pinMismatch');
+	async function handleChangePassword() {
+		if (!isPasswordValid) {
+			error = passwordErrors.join('. ');
 			return;
 		}
 
-		if (pinData.newPin.length < 4 || pinData.newPin.length > 8) {
-			error = $_('profile.messages.pinLength');
+		if (!passwordsMatch) {
+			error = $_('profile.messages.passwordMismatch');
 			return;
 		}
 
-		changingPin = true;
+		changingPassword = true;
 		error = '';
 		success = '';
 		try {
-			await api.changePin(pinData.currentPin, pinData.newPin);
-			success = $_('profile.messages.pinChanged');
-			pinData = {
-				currentPin: '',
-				newPin: '',
-				confirmPin: ''
+			await api.changePassword(passwordData.currentPassword, passwordData.newPassword);
+			success = $_('profile.messages.passwordChanged');
+			passwordData = {
+				currentPassword: '',
+				newPassword: '',
+				confirmPassword: ''
 			};
 		} catch (err) {
-			console.error('Error changing PIN:', err);
-			error = err.message || $_('profile.messages.failedToChangePin');
+			console.error('Error changing password:', err);
+			error = err.message || $_('profile.messages.failedToChangePassword');
 		} finally {
-			changingPin = false;
+			changingPassword = false;
 		}
 	}
 
@@ -260,65 +282,87 @@
 					</form>
 				</div>
 
-				<!-- Change PIN Card -->
+				<!-- Change Password Card -->
 				<div class="bg-white rounded-lg shadow">
 					<div class="p-6 border-b border-gray-200">
-						<h3 class="text-lg font-semibold text-gray-900">{$_('profile.changePin')}</h3>
-						<p class="text-sm text-gray-600 mt-1">{$_('profile.changePinDesc')}</p>
+						<h3 class="text-lg font-semibold text-gray-900">{$_('profile.changePassword')}</h3>
+						<p class="text-sm text-gray-600 mt-1">{$_('profile.changePasswordDesc')}</p>
 					</div>
-					<form on:submit|preventDefault={handleChangePin} class="p-6 space-y-4">
+					<form on:submit|preventDefault={handleChangePassword} class="p-6 space-y-4">
 						<div>
-							<label for="currentPin" class="block text-sm font-medium text-gray-700 mb-1">
-								{$_('profile.currentPin')}
+							<label for="currentPassword" class="block text-sm font-medium text-gray-700 mb-1">
+								{$_('profile.currentPassword')}
 							</label>
 							<input
-								id="currentPin"
+								id="currentPassword"
 								type="password"
-								bind:value={pinData.currentPin}
+								bind:value={passwordData.currentPassword}
 								required
-								minlength="4"
-								maxlength="8"
 								class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
 							/>
 						</div>
 
 						<div>
-							<label for="newPin" class="block text-sm font-medium text-gray-700 mb-1">
-								{$_('profile.newPin')}
+							<label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1">
+								{$_('profile.newPassword')}
 							</label>
 							<input
-								id="newPin"
+								id="newPassword"
 								type="password"
-								bind:value={pinData.newPin}
+								bind:value={passwordData.newPassword}
 								required
-								minlength="4"
-								maxlength="8"
 								class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
 							/>
+							<!-- Password strength indicators -->
+							{#if passwordData.newPassword}
+								<div class="mt-2 space-y-1">
+									<div class="flex items-center text-xs">
+										<span class={passwordData.newPassword.length >= 8 ? 'text-green-600' : 'text-gray-400'}>
+											{passwordData.newPassword.length >= 8 ? '✓' : '○'} {$_('profile.passwordRules.minLength')}
+										</span>
+									</div>
+									<div class="flex items-center text-xs">
+										<span class={/[a-z]/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-400'}>
+											{/[a-z]/.test(passwordData.newPassword) ? '✓' : '○'} {$_('profile.passwordRules.lowercase')}
+										</span>
+									</div>
+									<div class="flex items-center text-xs">
+										<span class={/[A-Z]/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-400'}>
+											{/[A-Z]/.test(passwordData.newPassword) ? '✓' : '○'} {$_('profile.passwordRules.uppercase')}
+										</span>
+									</div>
+									<div class="flex items-center text-xs">
+										<span class={/[0-9]/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-400'}>
+											{/[0-9]/.test(passwordData.newPassword) ? '✓' : '○'} {$_('profile.passwordRules.number')}
+										</span>
+									</div>
+								</div>
+							{/if}
 						</div>
 
 						<div>
-							<label for="confirmPin" class="block text-sm font-medium text-gray-700 mb-1">
-								{$_('profile.confirmPin')}
+							<label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">
+								{$_('profile.confirmPassword')}
 							</label>
 							<input
-								id="confirmPin"
+								id="confirmPassword"
 								type="password"
-								bind:value={pinData.confirmPin}
+								bind:value={passwordData.confirmPassword}
 								required
-								minlength="4"
-								maxlength="8"
-								class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+								class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent {passwordData.confirmPassword && !passwordsMatch ? 'border-red-300' : ''}"
 							/>
+							{#if passwordData.confirmPassword && !passwordsMatch}
+								<p class="mt-1 text-xs text-red-500">{$_('profile.messages.passwordMismatch')}</p>
+							{/if}
 						</div>
 
 						<div class="pt-4">
 							<button
 								type="submit"
-								disabled={changingPin}
+								disabled={changingPassword || !isPasswordValid || !passwordsMatch}
 								class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:bg-purple-400 disabled:cursor-not-allowed"
 							>
-								{changingPin ? $_('profile.changingPin') : $_('profile.changePin')}
+								{changingPassword ? $_('profile.changingPassword') : $_('profile.changePassword')}
 							</button>
 						</div>
 					</form>

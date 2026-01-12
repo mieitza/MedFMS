@@ -31,13 +31,34 @@
     "signIn": "Sign In",
     "signingIn": "Signing in...",
     "username": "Username",
-    "pin": "PIN",
+    "password": "Password",
     "enterUsername": "Enter your username",
-    "enterPin": "Enter your PIN",
+    "enterPassword": "Enter your password",
     "invalidCredentials": "Invalid credentials",
     "loginFailed": "Login failed. Please check your credentials.",
-    "pleaseEnterCredentials": "Please enter username and PIN",
-    "copyright": "© 2024 MedFMS. All rights reserved."
+    "pleaseEnterCredentials": "Please enter username and password",
+    "copyright": "© 2024 MedFMS. All rights reserved.",
+    "resetPassword": "Reset Password",
+    "resetPasswordDesc": "Your password has expired or this is your first login. Please set a new password.",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "enterCurrentPassword": "Enter your current password",
+    "enterNewPassword": "Enter your new password",
+    "enterConfirmPassword": "Confirm your new password",
+    "passwordMismatch": "Passwords do not match",
+    "currentPasswordRequired": "Current password is required",
+    "passwordResetSuccess": "Password reset successfully! Redirecting...",
+    "passwordResetFailed": "Failed to reset password",
+    "resettingPassword": "Resetting password...",
+    "resetPasswordButton": "Reset Password",
+    "logoutAndCancel": "Logout and Cancel",
+    "passwordRules": {
+      "minLength": "At least 8 characters",
+      "lowercase": "One lowercase letter",
+      "uppercase": "One uppercase letter",
+      "number": "One number"
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -166,6 +187,81 @@
         "abbreviation": "e.g., kg",
         "description": "Optional description"
       }
+    },
+    "auditLogs": "Audit Logs",
+    "auditLogsDesc": "View system activity and user actions"
+  },
+  "audit": {
+    "title": "Audit Logs",
+    "pageTitle": "Audit Logs - MedFMS",
+    "backToAdmin": "Back to Admin Settings",
+    "filters": {
+      "title": "Filters",
+      "action": "Action",
+      "allActions": "All Actions",
+      "resource": "Resource",
+      "allResources": "All Resources",
+      "user": "User",
+      "allUsers": "All Users",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "search": "Search",
+      "searchPlaceholder": "Search in details...",
+      "applyFilters": "Apply Filters",
+      "reset": "Reset"
+    },
+    "table": {
+      "timestamp": "Timestamp",
+      "user": "User",
+      "action": "Action",
+      "resource": "Resource",
+      "resourceId": "Resource ID",
+      "ipAddress": "IP Address",
+      "details": "Details"
+    },
+    "actions": {
+      "create": "Create",
+      "update": "Update",
+      "delete": "Delete",
+      "login": "Login",
+      "logout": "Logout",
+      "passwordReset": "Password Reset",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "resources": {
+      "user": "User",
+      "vehicle": "Vehicle",
+      "driver": "Driver",
+      "fuel": "Fuel",
+      "material": "Material",
+      "maintenance": "Maintenance",
+      "transfer": "Transfer",
+      "warehouse": "Warehouse"
+    },
+    "detail": {
+      "title": "Audit Log Details",
+      "previousValue": "Previous Value",
+      "newValue": "New Value",
+      "changedFields": "Changed Fields",
+      "noChanges": "No changes recorded"
+    },
+    "stats": {
+      "title": "Activity Statistics",
+      "totalActions": "Total Actions",
+      "byAction": "By Action",
+      "byResource": "By Resource",
+      "recentActivity": "Recent Activity"
+    },
+    "messages": {
+      "loadFailed": "Failed to load audit logs",
+      "noLogs": "No audit logs found",
+      "noLogsDesc": "No activity has been recorded for the selected criteria."
+    },
+    "export": {
+      "title": "Export Audit Logs",
+      "csv": "Export to CSV",
+      "exporting": "Exporting..."
     }
   },
   "users": {
@@ -177,7 +273,7 @@
     "username": "Username",
     "fullName": "Full Name",
     "email": "Email",
-    "pin": "PIN",
+    "password": "Password",
     "role": "Role",
     "department": "Department",
     "location": "Location",
@@ -186,6 +282,7 @@
     "never": "Never",
     "cannotChange": "cannot be changed",
     "leaveBlank": "leave blank to keep current",
+    "passwordHint": "8+ characters, uppercase, lowercase, and number required",
     "roles": {
       "admin": "Admin",
       "manager": "Manager",
@@ -196,8 +293,14 @@
       "edit": "Edit",
       "deactivate": "Deactivate",
       "activate": "Activate",
-      "resetPin": "Reset PIN",
+      "resetPassword": "Reset Password",
       "delete": "Delete"
+    },
+    "passwordRules": {
+      "minLength": "At least 8 characters",
+      "lowercase": "One lowercase letter",
+      "uppercase": "One uppercase letter",
+      "number": "One number"
     },
     "messages": {
       "createSuccess": "User created successfully",
@@ -206,31 +309,42 @@
       "failedToLoad": "Failed to load users",
       "failedToSave": "Failed to save user",
       "failedToDelete": "Failed to delete user",
-      "failedToUpdateStatus": "Failed to update user status"
+      "failedToUpdateStatus": "Failed to update user status",
+      "enterNewPassword": "Enter new password for user \"{username}\" (8+ chars, uppercase, lowercase, number):",
+      "passwordRequirements": "Password requirements not met:",
+      "passwordResetSuccess": "Password reset successfully",
+      "failedToResetPassword": "Failed to reset password",
+      "noChanges": "No changes to save"
     }
   },
   "profile": {
     "title": "My Profile",
     "backToDashboard": "Back to Dashboard",
     "profileInformation": "Profile Information",
-    "changePin": "Change PIN",
-    "changePinDesc": "Update your login PIN for security",
-    "currentPin": "Current PIN",
-    "newPin": "New PIN (4-8 characters)",
-    "confirmPin": "Confirm New PIN",
+    "changePassword": "Change Password",
+    "changePasswordDesc": "Update your login password for security",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
     "updateProfile": "Update Profile",
-    "changingPin": "Changing PIN...",
+    "changingPassword": "Changing Password...",
     "saving": "Saving...",
     "userId": "User ID",
     "lastLogin": "Last Login",
+    "passwordRules": {
+      "minLength": "At least 8 characters",
+      "lowercase": "One lowercase letter",
+      "uppercase": "One uppercase letter",
+      "number": "One number"
+    },
     "messages": {
       "profileUpdated": "Profile updated successfully",
-      "pinChanged": "PIN changed successfully",
-      "pinMismatch": "New PIN and confirmation do not match",
-      "pinLength": "PIN must be between 4 and 8 characters",
+      "passwordChanged": "Password changed successfully",
+      "passwordMismatch": "Passwords do not match",
       "failedToLoad": "Failed to load profile",
       "failedToUpdate": "Failed to update profile",
-      "failedToChangePing": "Failed to change PIN"
+      "failedToChangePassword": "Failed to change password",
+      "noChanges": "No changes to save"
     }
   },
   "drivers": {

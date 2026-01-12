@@ -5,13 +5,14 @@ const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname !
 
 interface LoginRequest {
   username: string;
-  pin: string;
+  password: string;
 }
 
 interface LoginResponse {
   success: boolean;
   data: {
     token: string;
+    mustResetPassword: boolean;
     user: {
       id: number;
       username: string;
@@ -78,6 +79,25 @@ export const api = {
 
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+  },
+
+  async resetPassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to reset password');
+    }
+
+    return response.json();
   },
 
   // Dashboard API
@@ -1925,31 +1945,31 @@ export const api = {
     return response.json();
   },
 
-  async resetUserPin(id, newPin) {
-    const response = await fetch(`${API_BASE_URL}/users/${id}/reset-pin`, {
+  async resetUserPassword(id, newPassword) {
+    const response = await fetch(`${API_BASE_URL}/users/${id}/reset-password`, {
       method: 'PATCH',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({ newPin }),
+      body: JSON.stringify({ newPassword }),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to reset PIN');
+      throw new Error(error.message || 'Failed to reset password');
     }
 
     return response.json();
   },
 
-  async changePin(currentPin, newPin) {
-    const response = await fetch(`${API_BASE_URL}/users/me/change-pin`, {
+  async changePassword(currentPassword, newPassword) {
+    const response = await fetch(`${API_BASE_URL}/users/me/change-password`, {
       method: 'PATCH',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify({ currentPin, newPin }),
+      body: JSON.stringify({ currentPassword, newPassword }),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Failed to change PIN');
+      throw new Error(error.message || 'Failed to change password');
     }
 
     return response.json();
@@ -2236,6 +2256,91 @@ export const api = {
 
     if (!response.ok) {
       throw new Error('Failed to fetch dispensing record');
+    }
+
+    return response.json();
+  },
+
+  // ===== AUDIT LOG API =====
+
+  async getAuditLogs(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    action?: string;
+    resource?: string;
+    userId?: number;
+    startDate?: string;
+    endDate?: string;
+  } = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.search) queryParams.append('search', params.search);
+    if (params.action) queryParams.append('action', params.action);
+    if (params.resource) queryParams.append('resource', params.resource);
+    if (params.userId) queryParams.append('userId', params.userId.toString());
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/audit?${queryParams.toString()}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch audit logs');
+    }
+
+    return response.json();
+  },
+
+  async getAuditLogById(id: number) {
+    const response = await fetch(`${API_BASE_URL}/audit/${id}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch audit log');
+    }
+
+    return response.json();
+  },
+
+  async getAuditStats(params: { startDate?: string; endDate?: string } = {}) {
+    const queryParams = new URLSearchParams();
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+
+    const response = await fetch(`${API_BASE_URL}/audit/stats?${queryParams.toString()}`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch audit stats');
+    }
+
+    return response.json();
+  },
+
+  async getAuditActions() {
+    const response = await fetch(`${API_BASE_URL}/audit/actions`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch audit actions');
+    }
+
+    return response.json();
+  },
+
+  async getAuditResources() {
+    const response = await fetch(`${API_BASE_URL}/audit/resources`, {
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch audit resources');
     }
 
     return response.json();

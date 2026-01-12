@@ -7,6 +7,7 @@ import { eq, like, or, desc } from 'drizzle-orm';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { logger } from '../utils/logger.js';
+import { validatePassword } from '../utils/passwordValidation.js';
 
 const router = Router();
 
@@ -17,7 +18,7 @@ router.use(authenticate);
 const createUserSchema = z.object({
   username: z.string().min(3).max(50),
   email: z.string().email(),
-  pin: z.string().min(4).max(8),
+  password: z.string().min(8), // Password instead of PIN
   fullName: z.string().min(1).max(100),
   role: z.enum(['admin', 'manager', 'operator', 'viewer']),
   departmentId: z.number().positive().nullable().optional(),
@@ -36,13 +37,13 @@ const updateUserSchema = z.object({
   active: z.boolean().optional()
 });
 
-const changePinSchema = z.object({
-  currentPin: z.string().min(4).max(8),
-  newPin: z.string().min(4).max(8)
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(4), // Min 4 to support legacy PIN during migration
+  newPassword: z.string().min(8)
 });
 
-const resetPinSchema = z.object({
-  newPin: z.string().min(4).max(8)
+const resetPasswordSchema = z.object({
+  newPassword: z.string().min(8)
 });
 
 // GET /api/users - List all users (admin, manager)
@@ -203,14 +204,20 @@ router.put('/me', async (req: AuthRequest, res, next) => {
   }
 });
 
-// PATCH /api/users/me/change-pin - Change own PIN
-router.patch('/me/change-pin', async (req: AuthRequest, res, next) => {
+// PATCH /api/users/me/change-password - Change own password
+router.patch('/me/change-password', async (req: AuthRequest, res, next) => {
   try {
-    const { currentPin, newPin } = changePinSchema.parse(req.body);
+    const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
     const db = getDb();
 
     if (!req.user?.id) {
       throw new AppError('User not authenticated', 401);
+    }
+
+    // Validate new password strength
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      throw new AppError(passwordValidation.errors.join('. '), 400);
     }
 
     const [user] = await db.select()
@@ -222,27 +229,32 @@ router.patch('/me/change-pin', async (req: AuthRequest, res, next) => {
       throw new AppError('User not found', 404);
     }
 
-    // Verify current PIN
-    const validPin = await bcrypt.compare(currentPin, user.pin);
-    if (!validPin) {
-      throw new AppError('Current PIN is incorrect', 400);
+    // Verify current password (check both password and legacy pin)
+    const storedHash = user.password || user.pin;
+    if (!storedHash) {
+      throw new AppError('No password set', 400);
     }
 
-    // Hash new PIN
-    const hashedPin = await bcrypt.hash(newPin, parseInt(process.env.PIN_SALT_ROUNDS || '10'));
+    const validPassword = await bcrypt.compare(currentPassword, storedHash);
+    if (!validPassword) {
+      throw new AppError('Current password is incorrect', 400);
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, parseInt(process.env.PASSWORD_SALT_ROUNDS || '10'));
 
     await db.update(users)
-      .set({ pin: hashedPin, updatedAt: new Date() })
+      .set({ password: hashedPassword, mustResetPassword: false, updatedAt: new Date() })
       .where(eq(users.id, req.user.id));
 
-    logger.info(`PIN changed for user: ${user.username}`);
+    logger.info(`Password changed for user: ${user.username}`);
 
     res.json({
       success: true,
-      message: 'PIN changed successfully'
+      message: 'Password changed successfully'
     });
   } catch (error) {
-    logger.error('Error changing PIN:', error);
+    logger.error('Error changing password:', error);
     next(error);
   }
 });
@@ -288,6 +300,12 @@ router.post('/', authorize('admin'), async (req: AuthRequest, res, next) => {
     const data = createUserSchema.parse(req.body);
     const db = getDb();
 
+    // Validate password strength
+    const passwordValidation = validatePassword(data.password);
+    if (!passwordValidation.valid) {
+      throw new AppError(passwordValidation.errors.join('. '), 400);
+    }
+
     // Check if username exists
     const [existingUser] = await db.select()
       .from(users)
@@ -308,14 +326,15 @@ router.post('/', authorize('admin'), async (req: AuthRequest, res, next) => {
       throw new AppError('Email already exists', 409);
     }
 
-    // Hash PIN
-    const hashedPin = await bcrypt.hash(data.pin, parseInt(process.env.PIN_SALT_ROUNDS || '10'));
+    // Hash password
+    const hashedPassword = await bcrypt.hash(data.password, parseInt(process.env.PASSWORD_SALT_ROUNDS || '10'));
 
-    // Create user
+    // Create user with password (mustResetPassword = false for admin-created users)
     const result = await db.insert(users).values({
       username: data.username,
       email: data.email,
-      pin: hashedPin,
+      password: hashedPassword,
+      mustResetPassword: false,
       fullName: data.fullName,
       role: data.role,
       departmentId: data.departmentId,
@@ -510,12 +529,18 @@ router.patch('/:id/deactivate', authorize('admin'), async (req: AuthRequest, res
   }
 });
 
-// PATCH /api/users/:id/reset-pin - Reset user PIN (admin only)
-router.patch('/:id/reset-pin', authorize('admin'), async (req: AuthRequest, res, next) => {
+// PATCH /api/users/:id/reset-password - Reset user password (admin only)
+router.patch('/:id/reset-password', authorize('admin'), async (req: AuthRequest, res, next) => {
   try {
     const userId = parseInt(req.params.id);
-    const { newPin } = resetPinSchema.parse(req.body);
+    const { newPassword } = resetPasswordSchema.parse(req.body);
     const db = getDb();
+
+    // Validate password strength
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      throw new AppError(passwordValidation.errors.join('. '), 400);
+    }
 
     const [existingUser] = await db.select()
       .from(users)
@@ -526,21 +551,21 @@ router.patch('/:id/reset-pin', authorize('admin'), async (req: AuthRequest, res,
       throw new AppError('User not found', 404);
     }
 
-    // Hash new PIN
-    const hashedPin = await bcrypt.hash(newPin, parseInt(process.env.PIN_SALT_ROUNDS || '10'));
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, parseInt(process.env.PASSWORD_SALT_ROUNDS || '10'));
 
     await db.update(users)
-      .set({ pin: hashedPin, updatedAt: new Date() })
+      .set({ password: hashedPassword, mustResetPassword: false, updatedAt: new Date() })
       .where(eq(users.id, userId));
 
-    logger.info(`PIN reset for user: ${existingUser.username} by ${req.user?.username}`);
+    logger.info(`Password reset for user: ${existingUser.username} by ${req.user?.username}`);
 
     res.json({
       success: true,
-      message: 'PIN reset successfully'
+      message: 'Password reset successfully'
     });
   } catch (error) {
-    logger.error('Error resetting PIN:', error);
+    logger.error('Error resetting password:', error);
     next(error);
   }
 });
