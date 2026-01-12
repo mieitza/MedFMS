@@ -49,6 +49,12 @@
 	$: isPasswordValid = passwordErrors.length === 0 && passwordData.newPassword.length > 0;
 	$: passwordsMatch = passwordData.newPassword === passwordData.confirmPassword && passwordData.confirmPassword.length > 0;
 
+	// Reactive password rule checks (for template use - avoid inline regex)
+	$: hasMinLength = passwordData.newPassword.length >= 8;
+	$: hasLowercase = /[a-z]/.test(passwordData.newPassword);
+	$: hasUppercase = /[A-Z]/.test(passwordData.newPassword);
+	$: hasNumber = /[0-9]/.test(passwordData.newPassword);
+
 	onMount(async () => {
 		await loadProfile();
 	});
@@ -317,23 +323,23 @@
 							{#if passwordData.newPassword}
 								<div class="mt-2 space-y-1">
 									<div class="flex items-center text-xs">
-										<span class={passwordData.newPassword.length >= 8 ? 'text-green-600' : 'text-gray-400'}>
-											{passwordData.newPassword.length >= 8 ? '✓' : '○'} {$_('profile.passwordRules.minLength')}
+										<span class={hasMinLength ? 'text-green-600' : 'text-gray-400'}>
+											{hasMinLength ? '✓' : '○'} {$_('profile.passwordRules.minLength')}
 										</span>
 									</div>
 									<div class="flex items-center text-xs">
-										<span class={/[a-z]/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-400'}>
-											{/[a-z]/.test(passwordData.newPassword) ? '✓' : '○'} {$_('profile.passwordRules.lowercase')}
+										<span class={hasLowercase ? 'text-green-600' : 'text-gray-400'}>
+											{hasLowercase ? '✓' : '○'} {$_('profile.passwordRules.lowercase')}
 										</span>
 									</div>
 									<div class="flex items-center text-xs">
-										<span class={/[A-Z]/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-400'}>
-											{/[A-Z]/.test(passwordData.newPassword) ? '✓' : '○'} {$_('profile.passwordRules.uppercase')}
+										<span class={hasUppercase ? 'text-green-600' : 'text-gray-400'}>
+											{hasUppercase ? '✓' : '○'} {$_('profile.passwordRules.uppercase')}
 										</span>
 									</div>
 									<div class="flex items-center text-xs">
-										<span class={/[0-9]/.test(passwordData.newPassword) ? 'text-green-600' : 'text-gray-400'}>
-											{/[0-9]/.test(passwordData.newPassword) ? '✓' : '○'} {$_('profile.passwordRules.number')}
+										<span class={hasNumber ? 'text-green-600' : 'text-gray-400'}>
+											{hasNumber ? '✓' : '○'} {$_('profile.passwordRules.number')}
 										</span>
 									</div>
 								</div>

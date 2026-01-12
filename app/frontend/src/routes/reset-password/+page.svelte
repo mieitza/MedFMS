@@ -36,6 +36,12 @@
 	$: isPasswordValid = passwordErrors.length === 0 && newPassword.length > 0;
 	$: passwordsMatch = newPassword === confirmPassword && confirmPassword.length > 0;
 
+	// Reactive password rule checks (for template use - avoid inline regex)
+	$: hasMinLength = newPassword.length >= 8;
+	$: hasLowercase = /[a-z]/.test(newPassword);
+	$: hasUppercase = /[A-Z]/.test(newPassword);
+	$: hasNumber = /[0-9]/.test(newPassword);
+
 	async function handleResetPassword() {
 		error = '';
 		success = '';
@@ -159,8 +165,8 @@
 						{#if newPassword}
 							<div class="mt-2 space-y-1">
 								<div class="flex items-center text-xs">
-									<span class={newPassword.length >= 8 ? 'text-green-600' : 'text-gray-400'}>
-										{#if newPassword.length >= 8}
+									<span class={hasMinLength ? 'text-green-600' : 'text-gray-400'}>
+										{#if hasMinLength}
 											<svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
 												<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
 											</svg>
@@ -173,8 +179,8 @@
 									</span>
 								</div>
 								<div class="flex items-center text-xs">
-									<span class={/[a-z]/.test(newPassword) ? 'text-green-600' : 'text-gray-400'}>
-										{#if /[a-z]/.test(newPassword)}
+									<span class={hasLowercase ? 'text-green-600' : 'text-gray-400'}>
+										{#if hasLowercase}
 											<svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
 												<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
 											</svg>
@@ -187,8 +193,8 @@
 									</span>
 								</div>
 								<div class="flex items-center text-xs">
-									<span class={/[A-Z]/.test(newPassword) ? 'text-green-600' : 'text-gray-400'}>
-										{#if /[A-Z]/.test(newPassword)}
+									<span class={hasUppercase ? 'text-green-600' : 'text-gray-400'}>
+										{#if hasUppercase}
 											<svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
 												<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
 											</svg>
@@ -201,8 +207,8 @@
 									</span>
 								</div>
 								<div class="flex items-center text-xs">
-									<span class={/[0-9]/.test(newPassword) ? 'text-green-600' : 'text-gray-400'}>
-										{#if /[0-9]/.test(newPassword)}
+									<span class={hasNumber ? 'text-green-600' : 'text-gray-400'}>
+										{#if hasNumber}
 											<svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
 												<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
 											</svg>
