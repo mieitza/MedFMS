@@ -14,12 +14,37 @@ export interface AuthRequest extends Request {
   };
 }
 
+// Internal service secret for server-to-server communication
+const INTERNAL_SERVICE_SECRET = process.env.INTERNAL_SERVICE_SECRET || 'chat-assistant-internal-secret';
+
 export const authenticate = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    // Check for internal service authentication (server-to-server calls)
+    const internalService = req.headers['x-internal-service'];
+    if (internalService === 'chat-assistant') {
+      // Verify the request is from localhost for additional security
+      const isLocalRequest =
+        req.ip === '127.0.0.1' ||
+        req.ip === '::1' ||
+        req.ip === '::ffff:127.0.0.1' ||
+        req.hostname === 'localhost';
+
+      if (isLocalRequest) {
+        // Set a system user for internal requests
+        req.user = {
+          id: 0,
+          username: 'system',
+          email: 'system@internal',
+          role: 'admin', // Internal service has admin access for read operations
+        };
+        return next();
+      }
+    }
+
     const token = req.headers.authorization?.replace('Bearer ', '');
 
     if (!token) {

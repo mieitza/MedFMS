@@ -24,10 +24,41 @@ export const authApi = {
     return api.get<User>('/auth/me');
   },
 
-  // Validate token
+  // Validate token - decode JWT and check expiration
+  // Note: Backend doesn't have /auth/me endpoint, so we validate locally
   validateToken: async (): Promise<{ valid: boolean; user?: User }> => {
+    const token = api.getToken();
+    if (!token) {
+      return { valid: false };
+    }
+
     try {
-      const user = await api.get<User>('/auth/me');
+      // Decode JWT payload (base64)
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        return { valid: false };
+      }
+
+      const payload = JSON.parse(atob(parts[1]));
+
+      // Check if token is expired
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        return { valid: false };
+      }
+
+      // Return user data from token payload
+      const user: User = {
+        id: payload.id,
+        username: payload.username,
+        fullName: payload.fullName || payload.username,
+        email: payload.email || null,
+        role: payload.role,
+        departmentId: payload.departmentId || null,
+        isActive: true,
+        createdAt: '',
+        updatedAt: '',
+      };
+
       return { valid: true, user };
     } catch {
       return { valid: false };

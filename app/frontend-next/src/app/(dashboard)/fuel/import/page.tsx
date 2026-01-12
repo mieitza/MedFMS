@@ -79,42 +79,8 @@ export default function FuelImportPage() {
     },
   });
 
-  // Handle file selection
-  const handleFileSelect = useCallback((file: File | null) => {
-    if (!file) return;
-
-    // Validate file type
-    const validTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
-      'text/csv',
-    ];
-    const validExtensions = ['.xlsx', '.xls', '.csv'];
-    const hasValidExtension = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-
-    if (!validTypes.includes(file.type) && !hasValidExtension) {
-      toast.error('Format de fișier invalid. Acceptăm doar fișiere Excel (.xlsx, .xls) sau CSV.');
-      return;
-    }
-
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Fișierul este prea mare. Dimensiunea maximă este 10MB.');
-      return;
-    }
-
-    setSelectedFile(file);
-    setImportResult(null);
-    setPreviewData([]);
-
-    // Parse preview (for CSV files)
-    if (file.name.toLowerCase().endsWith('.csv')) {
-      parseCSVPreview(file);
-    }
-  }, []);
-
   // Parse CSV preview
-  const parseCSVPreview = async (file: File) => {
+  const parseCSVPreview = useCallback(async (file: File) => {
     const text = await file.text();
     const lines = text.split('\n').filter(line => line.trim());
 
@@ -169,7 +135,41 @@ export default function FuelImportPage() {
     }
 
     setPreviewData(preview);
-  };
+  }, []);
+
+  // Handle file selection
+  const handleFileSelect = useCallback((file: File | null) => {
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv',
+    ];
+    const validExtensions = ['.xlsx', '.xls', '.csv'];
+    const hasValidExtension = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+
+    if (!validTypes.includes(file.type) && !hasValidExtension) {
+      toast.error('Format de fișier invalid. Acceptăm doar fișiere Excel (.xlsx, .xls) sau CSV.');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Fișierul este prea mare. Dimensiunea maximă este 10MB.');
+      return;
+    }
+
+    setSelectedFile(file);
+    setImportResult(null);
+    setPreviewData([]);
+
+    // Parse preview (for CSV files)
+    if (file.name.toLowerCase().endsWith('.csv')) {
+      parseCSVPreview(file);
+    }
+  }, [parseCSVPreview]);
 
   // Handle drag and drop
   const handleDragOver = useCallback((e: React.DragEvent) => {

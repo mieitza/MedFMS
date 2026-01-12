@@ -34,7 +34,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -58,7 +57,6 @@ import type { Driver } from '@/types';
 import { DriverFilters } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { format, differenceInDays } from 'date-fns';
-import { ro } from 'date-fns/locale';
 
 export default function DriversPage() {
   const router = useRouter();

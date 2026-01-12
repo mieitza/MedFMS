@@ -28,39 +28,39 @@ export interface FuelStats {
 export const fuelApi = {
   // Get paginated list of fuel transactions
   getAll: async (filters: FuelTransactionFilters = {}): Promise<PaginatedResponse<FuelTransaction>> => {
-    return api.get<PaginatedResponse<FuelTransaction>>('/fuel-transactions', filters as Record<string, string | number | boolean | undefined>);
+    return api.get<PaginatedResponse<FuelTransaction>>('/fuel/transactions', filters as Record<string, string | number | boolean | undefined>);
   },
 
   // Get single fuel transaction by ID
   getById: async (id: number): Promise<FuelTransaction> => {
-    return api.get<FuelTransaction>(`/fuel-transactions/${id}`);
+    return api.get<FuelTransaction>(`/fuel/transactions/${id}`);
   },
 
   // Create new fuel transaction
   create: async (data: FuelTransactionFormData): Promise<FuelTransaction> => {
-    return api.post<FuelTransaction>('/fuel-transactions', data);
+    return api.post<FuelTransaction>('/fuel/transactions', data);
   },
 
   // Update fuel transaction
   update: async (id: number, data: Partial<FuelTransactionFormData>): Promise<FuelTransaction> => {
-    return api.put<FuelTransaction>(`/fuel-transactions/${id}`, data);
+    return api.put<FuelTransaction>(`/fuel/transactions/${id}`, data);
   },
 
   // Delete fuel transaction
   delete: async (id: number): Promise<void> => {
-    return api.delete(`/fuel-transactions/${id}`);
+    return api.delete(`/fuel/transactions/${id}`);
   },
 
   // Get fuel statistics
   getStats: async (filters?: { dateFrom?: string; dateTo?: string; vehicleId?: number }): Promise<FuelStats> => {
-    return api.get<FuelStats>('/fuel-transactions/stats', filters as Record<string, string | number | undefined>);
+    return api.get<FuelStats>('/fuel/transactions/stats', filters as Record<string, string | number | undefined>);
   },
 
   // Import fuel transactions from CSV
   importCsv: async (file: File): Promise<{ imported: number; errors: string[] }> => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.upload<{ imported: number; errors: string[] }>('/fuel-transactions/import', formData);
+    return api.upload<{ imported: number; errors: string[] }>('/fuel/transactions/import', formData);
   },
 
   // Export fuel transactions to CSV
@@ -73,7 +73,7 @@ export const fuelApi = {
         }
       });
     }
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fuel-transactions/export?${params}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fuel/transactions/export?${params}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
@@ -83,11 +83,11 @@ export const fuelApi = {
 
   // Reference data
   getFuelTypes: async (): Promise<FuelType[]> => {
-    return api.get<FuelType[]>('/system/fuel-types');
+    return api.get<FuelType[]>('/fuel/types');
   },
 
   getFuelStations: async (): Promise<FuelStation[]> => {
-    return api.get<FuelStation[]>('/system/fuel-stations');
+    return api.get<FuelStation[]>('/fuel/stations');
   },
 };
 

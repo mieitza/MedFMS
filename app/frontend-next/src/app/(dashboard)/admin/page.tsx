@@ -508,6 +508,9 @@ function ModelsTab() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Editează modelul' : 'Adaugă model nou'}</DialogTitle>
+            <DialogDescription>
+              {editingItem ? 'Modificați datele modelului' : 'Completați datele noului model'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -756,6 +759,9 @@ function VehicleStatusesTab() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Editează statusul' : 'Adaugă status nou'}</DialogTitle>
+            <DialogDescription>
+              {editingItem ? 'Modificați datele statusului' : 'Completați datele noului status'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -897,6 +903,9 @@ function FuelTypesTab() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Editează tipul' : 'Adaugă tip nou'}</DialogTitle>
+            <DialogDescription>
+              {editingItem ? 'Modificați datele tipului de combustibil' : 'Completați datele noului tip de combustibil'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1039,6 +1048,9 @@ function FuelStationsTab() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Editează stația' : 'Adaugă stație nouă'}</DialogTitle>
+            <DialogDescription>
+              {editingItem ? 'Modificați datele stației de combustibil' : 'Completați datele noii stații de combustibil'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1193,6 +1205,9 @@ function MaintenanceTypesTab() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Editează tipul' : 'Adaugă tip nou'}</DialogTitle>
+            <DialogDescription>
+              {editingItem ? 'Modificați datele tipului de mentenanță' : 'Completați datele noului tip de mentenanță'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1431,6 +1446,9 @@ function LocationsTab() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Editează locația' : 'Adaugă locație nouă'}</DialogTitle>
+            <DialogDescription>
+              {editingItem ? 'Modificați datele locației' : 'Completați datele noii locații'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1573,6 +1591,9 @@ function CitiesTab() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Editează orașul' : 'Adaugă oraș nou'}</DialogTitle>
+            <DialogDescription>
+              {editingItem ? 'Modificați datele orașului' : 'Completați datele noului oraș'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1710,6 +1731,9 @@ function SuppliersTab() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Editează furnizorul' : 'Adaugă furnizor nou'}</DialogTitle>
+            <DialogDescription>
+              {editingItem ? 'Modificați datele furnizorului' : 'Completați datele noului furnizor'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1853,6 +1877,9 @@ function MaterialUnitsTab() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Editează unitatea' : 'Adaugă unitate nouă'}</DialogTitle>
+            <DialogDescription>
+              {editingItem ? 'Modificați datele unității de măsură' : 'Completați datele noii unități de măsură'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -2176,6 +2203,7 @@ function SimpleFormDialog({
   open,
   onOpenChange,
   title,
+  description,
   formData,
   setFormData,
   onSubmit,
@@ -2185,6 +2213,7 @@ function SimpleFormDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
+  description?: string;
   formData: { name: string; description: string; isActive: boolean };
   setFormData: React.Dispatch<React.SetStateAction<{ name: string; description: string; isActive: boolean }>>;
   onSubmit: () => void;
@@ -2196,6 +2225,9 @@ function SimpleFormDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            {description || (isEditing ? 'Modificați datele înregistrării' : 'Completați datele noii înregistrări')}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>

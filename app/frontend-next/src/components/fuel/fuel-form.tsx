@@ -87,6 +87,7 @@ export function FuelForm({ transaction, isLoading = false }: FuelFormProps) {
   const drivers = driversData?.data || [];
 
   const form = useForm<FuelFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(fuelFormSchema) as any,
     defaultValues: {
       vehicleId: transaction?.vehicleId || 0,
@@ -247,7 +248,7 @@ export function FuelForm({ transaction, isLoading = false }: FuelFormProps) {
                             <SelectContent>
                               {vehicles.map((vehicle) => (
                                 <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                                  {vehicle.licensePlate} - {vehicle.vehicleCode}
+                                  {vehicle.licensePlate || 'N/A'} - {vehicle.vehicleCode || `Vehicul #${vehicle.id}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -264,8 +265,8 @@ export function FuelForm({ transaction, isLoading = false }: FuelFormProps) {
                         <FormItem>
                           <FormLabel>Șofer</FormLabel>
                           <Select
-                            onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
-                            value={field.value?.toString() || ''}
+                            onValueChange={(value) => field.onChange(value === '__none__' ? null : parseInt(value))}
+                            value={field.value?.toString() || '__none__'}
                             disabled={loadingDrivers}
                           >
                             <FormControl>
@@ -274,10 +275,10 @@ export function FuelForm({ transaction, isLoading = false }: FuelFormProps) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Niciun șofer</SelectItem>
+                              <SelectItem value="__none__">Niciun șofer</SelectItem>
                               {drivers.map((driver) => (
                                 <SelectItem key={driver.id} value={driver.id.toString()}>
-                                  {driver.firstName} {driver.lastName}
+                                  {driver.firstName || ''} {driver.lastName || `Șofer #${driver.id}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -308,7 +309,7 @@ export function FuelForm({ transaction, isLoading = false }: FuelFormProps) {
                             <SelectContent>
                               {fuelTypes?.map((fuelType) => (
                                 <SelectItem key={fuelType.id} value={fuelType.id.toString()}>
-                                  {fuelType.name}
+                                  {fuelType.name || `Tip combustibil #${fuelType.id}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -325,8 +326,8 @@ export function FuelForm({ transaction, isLoading = false }: FuelFormProps) {
                         <FormItem>
                           <FormLabel>Stație alimentare</FormLabel>
                           <Select
-                            onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
-                            value={field.value?.toString() || ''}
+                            onValueChange={(value) => field.onChange(value === '__none__' ? null : parseInt(value))}
+                            value={field.value?.toString() || '__none__'}
                             disabled={loadingFuelStations}
                           >
                             <FormControl>
@@ -335,10 +336,10 @@ export function FuelForm({ transaction, isLoading = false }: FuelFormProps) {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Nicio stație</SelectItem>
+                              <SelectItem value="__none__">Nicio stație</SelectItem>
                               {fuelStations?.map((station) => (
                                 <SelectItem key={station.id} value={station.id.toString()}>
-                                  {station.name}
+                                  {station.name || `Stație #${station.id}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>

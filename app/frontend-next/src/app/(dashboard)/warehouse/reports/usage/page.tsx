@@ -6,7 +6,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -239,7 +238,7 @@ export default function UsageReportPage() {
                   <SelectItem value="all">Toate depozitele</SelectItem>
                   {warehouses.map((warehouse: Warehouse) => (
                     <SelectItem key={warehouse.id} value={String(warehouse.id)}>
-                      {warehouse.name}
+                      {warehouse.warehouseName || warehouse.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -253,21 +252,21 @@ export default function UsageReportPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard
           title="Categorii Active"
-          value={report?.summary.totalCategories || 0}
+          value={report?.summary?.totalCategories || 0}
           icon={Layers}
           color="bg-blue-100 dark:bg-blue-900/30 text-blue-600"
           loading={isLoading}
         />
         <StatCard
           title="Materiale Utilizate"
-          value={report?.summary.totalMaterialsUsed || 0}
+          value={report?.summary?.totalMaterialsUsed || 0}
           icon={Package}
           color="bg-green-100 dark:bg-green-900/30 text-green-600"
           loading={isLoading}
         />
         <StatCard
           title="Consum Total"
-          value={report?.summary.totalConsumption || 0}
+          value={report?.summary?.totalConsumption || 0}
           suffix="unit."
           icon={BarChart3}
           color="bg-purple-100 dark:bg-purple-900/30 text-purple-600"
@@ -275,7 +274,7 @@ export default function UsageReportPage() {
         />
         <StatCard
           title="Valoare Totală"
-          value={report?.summary.totalValue || 0}
+          value={report?.summary?.totalValue || 0}
           suffix="RON"
           icon={DollarSign}
           color="bg-amber-100 dark:bg-amber-900/30 text-amber-600"

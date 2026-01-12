@@ -21,7 +21,7 @@ export const materials = sqliteTable('materials', {
   serialNumber: text('serial_number'),
   shelfLocation: text('shelf_location'),
   warehouseId: integer('warehouse_id'),
-  expirationDate: integer('expiration_date', { mode: 'timestamp' }).notNull(), // All warehouse items require expiration date
+  expirationDate: integer('expiration_date', { mode: 'timestamp' }), // Expiration date is optional (not all materials expire)
   active: integer('active', { mode: 'boolean' }).notNull().default(true),
   // Custom fields
   customField1: text('custom_field_1'),

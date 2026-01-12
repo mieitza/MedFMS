@@ -52,6 +52,7 @@ import {
   TrendingUp,
   Calendar,
   ChevronsUpDown,
+  Bot,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { cn } from '@/lib/utils';
@@ -103,12 +104,14 @@ const mainNavItems: NavItem[] = [
   },
   {
     title: 'Depozit',
-    href: '/warehouse/materials',
+    href: '/warehouse',
     icon: Package,
     items: [
+      { title: 'Prezentare generală', href: '/warehouse' },
+      { title: 'Depozite', href: '/warehouse/warehouses' },
       { title: 'Materiale', href: '/warehouse/materials' },
       { title: 'Transferuri', href: '/warehouse/transfers' },
-      { title: 'Aprobări', href: '/warehouse/transfers/approvals' },
+      { title: 'Aprobări transferuri', href: '/warehouse/transfers/approvals' },
       { title: 'Rapoarte', href: '/warehouse/reports' },
     ],
   },
@@ -116,6 +119,11 @@ const mainNavItems: NavItem[] = [
     title: 'Rapoarte',
     href: '/reports',
     icon: BarChart3,
+  },
+  {
+    title: 'Asistent AI',
+    href: '/assistant',
+    icon: Bot,
   },
 ];
 

@@ -6,7 +6,7 @@ import { api } from '@/lib/api/client';
 
 interface AuthStore extends AuthState {
   // Actions
-  login: (pin: string) => Promise<void>;
+  login: (username: string, pin: string) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<boolean>;
   setUser: (user: User | null) => void;
@@ -23,10 +23,12 @@ export const useAuthStore = create<AuthStore>()(
       isLoading: true,
 
       // Login action
-      login: async (pin: string) => {
+      login: async (username: string, pin: string) => {
         set({ isLoading: true });
         try {
-          const response = await authApi.login({ pin });
+          const response = await authApi.login({ username, pin });
+          // authApi.login already calls api.setToken, but also sync to localStorage
+          api.setToken(response.token);
           set({
             user: response.user,
             token: response.token,
@@ -46,6 +48,7 @@ export const useAuthStore = create<AuthStore>()(
         } catch {
           // Ignore logout errors
         } finally {
+          api.setToken(null);
           set({
             user: null,
             token: null,
@@ -57,7 +60,7 @@ export const useAuthStore = create<AuthStore>()(
 
       // Check if current token is still valid
       checkAuth: async () => {
-        const { token } = get();
+        const { token, user: storedUser } = get();
         if (!token) {
           set({ isLoading: false, isAuthenticated: false });
           return false;
@@ -67,8 +70,10 @@ export const useAuthStore = create<AuthStore>()(
         api.setToken(token);
 
         try {
-          const { valid, user } = await authApi.validateToken();
-          if (valid && user) {
+          const { valid, user: tokenUser } = await authApi.validateToken();
+          if (valid) {
+            // Prefer stored user data (from login), fall back to token data
+            const user = storedUser || tokenUser;
             set({
               user,
               isAuthenticated: true,
@@ -76,6 +81,7 @@ export const useAuthStore = create<AuthStore>()(
             });
             return true;
           } else {
+            api.setToken(null);
             set({
               user: null,
               token: null,
@@ -85,6 +91,7 @@ export const useAuthStore = create<AuthStore>()(
             return false;
           }
         } catch {
+          api.setToken(null);
           set({
             user: null,
             token: null,
@@ -111,6 +118,12 @@ export const useAuthStore = create<AuthStore>()(
         token: state.token,
         user: state.user,
       }),
+      onRehydrateStorage: () => (state) => {
+        // When store rehydrates from localStorage, sync token to API client
+        if (state?.token) {
+          api.setToken(state.token);
+        }
+      },
     }
   )
 );

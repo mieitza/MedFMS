@@ -183,7 +183,7 @@ export default function StockReportPage() {
                   <SelectItem value="all">Toate depozitele</SelectItem>
                   {warehouses.map((warehouse: Warehouse) => (
                     <SelectItem key={warehouse.id} value={String(warehouse.id)}>
-                      {warehouse.name}
+                      {warehouse.warehouseName || warehouse.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -208,28 +208,28 @@ export default function StockReportPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard
           title="Total Articole"
-          value={report?.summary.totalItems || 0}
+          value={report?.summary?.totalItems || 0}
           icon={Package}
           color="bg-blue-100 dark:bg-blue-900/30 text-blue-600"
           loading={isLoading}
         />
         <StatCard
           title="Stoc Scăzut"
-          value={report?.summary.lowStockItems || 0}
+          value={report?.summary?.lowStockItems || 0}
           icon={AlertTriangle}
           color="bg-amber-100 dark:bg-amber-900/30 text-amber-600"
           loading={isLoading}
         />
         <StatCard
           title="Fără Stoc"
-          value={report?.summary.outOfStockItems || 0}
+          value={report?.summary?.outOfStockItems || 0}
           icon={XCircle}
           color="bg-red-100 dark:bg-red-900/30 text-red-600"
           loading={isLoading}
         />
         <StatCard
           title="Valoare Totală"
-          value={report?.summary.totalValue || 0}
+          value={report?.summary?.totalValue || 0}
           suffix="RON"
           icon={DollarSign}
           color="bg-green-100 dark:bg-green-900/30 text-green-600"

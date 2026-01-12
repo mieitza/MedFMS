@@ -7,6 +7,7 @@ export { fuelApi } from './fuel';
 export { maintenanceApi } from './maintenance';
 export { warehouseApi } from './warehouse';
 export { adminApi } from './admin';
+export { chatApi } from './chat';
 
 // Re-export types
 export type { VehicleFilters } from './vehicles';
@@ -38,3 +39,4 @@ export type {
   InspectionTypeFormData,
   InspectionType,
 } from './admin';
+export type { ChatMessage, ChatResponse, ChatHealthResponse, ChatConfigResponse, ChatTool, StreamEvent } from './chat';

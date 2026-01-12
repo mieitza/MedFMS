@@ -175,6 +175,7 @@ export default function DashboardPage() {
       fuelCostMTD: 12450,
       fuelCostChange: -5.2,
       expiringDocuments: 5,
+      expiredDocuments: 0,
       lowStockMaterials: 7,
     },
   });
@@ -227,7 +228,7 @@ export default function DashboardPage() {
         />
         <StatCard
           title="Cost Combustibil (MTD)"
-          value={`€${(stats?.fuelCostMTD || 0).toLocaleString()}`}
+          value={`${(stats?.fuelCostMTD || 0).toLocaleString()} RON`}
           icon={Fuel}
           trend={stats?.fuelCostChange && stats.fuelCostChange < 0 ? 'down' : 'up'}
           trendValue={`${Math.abs(stats?.fuelCostChange || 0)}% față de luna trecută`}
@@ -350,7 +351,7 @@ export default function DashboardPage() {
               <CardDescription>Ultimele acțiuni</CardDescription>
             </div>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/reports/activity">
+              <Link href="/reports">
                 Vezi toate
                 <ArrowRight className="ml-1 h-4 w-4" />
               </Link>

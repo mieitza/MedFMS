@@ -79,20 +79,21 @@ const priorityOptions = [
   { value: '5', label: 'Opțional' },
 ];
 
-interface ApprovalWorkOrder {
-  workOrder: MaintenanceWorkOrder;
+// Work orders now come flattened from backend with vehicle and maintenanceType as nested objects
+// Use Omit to remove the base types and redefine them with the narrower API response structure
+type FlatWorkOrder = Omit<MaintenanceWorkOrder, 'vehicle' | 'maintenanceType'> & {
   vehicle: {
     id: number;
     vehicleCode: string;
     licensePlate: string;
-  };
+  } | null;
   maintenanceType: {
     id: number;
-    typeCode: string;
-    typeName: string;
+    name: string;
+    code?: string;
     category: string;
-  };
-}
+  } | null;
+};
 
 export default function MaintenanceApprovalsPage() {
   const router = useRouter();
@@ -100,7 +101,7 @@ export default function MaintenanceApprovalsPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const [selectedWorkOrder, setSelectedWorkOrder] = useState<ApprovalWorkOrder | null>(null);
+  const [selectedWorkOrder, setSelectedWorkOrder] = useState<FlatWorkOrder | null>(null);
   const [approvalNotes, setApprovalNotes] = useState('');
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
@@ -118,17 +119,17 @@ export default function MaintenanceApprovalsPage() {
       }),
   });
 
-  const workOrders: ApprovalWorkOrder[] = (approvalsData?.data as unknown as ApprovalWorkOrder[]) || [];
+  const workOrders: FlatWorkOrder[] = (approvalsData?.data as unknown as FlatWorkOrder[]) || [];
 
   // Filter by search term
   const filteredWorkOrders = useMemo(() => {
     if (!searchTerm) return workOrders;
     const term = searchTerm.toLowerCase();
     return workOrders.filter((wo) =>
-      wo.workOrder.workOrderNumber?.toLowerCase().includes(term) ||
-      wo.vehicle.vehicleCode?.toLowerCase().includes(term) ||
-      wo.vehicle.licensePlate?.toLowerCase().includes(term) ||
-      wo.workOrder.title?.toLowerCase().includes(term)
+      wo.workOrderNumber?.toLowerCase().includes(term) ||
+      wo.vehicle?.vehicleCode?.toLowerCase().includes(term) ||
+      wo.vehicle?.licensePlate?.toLowerCase().includes(term) ||
+      wo.title?.toLowerCase().includes(term)
     );
   }, [workOrders, searchTerm]);
 
@@ -164,13 +165,13 @@ export default function MaintenanceApprovalsPage() {
     },
   });
 
-  const handleApprove = (wo: ApprovalWorkOrder) => {
+  const handleApprove = (wo: FlatWorkOrder) => {
     setSelectedWorkOrder(wo);
     setApprovalNotes('');
     setShowApprovalDialog(true);
   };
 
-  const handleReject = (wo: ApprovalWorkOrder) => {
+  const handleReject = (wo: FlatWorkOrder) => {
     setSelectedWorkOrder(wo);
     setApprovalNotes('');
     setShowRejectDialog(true);
@@ -179,7 +180,7 @@ export default function MaintenanceApprovalsPage() {
   const confirmApprove = () => {
     if (selectedWorkOrder) {
       approveMutation.mutate({
-        id: selectedWorkOrder.workOrder.id,
+        id: selectedWorkOrder.id,
         notes: approvalNotes || undefined,
       });
     }
@@ -192,7 +193,7 @@ export default function MaintenanceApprovalsPage() {
     }
     if (selectedWorkOrder) {
       rejectMutation.mutate({
-        id: selectedWorkOrder.workOrder.id,
+        id: selectedWorkOrder.id,
         notes: approvalNotes,
       });
     }
@@ -304,7 +305,7 @@ export default function MaintenanceApprovalsPage() {
               <div>
                 <p className="text-sm text-slate-500">Urgente</p>
                 <p className="text-2xl font-bold">
-                  {filteredWorkOrders.filter((wo) => wo.workOrder.priority === 1).length}
+                  {filteredWorkOrders.filter((wo) => wo.priority === 1).length}
                 </p>
               </div>
             </div>
@@ -320,7 +321,7 @@ export default function MaintenanceApprovalsPage() {
               <div>
                 <p className="text-sm text-slate-500">Vehicule Afectate</p>
                 <p className="text-2xl font-bold">
-                  {new Set(filteredWorkOrders.map((wo) => wo.vehicle.id)).size}
+                  {new Set(filteredWorkOrders.map((wo) => wo.vehicle?.id)).size}
                 </p>
               </div>
             </div>
@@ -337,7 +338,7 @@ export default function MaintenanceApprovalsPage() {
                 <p className="text-sm text-slate-500">Cost Estimat Total</p>
                 <p className="text-2xl font-bold">
                   {filteredWorkOrders
-                    .reduce((sum, wo) => sum + (parseFloat(String(wo.workOrder.estimatedCost)) || 0), 0)
+                    .reduce((sum, wo) => sum + (parseFloat(String(wo.estimatedCost)) || 0), 0)
                     .toFixed(0)} RON
                 </p>
               </div>
@@ -385,35 +386,35 @@ export default function MaintenanceApprovalsPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredWorkOrders.map((wo) => (
-                    <TableRow key={wo.workOrder.id}>
+                    <TableRow key={wo.id}>
                       <TableCell className="font-medium">
-                        {wo.workOrder.workOrderNumber}
+                        {wo.workOrderNumber}
                       </TableCell>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{wo.vehicle.vehicleCode}</div>
-                          <div className="text-sm text-slate-500">{wo.vehicle.licensePlate}</div>
+                          <div className="font-medium">{wo.vehicle?.vehicleCode}</div>
+                          <div className="text-sm text-slate-500">{wo.vehicle?.licensePlate}</div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="max-w-[200px]">
-                          <div className="truncate font-medium">{wo.workOrder.title}</div>
+                          <div className="truncate font-medium">{wo.title}</div>
                           <div className="text-sm text-slate-500 truncate">
-                            {wo.maintenanceType.typeName}
+                            {wo.maintenanceType?.name}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {getPriorityBadge(wo.workOrder.priority || 3)}
+                        {getPriorityBadge(wo.priority || 3)}
                       </TableCell>
                       <TableCell>
-                        {wo.workOrder.scheduledDate
-                          ? new Date(wo.workOrder.scheduledDate).toLocaleDateString('ro-RO')
+                        {wo.scheduledDate
+                          ? new Date(wo.scheduledDate).toLocaleDateString('ro-RO')
                           : '-'}
                       </TableCell>
                       <TableCell className="text-right">
-                        {wo.workOrder.estimatedCost
-                          ? `${parseFloat(String(wo.workOrder.estimatedCost)).toFixed(0)} RON`
+                        {wo.estimatedCost
+                          ? `${parseFloat(String(wo.estimatedCost)).toFixed(0)} RON`
                           : '-'}
                       </TableCell>
                       <TableCell className="text-right">
@@ -421,7 +422,7 @@ export default function MaintenanceApprovalsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => router.push(`/maintenance/${wo.workOrder.id}`)}
+                            onClick={() => router.push(`/maintenance/${wo.id}`)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -467,23 +468,23 @@ export default function MaintenanceApprovalsPage() {
               <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg space-y-2">
                 <div className="flex justify-between">
                   <span className="font-medium">Nr. Comandă:</span>
-                  <span>{selectedWorkOrder.workOrder.workOrderNumber}</span>
+                  <span>{selectedWorkOrder.workOrderNumber}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Vehicul:</span>
                   <span>
-                    {selectedWorkOrder.vehicle.vehicleCode} ({selectedWorkOrder.vehicle.licensePlate})
+                    {selectedWorkOrder.vehicle?.vehicleCode} ({selectedWorkOrder.vehicle?.licensePlate})
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Tip:</span>
-                  <span>{selectedWorkOrder.maintenanceType.typeName}</span>
+                  <span>{selectedWorkOrder.maintenanceType?.name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Cost Estimat:</span>
                   <span>
-                    {selectedWorkOrder.workOrder.estimatedCost
-                      ? `${parseFloat(String(selectedWorkOrder.workOrder.estimatedCost)).toFixed(2)} RON`
+                    {selectedWorkOrder.estimatedCost
+                      ? `${parseFloat(String(selectedWorkOrder.estimatedCost)).toFixed(2)} RON`
                       : '-'}
                   </span>
                 </div>
@@ -535,11 +536,11 @@ export default function MaintenanceApprovalsPage() {
               <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg space-y-2">
                 <div className="flex justify-between">
                   <span className="font-medium">Nr. Comandă:</span>
-                  <span>{selectedWorkOrder.workOrder.workOrderNumber}</span>
+                  <span>{selectedWorkOrder.workOrderNumber}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Titlu:</span>
-                  <span>{selectedWorkOrder.workOrder.title}</span>
+                  <span>{selectedWorkOrder.title}</span>
                 </div>
               </div>
 

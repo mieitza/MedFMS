@@ -85,7 +85,6 @@ export default function UsersPage() {
   const router = useRouter();
   const { data: users, isLoading } = useUsers();
   const { data: departments } = useAdminDepartments();
-  const { data: locations } = useAdminLocations();
 
   const createUser = useCreateUser();
   const updateUser = useUpdateUser();
@@ -432,14 +431,14 @@ export default function UsersPage() {
             <div>
               <label className="text-sm font-medium">Departament</label>
               <Select
-                value={formData.departmentId?.toString() || ''}
-                onValueChange={(value) => setFormData({ ...formData, departmentId: value ? parseInt(value) : null })}
+                value={formData.departmentId?.toString() || 'none'}
+                onValueChange={(value) => setFormData({ ...formData, departmentId: value === 'none' ? null : parseInt(value) })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selectează departamentul" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Niciun departament</SelectItem>
+                  <SelectItem value="none">Niciun departament</SelectItem>
                   {departments?.map((dept) => (
                     <SelectItem key={dept.id} value={dept.id.toString()}>
                       {dept.name}
@@ -481,7 +480,7 @@ export default function UsersPage() {
           <DialogHeader>
             <DialogTitle>Resetează PIN</DialogTitle>
             <DialogDescription>
-              Introduceți noul PIN pentru utilizatorul "{pinResetUser?.username}"
+              Introduceți noul PIN pentru utilizatorul &quot;{pinResetUser?.username}&quot;
             </DialogDescription>
           </DialogHeader>
 

@@ -185,13 +185,14 @@ export function PhotoManager({
                 key={photo.id}
                 className="group relative aspect-square rounded-lg overflow-hidden border bg-slate-100 dark:bg-slate-800"
               >
-                {/* Photo thumbnail */}
+                {/* Photo thumbnail - unoptimized because API requires auth */}
                 <Image
                   src={documentsApi.getPhotoUrl(photo.id)}
                   alt={photo.photoName}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  unoptimized
                 />
 
                 {/* Primary badge */}
@@ -356,6 +357,7 @@ export function PhotoManager({
                 alt={previewPhoto.photoName}
                 fill
                 className="object-contain"
+                unoptimized
               />
             )}
           </div>

@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -25,16 +24,33 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Warehouse,
+  Warehouse as WarehouseIcon,
   Car,
 } from 'lucide-react';
 import {
   useTransferRequest,
   useUpdateTransferStatus,
 } from '@/lib/hooks';
-import type { TransferRequest } from '@/types';
+import type { TransferRequest, Warehouse, Vehicle, Material } from '@/types';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
+
+// Backend returns nested structure for single transfer request
+interface TransferRequestApiResponse {
+  transferRequest: TransferRequest;
+  sourceWarehouse: Warehouse | null;
+  destinationWarehouse?: Warehouse | null;
+  destinationVehicle?: Vehicle | null;
+  material?: Material | null;
+}
+
+// Flatten the nested structure for display
+type FlattenedTransferRequest = Omit<TransferRequest, 'sourceWarehouse' | 'destinationWarehouse' | 'destinationVehicle'> & {
+  sourceWarehouse: Warehouse | null | undefined;
+  destinationWarehouse: Warehouse | null | undefined;
+  destinationVehicle: Vehicle | null | undefined;
+  material?: Material | null;
+};
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ElementType }> = {
   pending: { label: 'În așteptare', variant: 'secondary', icon: Clock },
@@ -49,8 +65,27 @@ export default function TransferRequestDetailPage() {
   const router = useRouter();
   const id = params.id ? parseInt(params.id as string) : null;
 
-  const { data: transfer, isLoading, isError } = useTransferRequest(id);
+  const { data: rawTransfer, isLoading, isError } = useTransferRequest(id);
   const updateStatus = useUpdateTransferStatus();
+
+  // Flatten the nested API response
+  const transfer = React.useMemo((): FlattenedTransferRequest | null => {
+    if (!rawTransfer) return null;
+
+    // Check if data is nested (has transferRequest property) or flat
+    if ('transferRequest' in rawTransfer) {
+      const nested = rawTransfer as unknown as TransferRequestApiResponse;
+      return {
+        ...nested.transferRequest,
+        sourceWarehouse: nested.sourceWarehouse,
+        destinationWarehouse: nested.destinationWarehouse,
+        destinationVehicle: nested.destinationVehicle,
+        material: nested.material,
+      };
+    }
+    // Data is already flat
+    return rawTransfer as unknown as FlattenedTransferRequest;
+  }, [rawTransfer]);
 
   const handleStatusChange = async (status: TransferRequest['status']) => {
     if (!id) return;
@@ -137,7 +172,7 @@ export default function TransferRequestDetailPage() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="rounded-lg bg-blue-100 p-3 dark:bg-blue-900/30">
-                <Warehouse className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <WarehouseIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
                 <p className="text-sm text-slate-500">De la</p>
@@ -154,7 +189,7 @@ export default function TransferRequestDetailPage() {
             <div className="flex items-center gap-4">
               <div className="rounded-lg bg-green-100 p-3 dark:bg-green-900/30">
                 {transfer.destinationWarehouse ? (
-                  <Warehouse className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <WarehouseIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
                 ) : (
                   <Car className="h-5 w-5 text-green-600 dark:text-green-400" />
                 )}
@@ -178,7 +213,9 @@ export default function TransferRequestDetailPage() {
               <div>
                 <p className="text-sm text-slate-500">Data cererii</p>
                 <p className="text-lg font-semibold">
-                  {format(new Date(transfer.requestedAt), 'dd MMM yyyy', { locale: ro })}
+                  {transfer.requestedAt
+                    ? format(new Date(transfer.requestedAt), 'dd MMM yyyy', { locale: ro })
+                    : '-'}
                 </p>
               </div>
             </div>

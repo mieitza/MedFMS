@@ -57,67 +57,104 @@ export interface WarehouseStats {
 }
 
 export const warehouseApi = {
-  // Materials CRUD
+  // Materials CRUD - backend uses /materials endpoint
   getMaterials: async (filters: MaterialFilters = {}): Promise<PaginatedResponse<Material>> => {
-    return api.get<PaginatedResponse<Material>>('/warehouse/materials', filters as Record<string, string | number | boolean | undefined>);
+    return api.get<PaginatedResponse<Material>>('/materials', filters as Record<string, string | number | boolean | undefined>);
   },
 
   getMaterialById: async (id: number): Promise<Material> => {
-    return api.get<Material>(`/warehouse/materials/${id}`);
+    return api.get<Material>(`/materials/${id}`);
   },
 
   createMaterial: async (data: MaterialFormData): Promise<Material> => {
-    return api.post<Material>('/warehouse/materials', data);
+    return api.post<Material>('/materials', data);
   },
 
   updateMaterial: async (id: number, data: Partial<MaterialFormData>): Promise<Material> => {
-    return api.put<Material>(`/warehouse/materials/${id}`, data);
+    return api.put<Material>(`/materials/${id}`, data);
   },
 
   deleteMaterial: async (id: number): Promise<void> => {
-    return api.delete(`/warehouse/materials/${id}`);
+    return api.delete(`/materials/${id}`);
   },
 
   // Import materials from CSV
   importMaterials: async (file: File): Promise<{ imported: number; errors: string[] }> => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.upload<{ imported: number; errors: string[] }>('/warehouse/materials/import', formData);
+    return api.upload<{ imported: number; errors: string[] }>('/materials/import', formData);
   },
 
-  // Transfer Requests CRUD
+  // Transfer Requests CRUD - backend uses /materials/transfer-requests
   getTransferRequests: async (filters: TransferRequestFilters = {}): Promise<PaginatedResponse<TransferRequest>> => {
-    return api.get<PaginatedResponse<TransferRequest>>('/warehouse/transfers', filters as Record<string, string | number | boolean | undefined>);
+    return api.get<PaginatedResponse<TransferRequest>>('/materials/transfer-requests', filters as Record<string, string | number | boolean | undefined>);
   },
 
   getTransferRequestById: async (id: number): Promise<TransferRequest> => {
-    return api.get<TransferRequest>(`/warehouse/transfers/${id}`);
+    return api.get<TransferRequest>(`/materials/transfer-requests/${id}`);
   },
 
   createTransferRequest: async (data: TransferRequestFormData): Promise<TransferRequest> => {
-    return api.post<TransferRequest>('/warehouse/transfers', data);
+    return api.post<TransferRequest>('/materials/transfer-requests', data);
   },
 
   updateTransferStatus: async (id: number, status: TransferRequest['status']): Promise<TransferRequest> => {
-    return api.put<TransferRequest>(`/warehouse/transfers/${id}/status`, { status });
+    return api.patch<TransferRequest>(`/materials/transfer-requests/${id}/status`, { status });
   },
 
-  // Statistics
-  getStats: async (): Promise<WarehouseStats> => {
-    return api.get<WarehouseStats>('/warehouse/stats');
+  // Additional transfer request actions
+  approveTransfer: async (id: number, notes?: string): Promise<TransferRequest> => {
+    return api.post<TransferRequest>(`/materials/transfer-requests/${id}/approve`, { notes });
   },
 
-  // Reference data
+  rejectTransfer: async (id: number, notes: string): Promise<TransferRequest> => {
+    return api.post<TransferRequest>(`/materials/transfer-requests/${id}/reject`, { notes });
+  },
+
+  completeTransfer: async (id: number): Promise<TransferRequest> => {
+    return api.post<TransferRequest>(`/materials/transfer-requests/${id}/complete`, {});
+  },
+
+  getPendingApprovalTransfers: async (filters: TransferRequestFilters = {}): Promise<PaginatedResponse<TransferRequest>> => {
+    return api.get<PaginatedResponse<TransferRequest>>('/materials/transfer-requests/pending-approval', filters as Record<string, string | number | boolean | undefined>);
+  },
+
+  // Reference data - backend uses /materials/warehouses and /materials/units
   getWarehouses: async (): Promise<Warehouse[]> => {
-    return api.get<Warehouse[]>('/system/warehouses');
+    return api.get<Warehouse[]>('/materials/warehouses');
+  },
+
+  getWarehouseById: async (id: number): Promise<Warehouse> => {
+    return api.get<Warehouse>(`/materials/warehouses/${id}`);
+  },
+
+  createWarehouse: async (data: Partial<Warehouse>): Promise<Warehouse> => {
+    return api.post<Warehouse>('/materials/warehouses', data);
+  },
+
+  updateWarehouse: async (id: number, data: Partial<Warehouse>): Promise<Warehouse> => {
+    return api.put<Warehouse>(`/materials/warehouses/${id}`, data);
+  },
+
+  deleteWarehouse: async (id: number): Promise<void> => {
+    return api.delete(`/materials/warehouses/${id}`);
   },
 
   getMaterialUnits: async (): Promise<MaterialUnit[]> => {
-    return api.get<MaterialUnit[]>('/system/material-units');
+    return api.get<MaterialUnit[]>('/materials/units');
   },
 
-  getMaterialCategories: async (): Promise<{ id: number; name: string }[]> => {
-    return api.get<{ id: number; name: string }[]>('/system/material-categories');
+  createMaterialUnit: async (data: Partial<MaterialUnit>): Promise<MaterialUnit> => {
+    return api.post<MaterialUnit>('/materials/units', data);
+  },
+
+  updateMaterialUnit: async (id: number, data: Partial<MaterialUnit>): Promise<MaterialUnit> => {
+    return api.put<MaterialUnit>(`/materials/units/${id}`, data);
+  },
+
+  // Low stock materials
+  getLowStockMaterials: async (): Promise<Material[]> => {
+    return api.get<Material[]>('/materials/low-stock');
   },
 
   // Reports

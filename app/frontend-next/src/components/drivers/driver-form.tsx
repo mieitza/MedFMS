@@ -76,6 +76,7 @@ export function DriverForm({ driver, isLoading = false }: DriverFormProps) {
   const updateDriver = useUpdateDriver();
 
   const form = useForm<DriverFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(driverFormSchema) as any,
     defaultValues: {
       firstName: driver?.firstName || '',

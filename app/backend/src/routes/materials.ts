@@ -16,16 +16,48 @@ const router = Router();
 router.use(authenticate);
 
 const materialSchema = z.object({
-  materialCode: z.string().min(1).max(50),
-  materialName: z.string().min(1).max(100),
+  // Accept both materialCode and code (frontend may use either)
+  materialCode: z.string().min(1).max(50).optional(),
+  code: z.string().min(1).max(50).optional(),
+  // Accept both materialName and name (frontend may use either)
+  materialName: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(100).optional(),
   description: z.string().optional(),
   materialTypeId: z.number().optional(),
   categoryId: z.number().optional(),
   unitId: z.number().positive(),
   currentStock: z.number().default(0),
+  // Accept both criticalLevel and minStock (frontend may use either)
   criticalLevel: z.number().optional(),
+  minStock: z.number().optional(),
+  maxStock: z.number().optional(),
+  // Accept both standardPrice and price (frontend may use either)
   standardPrice: z.number().optional(),
+  price: z.number().optional(),
   warehouseId: z.number().optional(),
+  expirationDate: z.coerce.date().optional(),
+}).transform((data) => {
+  // Normalize field names to match database schema
+  const materialCode = data.materialCode || data.code;
+  const materialName = data.materialName || data.name;
+
+  if (!materialCode || !materialName) {
+    throw new Error('Material code and name are required');
+  }
+
+  return {
+    materialCode,
+    materialName,
+    description: data.description,
+    materialTypeId: data.materialTypeId,
+    categoryId: data.categoryId,
+    unitId: data.unitId,
+    currentStock: data.currentStock,
+    criticalLevel: data.criticalLevel || data.minStock,
+    standardPrice: data.standardPrice || data.price,
+    warehouseId: data.warehouseId,
+    expirationDate: data.expirationDate,
+  };
 });
 
 // ========== Material Routes ==========

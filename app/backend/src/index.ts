@@ -33,19 +33,18 @@ if (process.env.NODE_ENV === 'production') {
 // Initialize database
 await initDatabase();
 
-// Security middleware
-app.use(helmet({
-  crossOriginEmbedderPolicy: false
-}));
+// CORS configuration - allow all in development for Next.js migration
 app.use(cors({
-  origin: process.env.CORS_ORIGINS?.split(',') || (
-    process.env.NODE_ENV === 'production'
-      ? [process.env.ORIGIN || 'https://medfms.cognitcube.com']
-      : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173']
-  ),
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Security middleware
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
 // Request processing middleware

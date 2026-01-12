@@ -36,10 +36,22 @@ const maintenanceTypeSchema = z.object({
 
 const workOrderSchema = z.object({
   vehicleId: z.number().positive(),
-  maintenanceTypeId: z.number().positive(),
-  title: z.string().min(1).max(200),
+  maintenanceTypeId: z.number().positive().optional(),
+  typeId: z.number().positive().optional(), // Frontend compatibility
+  title: z.string().min(1).max(200).optional(),
   description: z.string().optional(),
-  priority: z.number().min(1).max(5).default(3),
+  priority: z.union([
+    z.number().min(1).max(5),
+    z.string().transform(val => {
+      // Handle string priority values like 'low', 'medium', 'high'
+      const priorityMap: Record<string, number> = {
+        'low': 1, 'medium': 3, 'high': 5,
+        '1': 1, '2': 2, '3': 3, '4': 4, '5': 5
+      };
+      return priorityMap[val.toLowerCase()] || 3;
+    })
+  ]).default(3),
+  status: z.string().optional(),
   scheduledDate: z.coerce.date().optional(),
   assignedTo: z.string().optional(),
   vendor: z.string().optional(),
@@ -47,6 +59,17 @@ const workOrderSchema = z.object({
   odometerReading: z.number().optional(),
   engineHours: z.number().optional(),
   notes: z.string().optional(),
+}).refine(data => data.maintenanceTypeId || data.typeId, {
+  message: "Either 'maintenanceTypeId' or 'typeId' is required"
+}).transform((data) => {
+  // Normalize field names and set defaults
+  const { typeId, ...rest } = data;
+  return {
+    ...rest,
+    maintenanceTypeId: data.maintenanceTypeId || typeId,
+    title: data.title || `Maintenance Work Order`,
+    status: data.status || 'pending',
+  };
 });
 
 // Maintenance Types endpoints
@@ -198,13 +221,26 @@ router.get('/work-orders', authorize('admin', 'manager', 'operator'), async (req
     }
     const [{ count }] = await countQuery;
 
+    // Flatten the results to match frontend expectations
+    const flattenedResults = results.map(row => ({
+      ...row.workOrder,
+      vehicle: row.vehicle,
+      maintenanceType: row.maintenanceType ? {
+        id: row.maintenanceType.id,
+        name: row.maintenanceType.typeName,
+        code: row.maintenanceType.typeCode,
+        category: row.maintenanceType.category,
+      } : null,
+    }));
+
     res.json({
       success: true,
-      data: results,
+      data: flattenedResults,
       pagination: {
         page: parseInt(page as string),
         limit: parseInt(limit as string),
         total: Number(count),
+        totalItems: Number(count),
         pages: Math.ceil(Number(count) / parseInt(limit as string))
       }
     });
@@ -227,7 +263,8 @@ router.post('/work-orders', authorize('admin', 'manager', 'operator'), async (re
     const result = await db.insert(maintenanceWorkOrders).values({
       ...data,
       workOrderNumber,
-      requestedBy: req.user.id
+      requestedDate: new Date(),
+      createdBy: req.user?.id?.toString()
     }).returning();
 
     res.status(201).json({ success: true, data: result[0] });
@@ -330,18 +367,149 @@ router.get('/work-orders/pending-approval', authorize('admin', 'manager'), async
 
     const totalPages = Math.ceil(Number(count) / limit);
 
+    // Flatten the results to match frontend expectations
+    const flattenedResults = result.map(row => ({
+      ...row.workOrder,
+      vehicle: row.vehicle,
+      maintenanceType: row.maintenanceType ? {
+        id: row.maintenanceType.id,
+        name: row.maintenanceType.typeName,
+        code: row.maintenanceType.typeCode,
+        category: row.maintenanceType.category,
+      } : null,
+    }));
+
     res.json({
       success: true,
-      data: result,
+      data: flattenedResults,
       pagination: {
         page,
         limit,
         total: Number(count),
+        totalItems: Number(count),
         totalPages
       }
     });
   } catch (error) {
     logger.error('Error fetching work orders for approval:', error);
+    next(error);
+  }
+});
+
+// Get work order statistics - Must come before /:id route
+router.get('/work-orders/stats', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
+  try {
+    const db = getDb();
+    const { dateFrom, dateTo, vehicleId } = req.query;
+
+    // Build conditions array
+    const conditions = [];
+
+    if (vehicleId) {
+      conditions.push(eq(maintenanceWorkOrders.vehicleId, parseInt(vehicleId as string)));
+    }
+
+    if (dateFrom) {
+      conditions.push(gte(maintenanceWorkOrders.createdAt, new Date(dateFrom as string)));
+    }
+
+    if (dateTo) {
+      conditions.push(lte(maintenanceWorkOrders.createdAt, new Date(dateTo as string)));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Get total counts by status
+    const statusCounts = await db.select({
+      status: maintenanceWorkOrders.status,
+      count: sql<number>`count(*)`.as('count'),
+      totalCost: sql<number>`coalesce(sum(${maintenanceWorkOrders.actualCost}), 0)`.as('totalCost')
+    })
+      .from(maintenanceWorkOrders)
+      .where(whereClause)
+      .groupBy(maintenanceWorkOrders.status);
+
+    // Calculate totals
+    let totalWorkOrders = 0;
+    let pendingWorkOrders = 0;
+    let inProgressWorkOrders = 0;
+    let completedWorkOrders = 0;
+    let totalCost = 0;
+
+    for (const row of statusCounts) {
+      totalWorkOrders += Number(row.count);
+      totalCost += Number(row.totalCost);
+
+      if (row.status === 'pending') pendingWorkOrders = Number(row.count);
+      else if (row.status === 'in_progress') inProgressWorkOrders = Number(row.count);
+      else if (row.status === 'completed') completedWorkOrders = Number(row.count);
+    }
+
+    const averageCost = totalWorkOrders > 0 ? totalCost / totalWorkOrders : 0;
+
+    // Get work orders by maintenance type
+    const workOrdersByType = await db.select({
+      maintenanceType: maintenanceTypes.typeName,
+      count: sql<number>`count(*)`.as('count'),
+      cost: sql<number>`coalesce(sum(${maintenanceWorkOrders.actualCost}), 0)`.as('cost')
+    })
+      .from(maintenanceWorkOrders)
+      .leftJoin(maintenanceTypes, eq(maintenanceWorkOrders.maintenanceTypeId, maintenanceTypes.id))
+      .where(whereClause)
+      .groupBy(maintenanceTypes.typeName);
+
+    // Get work orders by vehicle
+    const workOrdersByVehicle = await db.select({
+      vehicleCode: vehicles.vehicleCode,
+      count: sql<number>`count(*)`.as('count'),
+      cost: sql<number>`coalesce(sum(${maintenanceWorkOrders.actualCost}), 0)`.as('cost')
+    })
+      .from(maintenanceWorkOrders)
+      .leftJoin(vehicles, eq(maintenanceWorkOrders.vehicleId, vehicles.id))
+      .where(whereClause)
+      .groupBy(vehicles.vehicleCode)
+      .limit(10);
+
+    // Get monthly trend (last 12 months)
+    const monthlyTrend = await db.select({
+      month: sql<string>`strftime('%Y-%m', ${maintenanceWorkOrders.createdAt})`.as('month'),
+      count: sql<number>`count(*)`.as('count'),
+      cost: sql<number>`coalesce(sum(${maintenanceWorkOrders.actualCost}), 0)`.as('cost')
+    })
+      .from(maintenanceWorkOrders)
+      .where(whereClause)
+      .groupBy(sql`strftime('%Y-%m', ${maintenanceWorkOrders.createdAt})`)
+      .orderBy(desc(sql`strftime('%Y-%m', ${maintenanceWorkOrders.createdAt})`))
+      .limit(12);
+
+    res.json({
+      success: true,
+      data: {
+        totalWorkOrders,
+        pendingWorkOrders,
+        inProgressWorkOrders,
+        completedWorkOrders,
+        totalCost,
+        averageCost,
+        workOrdersByType: workOrdersByType.map(row => ({
+          maintenanceType: row.maintenanceType || 'Necunoscut',
+          count: Number(row.count),
+          cost: Number(row.cost)
+        })),
+        workOrdersByVehicle: workOrdersByVehicle.map(row => ({
+          vehicleCode: row.vehicleCode || 'Necunoscut',
+          count: Number(row.count),
+          cost: Number(row.cost)
+        })),
+        monthlyTrend: monthlyTrend.map(row => ({
+          month: row.month,
+          count: Number(row.count),
+          cost: Number(row.cost)
+        })).reverse()
+      }
+    });
+  } catch (error) {
+    logger.error('Error fetching maintenance stats:', error);
     next(error);
   }
 });
@@ -372,37 +540,6 @@ router.get('/work-orders/:id', authorize('admin', 'manager', 'operator'), async 
       throw new AppError('Work order not found', 404);
     }
 
-    // Transform the result to match expected structure
-    const workOrder = {
-      workOrder: result.maintenance_work_orders ? {
-        id: result.maintenance_work_orders.id,
-        workOrderNumber: result.maintenance_work_orders.workOrderNumber,
-        vehicleId: result.maintenance_work_orders.vehicleId,
-        maintenanceTypeId: result.maintenance_work_orders.maintenanceTypeId,
-        title: result.maintenance_work_orders.title,
-        description: result.maintenance_work_orders.description,
-        priority: result.maintenance_work_orders.priority,
-        status: result.maintenance_work_orders.status,
-        scheduledDate: result.maintenance_work_orders.scheduledDate,
-        assignedTechnicianId: result.maintenance_work_orders.assignedTechnicianId,
-        estimatedCost: result.maintenance_work_orders.estimatedCost,
-        actualCost: result.maintenance_work_orders.actualCost,
-        notes: result.maintenance_work_orders.notes,
-        createdAt: result.maintenance_work_orders.createdAt,
-        updatedAt: result.maintenance_work_orders.updatedAt
-      } : null,
-      vehicle: result.vehicles ? {
-        id: result.vehicles.id,
-        vehicleCode: result.vehicles.vehicleCode,
-        licensePlate: result.vehicles.licensePlate
-      } : null,
-      maintenanceType: result.maintenance_types ? {
-        id: result.maintenance_types.id,
-        typeName: result.maintenance_types.typeName,
-        category: result.maintenance_types.category
-      } : null
-    };
-
     // Get parts and labor associated with this work order
     const parts = await db.select().from(maintenanceParts)
       .where(eq(maintenanceParts.workOrderId, id));
@@ -410,13 +547,26 @@ router.get('/work-orders/:id', authorize('admin', 'manager', 'operator'), async 
     const labor = await db.select().from(maintenanceLabor)
       .where(eq(maintenanceLabor.workOrderId, id));
 
+    // Flatten the result to match frontend expectations
+    const workOrder = {
+      ...result.maintenance_work_orders,
+      vehicle: result.vehicles ? {
+        id: result.vehicles.id,
+        vehicleCode: result.vehicles.vehicleCode,
+        licensePlate: result.vehicles.licensePlate
+      } : null,
+      maintenanceType: result.maintenance_types ? {
+        id: result.maintenance_types.id,
+        name: result.maintenance_types.typeName,
+        category: result.maintenance_types.category
+      } : null,
+      parts,
+      labor
+    };
+
     res.json({
       success: true,
-      data: {
-        ...workOrder,
-        parts,
-        labor
-      }
+      data: workOrder
     });
   } catch (error) {
     logger.error('Error fetching work order:', error);

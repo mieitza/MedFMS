@@ -39,7 +39,8 @@ import {
   FileText,
   ChevronRight,
 } from 'lucide-react';
-import { vehiclesApi, driversApi, fuelApi, maintenanceApi, warehouseApi } from '@/lib/api';
+import { vehiclesApi, driversApi, fuelApi, maintenanceApi } from '@/lib/api';
+import { useLowStockMaterials } from '@/lib/hooks';
 
 const dateRangeOptions = [
   { value: '7', label: 'Ultimele 7 zile' },
@@ -183,10 +184,7 @@ export default function ReportsPage() {
     enabled: !!dateParams.startDate && !!dateParams.endDate,
   });
 
-  const { data: warehouseStats, isLoading: warehouseLoading } = useQuery({
-    queryKey: ['warehouse', 'stats'],
-    queryFn: () => warehouseApi.getStats(),
-  });
+  const { data: lowStockMaterials, isLoading: warehouseLoading } = useLowStockMaterials();
 
   // Calculate fuel metrics
   const fuelMetrics = useMemo(() => {
@@ -345,7 +343,7 @@ export default function ReportsPage() {
         />
         <StatCard
           title="Stoc Critic"
-          value={warehouseStats?.lowStockMaterials || 0}
+          value={lowStockMaterials?.length || 0}
           icon={Package}
           color="bg-red-100 dark:bg-red-900/30 text-red-600"
           loading={warehouseLoading}
@@ -461,7 +459,7 @@ export default function ReportsPage() {
                 <Skeleton className="h-8 w-full" />
                 <Skeleton className="h-8 w-full" />
               </div>
-            ) : warehouseStats?.lowStockItems && warehouseStats.lowStockItems.length > 0 ? (
+            ) : lowStockMaterials && lowStockMaterials.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -471,20 +469,20 @@ export default function ReportsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {warehouseStats.lowStockItems.slice(0, 5).map((item) => (
-                    <TableRow key={item.materialCode}>
+                  {lowStockMaterials.slice(0, 5).map((material) => (
+                    <TableRow key={material.materialCode}>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-xs text-slate-500">{item.materialCode}</p>
+                          <p className="font-medium">{material.name}</p>
+                          <p className="text-xs text-slate-500">{material.materialCode}</p>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Badge variant={item.currentStock === 0 ? 'destructive' : 'secondary'}>
-                          {item.currentStock}
+                        <Badge variant={material.currentStock === 0 ? 'destructive' : 'secondary'}>
+                          {material.currentStock}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right text-slate-500">{item.criticalLevel}</TableCell>
+                      <TableCell className="text-right text-slate-500">{material.criticalLevel}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -18,7 +18,10 @@ export const documentKeys = {
 export function useDocumentCategories() {
   return useQuery({
     queryKey: documentKeys.categories(),
-    queryFn: () => documentsApi.getCategories(),
+    queryFn: async () => {
+      const result = await documentsApi.getCategories();
+      return result ?? [];
+    },
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
 }
@@ -27,7 +30,10 @@ export function useDocumentCategories() {
 export function useDocuments(entityType: EntityType, entityId: number | null) {
   return useQuery({
     queryKey: documentKeys.documents(entityType, entityId!),
-    queryFn: () => documentsApi.getDocuments(entityType, entityId!),
+    queryFn: async () => {
+      const result = await documentsApi.getDocuments(entityType, entityId!);
+      return result ?? [];
+    },
     enabled: !!entityId,
   });
 }
@@ -74,7 +80,10 @@ export function useDeleteDocument() {
 export function usePhotos(entityType: EntityType, entityId: number | null) {
   return useQuery({
     queryKey: documentKeys.photos(entityType, entityId!),
-    queryFn: () => documentsApi.getPhotos(entityType, entityId!),
+    queryFn: async () => {
+      const result = await documentsApi.getPhotos(entityType, entityId!);
+      return result ?? [];
+    },
     enabled: !!entityId,
   });
 }

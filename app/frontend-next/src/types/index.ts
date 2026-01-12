@@ -21,6 +21,7 @@ export interface AuthState {
 }
 
 export interface LoginCredentials {
+  username: string;
   pin: string;
 }
 
@@ -370,6 +371,7 @@ export interface DashboardStats {
   fuelCostMTD: number;
   fuelCostChange: number;
   expiringDocuments: number;
+  expiredDocuments: number;
   lowStockMaterials: number;
 }
 

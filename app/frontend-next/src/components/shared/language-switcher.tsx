@@ -23,15 +23,12 @@ const localeFlags: Record<Locale, string> = {
 };
 
 export function LanguageSwitcher() {
-  const [locale, setLocale] = useState<Locale>('ro');
-
-  useEffect(() => {
-    // Load saved locale from localStorage
+  // Use lazy initialization to avoid useEffect for localStorage read
+  const [locale, setLocale] = useState<Locale>(() => {
+    if (typeof window === 'undefined') return 'ro';
     const saved = localStorage.getItem('locale') as Locale;
-    if (saved && (saved === 'ro' || saved === 'en')) {
-      setLocale(saved);
-    }
-  }, []);
+    return saved && (saved === 'ro' || saved === 'en') ? saved : 'ro';
+  });
 
   const changeLocale = (newLocale: Locale) => {
     setLocale(newLocale);

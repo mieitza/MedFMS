@@ -4,15 +4,12 @@ import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -30,14 +27,9 @@ import {
   Pencil,
   Trash2,
   Fuel,
-  Calendar,
   Gauge,
-  Car,
-  User,
   CreditCard,
-  Building,
   Receipt,
-  Hash,
 } from 'lucide-react';
 import { useFuelTransaction, useDeleteFuelTransaction } from '@/lib/hooks';
 import { format } from 'date-fns';

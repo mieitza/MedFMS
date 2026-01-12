@@ -17,9 +17,20 @@ const nextConfig: NextConfig = {
         pathname: '/uploads/**',
       },
       {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/api/**',
+      },
+      {
         protocol: 'https',
         hostname: 'medfms.cognitcube.com',
         pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'medfms.cognitcube.com',
+        pathname: '/api/**',
       },
     ],
   },

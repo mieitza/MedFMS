@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { eq, and, desc, asc, sql, gte, lte, like } from 'drizzle-orm';
+import multer from 'multer';
+import * as XLSX from 'xlsx';
 import { getDb } from '../db/index.js';
 import {
   fuelTypes,
@@ -26,19 +28,44 @@ router.use(authenticate);
 
 // Validation schemas
 const fuelTransactionSchema = z.object({
-  transactionType: z.enum(['purchase', 'consumption']),
+  transactionType: z.enum(['purchase', 'consumption']).default('purchase'),
   vehicleId: z.number().positive(),
   driverId: z.number().optional(),
   fuelTypeId: z.number().positive(),
+  // Accept both locationId and stationId (frontend may use either)
   locationId: z.number().optional(),
+  stationId: z.number().optional(),
   supplierId: z.number().optional(),
-  transactionDate: z.coerce.date(),
+  // Accept both transactionDate and date (frontend may use either)
+  transactionDate: z.coerce.date().optional(),
+  date: z.coerce.date().optional(),
   quantity: z.number().positive(),
   pricePerUnit: z.number().positive(),
-  totalAmount: z.number().positive(),
+  // Accept both totalAmount and totalCost (frontend may use either)
+  totalAmount: z.number().positive().optional(),
+  totalCost: z.number().positive().optional(),
   odometer: z.number().optional(),
   invoiceNumber: z.string().optional(),
+  // Accept both description and notes (frontend may use either)
   description: z.string().optional(),
+  notes: z.string().optional(),
+}).transform((data) => {
+  // Normalize field names to match database schema
+  return {
+    transactionType: data.transactionType,
+    vehicleId: data.vehicleId,
+    driverId: data.driverId,
+    fuelTypeId: data.fuelTypeId,
+    locationId: data.locationId || data.stationId,
+    supplierId: data.supplierId,
+    transactionDate: data.transactionDate || data.date || new Date(),
+    quantity: data.quantity,
+    pricePerUnit: data.pricePerUnit,
+    totalAmount: data.totalAmount || data.totalCost || (data.quantity * data.pricePerUnit),
+    odometer: data.odometer,
+    invoiceNumber: data.invoiceNumber,
+    description: data.description || data.notes,
+  };
 });
 
 const fuelStationSchema = z.object({
@@ -247,6 +274,174 @@ router.get('/transactions', authorize('admin', 'manager', 'operator'), async (re
     });
   } catch (error) {
     logger.error('Error fetching fuel transactions:', error);
+    next(error);
+  }
+});
+
+// Get fuel transaction statistics - MUST be before /transactions/:id
+router.get('/transactions/stats', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
+  try {
+    const { dateFrom, dateTo, vehicleId } = req.query;
+    const db = getDb();
+
+    // Build where conditions
+    const conditions = [];
+    if (dateFrom) {
+      conditions.push(gte(fuelTransactions.transactionDate, new Date(dateFrom as string)));
+    }
+    if (dateTo) {
+      conditions.push(lte(fuelTransactions.transactionDate, new Date(dateTo as string)));
+    }
+    if (vehicleId) {
+      conditions.push(eq(fuelTransactions.vehicleId, parseInt(vehicleId as string)));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Get total transactions, quantity, and cost
+    const [totals] = await db.select({
+      totalTransactions: sql<number>`count(*)`,
+      totalQuantity: sql<number>`coalesce(sum(${fuelTransactions.quantity}), 0)`,
+      totalCost: sql<number>`coalesce(sum(${fuelTransactions.totalAmount}), 0)`
+    })
+    .from(fuelTransactions)
+    .where(whereClause);
+
+    // Calculate average price per liter
+    const averagePricePerLiter = totals.totalQuantity > 0
+      ? totals.totalCost / totals.totalQuantity
+      : 0;
+
+    // Get transactions by fuel type
+    const transactionsByFuelType = await db.select({
+      fuelType: fuelTypes.fuelName,
+      quantity: sql<number>`coalesce(sum(${fuelTransactions.quantity}), 0)`,
+      cost: sql<number>`coalesce(sum(${fuelTransactions.totalAmount}), 0)`
+    })
+    .from(fuelTransactions)
+    .leftJoin(fuelTypes, eq(fuelTransactions.fuelTypeId, fuelTypes.id))
+    .where(whereClause)
+    .groupBy(fuelTypes.fuelName);
+
+    // Get transactions by vehicle
+    const transactionsByVehicle = await db.select({
+      vehicleCode: vehicles.vehicleCode,
+      quantity: sql<number>`coalesce(sum(${fuelTransactions.quantity}), 0)`,
+      cost: sql<number>`coalesce(sum(${fuelTransactions.totalAmount}), 0)`
+    })
+    .from(fuelTransactions)
+    .leftJoin(vehicles, eq(fuelTransactions.vehicleId, vehicles.id))
+    .where(whereClause)
+    .groupBy(vehicles.vehicleCode)
+    .orderBy(desc(sql`sum(${fuelTransactions.totalAmount})`))
+    .limit(10);
+
+    // Get monthly trend (last 12 months)
+    const monthlyTrend = await db.select({
+      month: sql<string>`strftime('%Y-%m', datetime(${fuelTransactions.transactionDate}, 'unixepoch'))`,
+      quantity: sql<number>`coalesce(sum(${fuelTransactions.quantity}), 0)`,
+      cost: sql<number>`coalesce(sum(${fuelTransactions.totalAmount}), 0)`
+    })
+    .from(fuelTransactions)
+    .where(whereClause)
+    .groupBy(sql`strftime('%Y-%m', datetime(${fuelTransactions.transactionDate}, 'unixepoch'))`)
+    .orderBy(sql`strftime('%Y-%m', datetime(${fuelTransactions.transactionDate}, 'unixepoch'))`);
+
+    res.json({
+      success: true,
+      data: {
+        totalTransactions: Number(totals.totalTransactions),
+        totalQuantity: Number(totals.totalQuantity),
+        totalCost: Number(totals.totalCost),
+        averagePricePerLiter: Number(averagePricePerLiter.toFixed(2)),
+        transactionsByFuelType: transactionsByFuelType.map(t => ({
+          fuelType: t.fuelType || 'Unknown',
+          quantity: Number(t.quantity),
+          cost: Number(t.cost)
+        })),
+        transactionsByVehicle: transactionsByVehicle.map(t => ({
+          vehicleCode: t.vehicleCode || 'Unknown',
+          quantity: Number(t.quantity),
+          cost: Number(t.cost)
+        })),
+        monthlyTrend: monthlyTrend.map(t => ({
+          month: t.month,
+          quantity: Number(t.quantity),
+          cost: Number(t.cost)
+        }))
+      }
+    });
+  } catch (error) {
+    logger.error('Error fetching fuel statistics:', error);
+    next(error);
+  }
+});
+
+// Get single fuel transaction by ID
+router.get('/transactions/:id', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
+  try {
+    const transactionId = parseInt(req.params.id);
+    const db = getDb();
+
+    // Use the same query structure as getAll that works
+    const [transaction] = await db.select({
+      id: fuelTransactions.id,
+      transactionType: fuelTransactions.transactionType,
+      vehicleId: fuelTransactions.vehicleId,
+      driverId: fuelTransactions.driverId,
+      fuelTypeId: fuelTransactions.fuelTypeId,
+      locationId: fuelTransactions.locationId,
+      supplierId: fuelTransactions.supplierId,
+      transactionDate: fuelTransactions.transactionDate,
+      quantity: fuelTransactions.quantity,
+      pricePerUnit: fuelTransactions.pricePerUnit,
+      totalAmount: fuelTransactions.totalAmount,
+      odometer: fuelTransactions.odometer,
+      invoiceNumber: fuelTransactions.invoiceNumber,
+      description: fuelTransactions.description,
+      approved: fuelTransactions.approved,
+      approvedBy: fuelTransactions.approvedBy,
+      approvalDate: fuelTransactions.approvalDate,
+      createdAt: fuelTransactions.createdAt,
+      cardNumber: fuelTransactions.cardNumber,
+      costCenter1: fuelTransactions.costCenter1,
+      deliveryDate: fuelTransactions.deliveryDate,
+      invoiceDate: fuelTransactions.invoiceDate,
+      vehicle: {
+        id: vehicles.id,
+        vehicleCode: vehicles.vehicleCode,
+        licensePlate: vehicles.licensePlate
+      },
+      driver: {
+        id: drivers.id,
+        fullName: drivers.fullName,
+        driverCode: drivers.driverCode
+      },
+      fuelType: {
+        id: fuelTypes.id,
+        fuelCode: fuelTypes.fuelCode,
+        fuelName: fuelTypes.fuelName
+      },
+      station: {
+        id: fuelStations.id,
+        stationName: fuelStations.stationName
+      }
+    })
+    .from(fuelTransactions)
+    .leftJoin(vehicles, eq(fuelTransactions.vehicleId, vehicles.id))
+    .leftJoin(drivers, eq(fuelTransactions.driverId, drivers.id))
+    .leftJoin(fuelTypes, eq(fuelTransactions.fuelTypeId, fuelTypes.id))
+    .leftJoin(fuelStations, eq(fuelTransactions.locationId, fuelStations.id))
+    .where(eq(fuelTransactions.id, transactionId))
+    .limit(1);
+
+    if (!transaction) {
+      throw new AppError('Fuel transaction not found', 404);
+    }
+
+    res.json({ success: true, data: transaction });
+  } catch (error) {
+    logger.error('Error fetching fuel transaction:', error);
     next(error);
   }
 });
@@ -633,6 +828,380 @@ router.get('/import/batches', authorize('admin', 'manager'), async (req, res, ne
     res.json({ success: true, data: batches });
   } catch (error) {
     logger.error('Error fetching import batches:', error);
+    next(error);
+  }
+});
+
+// Generic CSV/Excel import endpoint for fuel transactions
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedMimes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv',
+    ];
+    const allowedExts = ['.xlsx', '.xls', '.csv'];
+    const ext = file.originalname.toLowerCase().slice(file.originalname.lastIndexOf('.'));
+    if (allowedMimes.includes(file.mimetype) || allowedExts.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only Excel (.xlsx, .xls) and CSV files are allowed.'));
+    }
+  },
+});
+
+router.post('/transactions/import', authorize('admin', 'manager'), upload.single('file'), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      throw new AppError('No file uploaded', 400);
+    }
+
+    logger.info('File import started', { filename: req.file.originalname, size: req.file.size });
+    const db = getDb();
+
+    // Parse file based on type
+    let data: Record<string, unknown>[] = [];
+    const ext = req.file.originalname.toLowerCase().slice(req.file.originalname.lastIndexOf('.'));
+
+    if (ext === '.csv') {
+      // Parse CSV
+      const csvContent = req.file.buffer.toString('utf-8');
+      const lines = csvContent.split('\n').filter(line => line.trim());
+      if (lines.length < 2) {
+        throw new AppError('CSV file must have headers and at least one data row', 400);
+      }
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^"|"$/g, ''));
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+        const row: Record<string, unknown> = {};
+        headers.forEach((header, index) => {
+          row[header] = values[index] || '';
+        });
+        data.push(row);
+      }
+    } else {
+      // Parse Excel
+      const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+
+      // First, get raw data to find the actual header row
+      const rawData = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, defval: '' });
+
+      // Find the header row - look for rows that contain typical header keywords
+      const headerKeywords = ['vehicle', 'vehicul', 'quantity', 'cantitate', 'date', 'data', 'invoice', 'card', 'station', 'amount', 'delivery'];
+      let headerRowIndex = 0;
+
+      for (let i = 0; i < Math.min(rawData.length, 10); i++) {
+        const row = rawData[i];
+        if (Array.isArray(row)) {
+          const rowStr = row.join(' ').toLowerCase();
+          const matchCount = headerKeywords.filter(kw => rowStr.includes(kw)).length;
+          if (matchCount >= 3) {
+            headerRowIndex = i;
+            logger.info(`Found header row at index ${i}`, { row: row.slice(0, 5) });
+            break;
+          }
+        }
+      }
+
+      // Re-parse with the correct header row
+      if (headerRowIndex > 0) {
+        // Skip rows before the header and use that row as headers
+        const headers = rawData[headerRowIndex] as string[];
+        data = [];
+        for (let i = headerRowIndex + 1; i < rawData.length; i++) {
+          const rowValues = rawData[i] as string[];
+          if (rowValues && rowValues.some(v => v !== '')) {
+            const rowObj: Record<string, unknown> = {};
+            headers.forEach((header, idx) => {
+              if (header && typeof header === 'string' && header.trim()) {
+                rowObj[header.trim()] = rowValues[idx] ?? '';
+              }
+            });
+            data.push(rowObj);
+          }
+        }
+        logger.info(`Parsed Excel with header row at index ${headerRowIndex}`, { dataRows: data.length });
+      } else {
+        // Standard parsing - headers in first row
+        data = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+      }
+    }
+
+    // Log the column headers found
+    const sampleRow = data[0];
+    const detectedColumns = Object.keys(sampleRow);
+    logger.info('Parsed file data', { rowCount: data.length, columns: detectedColumns });
+
+    if (data.length === 0) {
+      throw new AppError('File contains no data', 400);
+    }
+
+    // Get reference data
+    const [defaultBrand] = await db.select().from(brands).where(eq(brands.brandCode, 'UNKNOWN')).limit(1);
+    const [defaultModel] = await db.select().from(models).where(eq(models.modelCode, 'UNKNOWN')).limit(1);
+    const [defaultVehicleType] = await db.select().from(vehicleTypes).where(eq(vehicleTypes.typeCode, 'CAR')).limit(1);
+    const [defaultStatus] = await db.select().from(vehicleStatuses).where(eq(vehicleStatuses.statusCode, 'ACTIVE')).limit(1);
+    const [defaultFuelType] = await db.select().from(fuelTypes).where(eq(fuelTypes.fuelCode, 'DIESEL')).limit(1);
+
+    const batchId = `CSV-${new Date().getTime()}`;
+    const results = { imported: 0, errors: [] as string[] };
+
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const rowNum = i + 2; // Account for header row and 0-indexing
+
+      try {
+        // Map common header variations to our fields
+        const getField = (row: Record<string, unknown>, ...keys: string[]): string => {
+          for (const key of keys) {
+            const value = Object.entries(row).find(([k]) =>
+              k.toLowerCase().includes(key.toLowerCase())
+            )?.[1];
+            if (value !== undefined && value !== null && value !== '') {
+              return String(value);
+            }
+          }
+          return '';
+        };
+
+        // Try exact match first, then partial match
+        const getFieldExact = (row: Record<string, unknown>, ...keys: string[]): string => {
+          // First try exact match (case insensitive)
+          for (const key of keys) {
+            const value = Object.entries(row).find(([k]) =>
+              k.toLowerCase() === key.toLowerCase()
+            )?.[1];
+            if (value !== undefined && value !== null && value !== '') {
+              return String(value);
+            }
+          }
+          // Then try partial match
+          return getField(row, ...keys);
+        };
+
+        // Vehicle registration - expanded patterns including UTA format
+        const vehicleReg = getFieldExact(row,
+          'Vehicle registration no.', 'Vehicle registration no', // UTA format exact
+          'Vehicle reg.', 'Vehicle reg', 'vehiclereg',
+          'nr_auto', 'nr auto', 'nrauto',
+          'vehicul', 'vehicle',
+          'license', 'licensePlate', 'license_plate',
+          'plate', 'numar', 'inmatriculare',
+          'reg', 'registration'
+        );
+
+        // Quantity - expanded patterns
+        const quantity = parseFloat(getFieldExact(row,
+          'Quantity', 'quantity', // UTA format
+          'cantitate', 'litri', 'liters', 'litres',
+          'qty', 'amount_liters'
+        ) || '0');
+
+        // Total cost - expanded patterns (UTA uses "Turnover incl. VAT")
+        const totalCost = parseFloat(getFieldExact(row,
+          'Turnover incl. VAT', 'Turnover incl VAT', // UTA format exact
+          'Turnover excl. VAT', 'Turnover excl VAT',
+          'Amount incl. VAT', 'Amount incl VAT', 'amountinclvat',
+          'Amount excl. VAT', 'Amount excl VAT',
+          'valoare', 'cost', 'total', 'amount',
+          'suma', 'pret_total', 'total_cost'
+        ) || '0');
+
+        // Odometer (UTA uses "km reading")
+        const odometer = parseInt(getFieldExact(row,
+          'km reading', 'kmreading', // UTA format exact
+          'Km reading',
+          'km', 'odometer', 'kilometraj', 'kilometri',
+          'mileage', 'distance'
+        ) || '0');
+
+        // Date - expanded patterns (UTA uses "Delivery date")
+        const dateStr = getFieldExact(row,
+          'Delivery date', 'deliverydate', // UTA format exact
+          'Inv. date', 'Invoice date', 'invoicedate',
+          'data', 'date', 'transaction_date',
+          'data_tranzactie', 'transaction'
+        );
+
+        // Fuel type (UTA uses "Type of goods")
+        const fuelTypeName = getFieldExact(row,
+          'Type of goods', 'typeofgoods', // UTA format exact
+          'Product type', 'producttype',
+          'tip_combustibil', 'combustibil', 'fuel', 'tip',
+          'fuel_type', 'fueltype', 'produs'
+        ) || 'Diesel';
+
+        // Station name (UTA uses "Point of acceptance")
+        const stationName = getFieldExact(row,
+          'Point of acceptance', 'pointofacceptance', // UTA format exact
+          'Station name', 'stationname',
+          'statie', 'station', 'benzinarie',
+          'locatie', 'location', 'supplier'
+        );
+
+        // Card number (UTA uses "Card number")
+        const cardNumber = getFieldExact(row,
+          'Card number', 'cardnumber', // UTA format exact
+          'Card No.', 'Card No', 'cardno',
+          'card', 'card_number',
+          'numar_card', 'card_nr'
+        );
+
+        // Validate required fields
+        if (!vehicleReg) {
+          // On first error, include the detected columns to help debugging
+          if (results.errors.length === 0) {
+            results.errors.push(`Coloane detectate: ${detectedColumns.join(', ')}`);
+          }
+          results.errors.push(`Rând ${rowNum}: Lipsește numărul de înmatriculare`);
+          continue;
+        }
+        if (!quantity || quantity <= 0) {
+          results.errors.push(`Rând ${rowNum}: Cantitate invalidă pentru ${vehicleReg}`);
+          continue;
+        }
+
+        // Normalize license plate
+        const normalizedPlate = vehicleReg.replace(/\s+/g, '');
+
+        // Find or create vehicle
+        let [vehicle] = await db.select().from(vehicles)
+          .where(sql`REPLACE(${vehicles.licensePlate}, ' ', '') = ${normalizedPlate}`)
+          .limit(1);
+
+        if (!vehicle) {
+          if (defaultBrand && defaultModel && defaultVehicleType && defaultStatus && defaultFuelType) {
+            [vehicle] = await db.insert(vehicles).values({
+              vehicleCode: normalizedPlate,
+              licensePlate: normalizedPlate,
+              brandId: defaultBrand.id,
+              modelId: defaultModel.id,
+              fuelTypeId: defaultFuelType.id,
+              vehicleTypeId: defaultVehicleType.id,
+              statusId: defaultStatus.id,
+              active: true
+            }).returning();
+            logger.info(`Created new vehicle: ${normalizedPlate}`);
+          } else {
+            results.errors.push(`Rând ${rowNum}: Vehiculul ${vehicleReg} nu există și nu s-a putut crea automat`);
+            continue;
+          }
+        }
+
+        // Find or create fuel type
+        let [fuelType] = await db.select().from(fuelTypes)
+          .where(like(fuelTypes.fuelName, `%${fuelTypeName}%`))
+          .limit(1);
+
+        if (!fuelType) {
+          fuelType = defaultFuelType;
+        }
+
+        if (!fuelType) {
+          results.errors.push(`Rând ${rowNum}: Tipul de combustibil ${fuelTypeName} nu există`);
+          continue;
+        }
+
+        // Find or create station if provided
+        let stationId: number | null = null;
+        if (stationName) {
+          // Try exact match first
+          let [station] = await db.select().from(fuelStations)
+            .where(eq(fuelStations.stationName, stationName))
+            .limit(1);
+
+          // If not found, try partial match
+          if (!station) {
+            [station] = await db.select().from(fuelStations)
+              .where(like(fuelStations.stationName, `%${stationName}%`))
+              .limit(1);
+          }
+
+          if (!station) {
+            // Generate unique station code based on name hash + random suffix
+            const stationCode = `IMP-${stationName.replace(/[^a-zA-Z0-9]/g, '').substring(0, 10).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+            try {
+              [station] = await db.insert(fuelStations).values({
+                stationCode: stationCode,
+                stationName: stationName,
+                active: true
+              }).returning();
+            } catch (stationErr: unknown) {
+              // If station creation fails (duplicate), try to find it again
+              [station] = await db.select().from(fuelStations)
+                .where(eq(fuelStations.stationName, stationName))
+                .limit(1);
+              if (!station) {
+                throw stationErr;
+              }
+            }
+          }
+          stationId = station.id;
+        }
+
+        // Parse date
+        let transactionDate = new Date();
+        if (dateStr) {
+          // Try various date formats
+          if (dateStr.includes('.')) {
+            // DD.MM.YYYY
+            const [day, month, year] = dateStr.split('.');
+            transactionDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+          } else if (dateStr.includes('-')) {
+            // YYYY-MM-DD or DD-MM-YYYY
+            transactionDate = new Date(dateStr);
+          } else if (dateStr.includes('/')) {
+            // DD/MM/YYYY or MM/DD/YYYY
+            const parts = dateStr.split('/');
+            if (parts[0].length === 4) {
+              transactionDate = new Date(dateStr);
+            } else {
+              transactionDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+            }
+          }
+        }
+
+        // Calculate price per unit
+        const pricePerUnit = quantity > 0 && totalCost > 0 ? totalCost / quantity : fuelType.currentPrice || 7.5;
+
+        // Insert fuel transaction
+        await db.insert(fuelTransactions).values({
+          transactionType: 'purchase',
+          vehicleId: vehicle.id,
+          fuelTypeId: fuelType.id,
+          locationId: stationId,
+          transactionDate: transactionDate,
+          quantity: quantity,
+          pricePerUnit: pricePerUnit,
+          totalAmount: totalCost > 0 ? totalCost : quantity * pricePerUnit,
+          odometer: odometer > 0 ? odometer : null,
+          cardNumber: cardNumber || null,
+          importBatchId: batchId,
+          importSource: 'CSV Import',
+          approved: false
+        });
+
+        results.imported++;
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        logger.error(`Error processing row ${rowNum}:`, { error: errorMessage, row });
+        results.errors.push(`Rând ${rowNum}: ${errorMessage}`);
+      }
+    }
+
+    logger.info('Import completed', { imported: results.imported, errors: results.errors.length });
+
+    res.json({
+      success: true,
+      data: results,
+      message: `Import finalizat: ${results.imported} tranzacții importate${results.errors.length > 0 ? `, ${results.errors.length} erori` : ''}`
+    });
+  } catch (error) {
+    logger.error('Error importing fuel transactions:', error);
     next(error);
   }
 });

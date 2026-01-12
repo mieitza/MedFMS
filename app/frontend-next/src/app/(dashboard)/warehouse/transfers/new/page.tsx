@@ -31,7 +31,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { ArrowLeft, Save, Loader2, Plus, Trash2, ArrowRightLeft } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Plus, Trash2 } from 'lucide-react';
 import {
   useCreateTransferRequest,
   useWarehouses,
@@ -64,6 +64,7 @@ export default function NewTransferRequestPage() {
   const vehicles = vehiclesData?.data || [];
 
   const form = useForm<TransferFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(transferFormSchema) as any,
     defaultValues: {
       sourceWarehouseId: null,
@@ -125,8 +126,8 @@ export default function NewTransferRequestPage() {
                     <FormItem>
                       <FormLabel>Depozit sursă</FormLabel>
                       <Select
-                        onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
-                        value={field.value?.toString() || ''}
+                        onValueChange={(value) => field.onChange(value === 'none' ? null : parseInt(value))}
+                        value={field.value?.toString() || 'none'}
                         disabled={loadingWarehouses}
                       >
                         <FormControl>
@@ -135,10 +136,10 @@ export default function NewTransferRequestPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Niciun depozit</SelectItem>
+                          <SelectItem value="none">Niciun depozit</SelectItem>
                           {warehouses?.map((warehouse) => (
                             <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
-                              {warehouse.name}
+                              {warehouse.warehouseName || warehouse.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -155,8 +156,8 @@ export default function NewTransferRequestPage() {
                     <FormItem>
                       <FormLabel>Depozit destinație</FormLabel>
                       <Select
-                        onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
-                        value={field.value?.toString() || ''}
+                        onValueChange={(value) => field.onChange(value === 'none' ? null : parseInt(value))}
+                        value={field.value?.toString() || 'none'}
                         disabled={loadingWarehouses}
                       >
                         <FormControl>
@@ -165,10 +166,10 @@ export default function NewTransferRequestPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Niciun depozit</SelectItem>
+                          <SelectItem value="none">Niciun depozit</SelectItem>
                           {warehouses?.map((warehouse) => (
                             <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
-                              {warehouse.name}
+                              {warehouse.warehouseName || warehouse.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -187,8 +188,8 @@ export default function NewTransferRequestPage() {
                   <FormItem>
                     <FormLabel>Vehicul destinație (alternativ)</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
-                      value={field.value?.toString() || ''}
+                      onValueChange={(value) => field.onChange(value === 'none' ? null : parseInt(value))}
+                      value={field.value?.toString() || 'none'}
                       disabled={loadingVehicles}
                     >
                       <FormControl>
@@ -197,7 +198,7 @@ export default function NewTransferRequestPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Niciun vehicul</SelectItem>
+                        <SelectItem value="none">Niciun vehicul</SelectItem>
                         {vehicles.map((vehicle) => (
                           <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
                             {vehicle.licensePlate} - {vehicle.vehicleCode}
@@ -272,7 +273,7 @@ export default function NewTransferRequestPage() {
                           <SelectContent>
                             {materials.map((material) => (
                               <SelectItem key={material.id} value={material.id.toString()}>
-                                {material.materialCode} - {material.name}
+                                {material.materialCode} - {material.materialName || material.name}
                               </SelectItem>
                             ))}
                           </SelectContent>

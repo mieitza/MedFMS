@@ -201,24 +201,20 @@ export function VehicleInventoryManager({
   });
 
   // Queries
-  const { data: assignmentsResponse, isLoading } = useQuery({
+  const { data: assignments = [], isLoading } = useQuery({
     queryKey: ['vehicle-inventory', vehicleId],
-    queryFn: () => api.get<{ data: InventoryAssignment[] }>(`/vehicle-inventory/vehicles/${vehicleId}/assignments`),
+    queryFn: () => api.get<InventoryAssignment[]>(`/vehicle-inventory/vehicles/${vehicleId}/assignments`),
   });
 
-  const { data: itemsResponse } = useQuery({
+  const { data: items = [] } = useQuery({
     queryKey: ['vehicle-inventory-items'],
-    queryFn: () => api.get<{ data: { item: InventoryItem }[] }>('/vehicle-inventory/items'),
+    queryFn: () => api.get<{ item: InventoryItem }[]>('/vehicle-inventory/items'),
   });
 
-  const { data: inspectionTypesResponse } = useQuery({
+  const { data: inspectionTypes = [] } = useQuery({
     queryKey: ['inspection-types'],
-    queryFn: () => api.get<{ data: InspectionType[] }>('/system/inspection-types'),
+    queryFn: () => api.get<InspectionType[]>('/system/inspection-types'),
   });
-
-  const assignments = assignmentsResponse?.data || [];
-  const items = itemsResponse?.data || [];
-  const inspectionTypes = inspectionTypesResponse?.data || [];
 
   // Mutations
   const createAssignment = useMutation({
@@ -264,7 +260,7 @@ export function VehicleInventoryManager({
 
   const dispenseItem = useMutation({
     mutationFn: (data: Record<string, unknown>) =>
-      api.post('/vehicle-inventory/dispense', data),
+      api.post('/vehicle-inventory/dispensing', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicle-inventory', vehicleId] });
       setShowDispenseModal(false);

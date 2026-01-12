@@ -16,6 +16,7 @@ export const warehouseKeys = {
   transferDetail: (id: number) => [...warehouseKeys.transfers(), 'detail', id] as const,
   stats: () => [...warehouseKeys.all, 'stats'] as const,
   warehouses: ['warehouses'] as const,
+  warehouseDetail: (id: number) => ['warehouses', 'detail', id] as const,
   materialUnits: ['materialUnits'] as const,
   materialCategories: ['materialCategories'] as const,
 };
@@ -139,11 +140,11 @@ export function useUpdateTransferStatus() {
   });
 }
 
-// Stats
-export function useWarehouseStats() {
+// Low stock materials
+export function useLowStockMaterials() {
   return useQuery({
-    queryKey: warehouseKeys.stats(),
-    queryFn: () => warehouseApi.getStats(),
+    queryKey: [...warehouseKeys.all, 'lowStock'] as const,
+    queryFn: () => warehouseApi.getLowStockMaterials(),
   });
 }
 
@@ -156,6 +157,62 @@ export function useWarehouses() {
   });
 }
 
+export function useWarehouse(id: number | null) {
+  return useQuery({
+    queryKey: warehouseKeys.warehouseDetail(id!),
+    queryFn: () => warehouseApi.getWarehouseById(id!),
+    enabled: !!id,
+  });
+}
+
+export function useUpdateWarehouse() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<import('@/types').Warehouse> }) =>
+      warehouseApi.updateWarehouse(id, data),
+    onSuccess: (warehouse) => {
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.warehouses });
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.warehouseDetail(warehouse.id) });
+      toast.success('Depozitul a fost actualizat cu succes');
+    },
+    onError: (error: Error) => {
+      toast.error(`Eroare la actualizarea depozitului: ${error.message}`);
+    },
+  });
+}
+
+export function useCreateWarehouse() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: Partial<import('@/types').Warehouse>) =>
+      warehouseApi.createWarehouse(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.warehouses });
+      toast.success('Depozitul a fost creat cu succes');
+    },
+    onError: (error: Error) => {
+      toast.error(`Eroare la crearea depozitului: ${error.message}`);
+    },
+  });
+}
+
+export function useDeleteWarehouse() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => warehouseApi.deleteWarehouse(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.warehouses });
+      toast.success('Depozitul a fost șters cu succes');
+    },
+    onError: (error: Error) => {
+      toast.error(`Eroare la ștergerea depozitului: ${error.message}`);
+    },
+  });
+}
+
 export function useMaterialUnits() {
   return useQuery({
     queryKey: warehouseKeys.materialUnits,
@@ -164,10 +221,66 @@ export function useMaterialUnits() {
   });
 }
 
-export function useMaterialCategories() {
+// Pending transfers for approval
+export function usePendingApprovalTransfers(filters: TransferRequestFilters = {}) {
   return useQuery({
-    queryKey: warehouseKeys.materialCategories,
-    queryFn: () => warehouseApi.getMaterialCategories(),
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    queryKey: [...warehouseKeys.transfers(), 'pending-approval', filters] as const,
+    queryFn: () => warehouseApi.getPendingApprovalTransfers(filters),
+    placeholderData: (previousData) => previousData,
+  });
+}
+
+// Approve transfer
+export function useApproveTransfer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, notes }: { id: number; notes?: string }) =>
+      warehouseApi.approveTransfer(id, notes),
+    onSuccess: (transfer) => {
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.transfers() });
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.transferDetail(transfer.id) });
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.materials() });
+      toast.success('Transferul a fost aprobat');
+    },
+    onError: (error: Error) => {
+      toast.error(`Eroare la aprobare: ${error.message}`);
+    },
+  });
+}
+
+// Reject transfer
+export function useRejectTransfer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, notes }: { id: number; notes: string }) =>
+      warehouseApi.rejectTransfer(id, notes),
+    onSuccess: (transfer) => {
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.transfers() });
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.transferDetail(transfer.id) });
+      toast.success('Transferul a fost respins');
+    },
+    onError: (error: Error) => {
+      toast.error(`Eroare la respingere: ${error.message}`);
+    },
+  });
+}
+
+// Complete transfer
+export function useCompleteTransfer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => warehouseApi.completeTransfer(id),
+    onSuccess: (transfer) => {
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.transfers() });
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.transferDetail(transfer.id) });
+      queryClient.invalidateQueries({ queryKey: warehouseKeys.materials() });
+      toast.success('Transferul a fost finalizat');
+    },
+    onError: (error: Error) => {
+      toast.error(`Eroare la finalizare: ${error.message}`);
+    },
   });
 }

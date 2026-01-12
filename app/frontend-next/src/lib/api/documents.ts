@@ -57,14 +57,12 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 export const documentsApi = {
   // Get document categories
   getCategories: async (): Promise<DocumentCategory[]> => {
-    const response = await api.get<{ success: boolean; data: DocumentCategory[] }>('/documents/categories');
-    return response.data;
+    return api.get<DocumentCategory[]>('/documents/categories');
   },
 
   // Get documents for an entity
   getDocuments: async (entityType: EntityType, entityId: number): Promise<Document[]> => {
-    const response = await api.get<{ success: boolean; data: Document[] }>(`/documents/${entityType}/${entityId}`);
-    return response.data;
+    return api.get<Document[]>(`/documents/${entityType}/${entityId}`);
   },
 
   // Upload document
@@ -79,8 +77,7 @@ export const documentsApi = {
     if (data.expiryDate) formData.append('expiryDate', data.expiryDate);
     if (data.isPublic !== undefined) formData.append('isPublic', String(data.isPublic));
 
-    const response = await api.upload<{ success: boolean; data: Document }>('/documents/upload', formData);
-    return response.data;
+    return api.upload<Document>('/documents/upload', formData);
   },
 
   // Delete document
@@ -96,8 +93,7 @@ export const documentsApi = {
 
   // Get photos for an entity
   getPhotos: async (entityType: EntityType, entityId: number): Promise<Photo[]> => {
-    const response = await api.get<{ success: boolean; data: Photo[] }>(`/documents/photos/${entityType}/${entityId}`);
-    return response.data;
+    return api.get<Photo[]>(`/documents/photos/${entityType}/${entityId}`);
   },
 
   // Upload photo
@@ -110,8 +106,7 @@ export const documentsApi = {
     if (data.description) formData.append('description', data.description);
     if (data.isPrimary !== undefined) formData.append('isPrimary', String(data.isPrimary));
 
-    const response = await api.upload<{ success: boolean; data: Photo }>('/documents/photos/upload', formData);
-    return response.data;
+    return api.upload<Photo>('/documents/photos/upload', formData);
   },
 
   // Delete photo

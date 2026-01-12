@@ -54,6 +54,7 @@ import {
   XCircle,
   Calendar,
   DollarSign,
+  ClipboardCheck,
 } from 'lucide-react';
 import {
   useMaintenanceWorkOrders,
@@ -244,12 +245,20 @@ export default function MaintenancePage() {
             Gestionează comenzile de lucru și istoricul mentenanței
           </p>
         </div>
-        <Button asChild>
-          <Link href="/maintenance/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Comandă nouă
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/maintenance/approvals">
+              <ClipboardCheck className="mr-2 h-4 w-4" />
+              Aprobări
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/maintenance/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Comandă nouă
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -336,14 +345,14 @@ export default function MaintenancePage() {
             {showFilters && (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Select
-                  value={filters.vehicleId?.toString() || ''}
-                  onValueChange={(value) => handleFilterChange('vehicleId', value ? parseInt(value) : undefined)}
+                  value={filters.vehicleId?.toString() || 'all'}
+                  onValueChange={(value) => handleFilterChange('vehicleId', value !== 'all' ? parseInt(value) : undefined)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Toate vehiculele" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Toate vehiculele</SelectItem>
+                    <SelectItem value="all">Toate vehiculele</SelectItem>
                     {vehicles.map((vehicle) => (
                       <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
                         {vehicle.licensePlate}
@@ -353,31 +362,31 @@ export default function MaintenancePage() {
                 </Select>
 
                 <Select
-                  value={filters.maintenanceTypeId?.toString() || ''}
-                  onValueChange={(value) => handleFilterChange('maintenanceTypeId', value ? parseInt(value) : undefined)}
+                  value={filters.maintenanceTypeId?.toString() || 'all'}
+                  onValueChange={(value) => handleFilterChange('maintenanceTypeId', value !== 'all' ? parseInt(value) : undefined)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Toate tipurile" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Toate tipurile</SelectItem>
+                    <SelectItem value="all">Toate tipurile</SelectItem>
                     {maintenanceTypes?.map((type) => (
                       <SelectItem key={type.id} value={type.id.toString()}>
-                        {type.name}
+                        {type.name || `Tip #${type.id}`}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
 
                 <Select
-                  value={filters.status || ''}
-                  onValueChange={(value) => handleFilterChange('status', value || undefined)}
+                  value={filters.status || 'all'}
+                  onValueChange={(value) => handleFilterChange('status', value !== 'all' ? value : undefined)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Toate statusurile" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Toate statusurile</SelectItem>
+                    <SelectItem value="all">Toate statusurile</SelectItem>
                     <SelectItem value="pending">În așteptare</SelectItem>
                     <SelectItem value="scheduled">Programat</SelectItem>
                     <SelectItem value="in_progress">În lucru</SelectItem>
@@ -387,14 +396,14 @@ export default function MaintenancePage() {
                 </Select>
 
                 <Select
-                  value={filters.priority?.toString() || ''}
-                  onValueChange={(value) => handleFilterChange('priority', value ? parseInt(value) : undefined)}
+                  value={filters.priority?.toString() || 'all'}
+                  onValueChange={(value) => handleFilterChange('priority', value !== 'all' ? parseInt(value) : undefined)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Toate prioritățile" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Toate prioritățile</SelectItem>
+                    <SelectItem value="all">Toate prioritățile</SelectItem>
                     <SelectItem value="1">Scăzută</SelectItem>
                     <SelectItem value="2">Normală</SelectItem>
                     <SelectItem value="3">Ridicată</SelectItem>

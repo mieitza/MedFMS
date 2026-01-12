@@ -18,6 +18,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
@@ -28,10 +30,16 @@ import {
   Moon,
   Monitor,
   Command,
+  FileWarning,
+  Wrench,
+  Package,
+  AlertTriangle,
 } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
+import { useQuery } from '@tanstack/react-query';
+import { dashboardApi } from '@/lib/api/dashboard';
 
 const pathNameMap: Record<string, string> = {
   '': 'Dashboard',
@@ -53,8 +61,22 @@ const pathNameMap: Record<string, string> = {
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const { openCommandPalette } = useAppStore();
+
+  // Fetch dashboard stats for notification counts
+  const { data: stats } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: dashboardApi.getStats,
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  // Calculate total alerts count (includes both expiring and expired documents)
+  const alertsCount = (stats?.expiringDocuments || 0) +
+    (stats?.expiredDocuments || 0) +
+    (stats?.overdueMaintenances || 0) +
+    (stats?.lowStockMaterials || 0);
 
   // Generate breadcrumbs from pathname
   const pathSegments = pathname.split('/').filter(Boolean);
@@ -84,18 +106,18 @@ export function Header() {
           </BreadcrumbItem>
           {breadcrumbs.length > 0 && <BreadcrumbSeparator />}
           {breadcrumbs.map((crumb, index) => (
-            <BreadcrumbItem key={crumb.href}>
-              {crumb.isLast ? (
-                <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-              ) : (
-                <>
+            <span key={crumb.href} className="contents">
+              <BreadcrumbItem>
+                {crumb.isLast ? (
+                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                ) : (
                   <BreadcrumbLink asChild>
                     <Link href={crumb.href}>{crumb.label}</Link>
                   </BreadcrumbLink>
-                  {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
-                </>
-              )}
-            </BreadcrumbItem>
+                )}
+              </BreadcrumbItem>
+              {!crumb.isLast && <BreadcrumbSeparator />}
+            </span>
           ))}
         </BreadcrumbList>
       </Breadcrumb>
@@ -120,16 +142,92 @@ export function Header() {
       <LanguageSwitcher />
 
       {/* Notifications */}
-      <Button variant="ghost" size="icon" className="relative">
-        <Bell className="h-4 w-4" />
-        <Badge
-          variant="destructive"
-          className="absolute -right-1 -top-1 h-4 w-4 p-0 text-[10px] flex items-center justify-center"
-        >
-          3
-        </Badge>
-        <span className="sr-only">Notificări</span>
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-4 w-4" />
+            {alertsCount > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -right-1 -top-1 h-4 w-4 p-0 text-[10px] flex items-center justify-center"
+              >
+                {alertsCount > 9 ? '9+' : alertsCount}
+              </Badge>
+            )}
+            <span className="sr-only">Notificări</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-80">
+          <DropdownMenuLabel className="font-semibold">
+            Alerte și notificări
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {alertsCount === 0 ? (
+            <div className="py-4 text-center text-sm text-muted-foreground">
+              Nu există alerte active
+            </div>
+          ) : (
+            <>
+              {(stats?.expiringDocuments || 0) > 0 && (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => router.push('/vehicles?filter=expiring-documents')}
+                >
+                  <AlertTriangle className="mr-2 h-4 w-4 text-amber-500" />
+                  <div className="flex flex-col">
+                    <span className="font-medium">Documente care expiră</span>
+                    <span className="text-xs text-muted-foreground">
+                      {stats?.expiringDocuments} documente expiră în curând
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+              )}
+              {(stats?.expiredDocuments || 0) > 0 && (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => router.push('/vehicles?filter=expired-documents')}
+                >
+                  <FileWarning className="mr-2 h-4 w-4 text-destructive" />
+                  <div className="flex flex-col">
+                    <span className="font-medium">Documente expirate</span>
+                    <span className="text-xs text-muted-foreground">
+                      {stats?.expiredDocuments} documente au expirat
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+              )}
+              {(stats?.overdueMaintenances || 0) > 0 && (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => router.push('/maintenance?filter=overdue')}
+                >
+                  <Wrench className="mr-2 h-4 w-4 text-amber-500" />
+                  <div className="flex flex-col">
+                    <span className="font-medium">Mentenanță întârziată</span>
+                    <span className="text-xs text-muted-foreground">
+                      {stats?.overdueMaintenances} lucrări depășite
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+              )}
+              {(stats?.lowStockMaterials || 0) > 0 && (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => router.push('/warehouse/materials?filter=low-stock')}
+                >
+                  <Package className="mr-2 h-4 w-4 text-orange-500" />
+                  <div className="flex flex-col">
+                    <span className="font-medium">Stoc scăzut</span>
+                    <span className="text-xs text-muted-foreground">
+                      {stats?.lowStockMaterials} materiale sub nivelul critic
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+              )}
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Theme toggle */}
       <DropdownMenu>

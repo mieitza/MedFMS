@@ -39,7 +39,7 @@ import {
   useUpdateMaterial,
   useWarehouses,
   useMaterialUnits,
-  useMaterialCategories,
+  useAdminMaterialCategories,
 } from '@/lib/hooks';
 import type { Material } from '@/types';
 import type { MaterialFormData } from '@/lib/api';
@@ -78,9 +78,10 @@ export function MaterialForm({ material, isLoading = false }: MaterialFormProps)
   // Reference data
   const { data: warehouses, isLoading: loadingWarehouses } = useWarehouses();
   const { data: units, isLoading: loadingUnits } = useMaterialUnits();
-  const { data: categories, isLoading: loadingCategories } = useMaterialCategories();
+  const { data: categories, isLoading: loadingCategories } = useAdminMaterialCategories();
 
   const form = useForm<MaterialFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(materialFormSchema) as any,
     defaultValues: {
       materialCode: material?.materialCode || '',
@@ -234,8 +235,8 @@ export function MaterialForm({ material, isLoading = false }: MaterialFormProps)
                         <FormItem>
                           <FormLabel>Categorie</FormLabel>
                           <Select
-                            onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
-                            value={field.value?.toString() || ''}
+                            onValueChange={(value) => field.onChange(value === "none" ? null : parseInt(value))}
+                            value={field.value?.toString() || "none"}
                             disabled={loadingCategories}
                           >
                             <FormControl>
@@ -244,10 +245,10 @@ export function MaterialForm({ material, isLoading = false }: MaterialFormProps)
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Nicio categorie</SelectItem>
+                              <SelectItem value="none">Nicio categorie</SelectItem>
                               {categories?.map((category) => (
                                 <SelectItem key={category.id} value={category.id.toString()}>
-                                  {category.name}
+                                  {category.name || `Categorie #${category.id}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -264,8 +265,8 @@ export function MaterialForm({ material, isLoading = false }: MaterialFormProps)
                         <FormItem>
                           <FormLabel>Unitate măsură</FormLabel>
                           <Select
-                            onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
-                            value={field.value?.toString() || ''}
+                            onValueChange={(value) => field.onChange(value === "none" ? null : parseInt(value))}
+                            value={field.value?.toString() || "none"}
                             disabled={loadingUnits}
                           >
                             <FormControl>
@@ -274,10 +275,10 @@ export function MaterialForm({ material, isLoading = false }: MaterialFormProps)
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Nicio unitate</SelectItem>
+                              <SelectItem value="none">Nicio unitate</SelectItem>
                               {units?.map((unit) => (
                                 <SelectItem key={unit.id} value={unit.id.toString()}>
-                                  {unit.name} ({unit.abbreviation})
+                                  {unit.name || `Unitate #${unit.id}`} {unit.abbreviation ? `(${unit.abbreviation})` : ''}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -373,8 +374,8 @@ export function MaterialForm({ material, isLoading = false }: MaterialFormProps)
                         <FormItem>
                           <FormLabel>Depozit</FormLabel>
                           <Select
-                            onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
-                            value={field.value?.toString() || ''}
+                            onValueChange={(value) => field.onChange(value === "none" ? null : parseInt(value))}
+                            value={field.value?.toString() || "none"}
                             disabled={loadingWarehouses}
                           >
                             <FormControl>
@@ -383,10 +384,10 @@ export function MaterialForm({ material, isLoading = false }: MaterialFormProps)
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Niciun depozit</SelectItem>
+                              <SelectItem value="none">Niciun depozit</SelectItem>
                               {warehouses?.map((warehouse) => (
                                 <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
-                                  {warehouse.name}
+                                  {warehouse.name || `Depozit #${warehouse.id}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>

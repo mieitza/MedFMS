@@ -233,35 +233,35 @@ export default function TransfersReportPage() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <StatCard
           title="Total Transferuri"
-          value={report?.summary.totalTransfers || 0}
+          value={report?.summary?.totalTransfers || 0}
           icon={ArrowRightLeft}
           color="bg-blue-100 dark:bg-blue-900/30 text-blue-600"
           loading={isLoading}
         />
         <StatCard
           title="Finalizate"
-          value={report?.summary.completed || 0}
+          value={report?.summary?.completed || 0}
           icon={CheckCircle}
           color="bg-green-100 dark:bg-green-900/30 text-green-600"
           loading={isLoading}
         />
         <StatCard
           title="În Așteptare"
-          value={report?.summary.pending || 0}
+          value={report?.summary?.pending || 0}
           icon={Clock}
           color="bg-amber-100 dark:bg-amber-900/30 text-amber-600"
           loading={isLoading}
         />
         <StatCard
           title="Anulate"
-          value={report?.summary.cancelled || 0}
+          value={report?.summary?.cancelled || 0}
           icon={XCircle}
           color="bg-red-100 dark:bg-red-900/30 text-red-600"
           loading={isLoading}
         />
         <StatCard
           title="Timp Mediu Finalizare"
-          value={report?.summary.averageCompletionTime || 0}
+          value={report?.summary?.averageCompletionTime || 0}
           suffix="ore"
           icon={Timer}
           color="bg-purple-100 dark:bg-purple-900/30 text-purple-600"

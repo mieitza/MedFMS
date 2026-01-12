@@ -146,6 +146,38 @@ export const customFields = sqliteTable('custom_fields', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
+// LLM/AI Configuration - stores API keys and selected models for each provider
+export const llmSettings = sqliteTable('llm_settings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  // Active provider: 'ollama', 'groq', 'openai', 'custom'
+  activeProvider: text('active_provider').notNull().default('ollama'),
+
+  // Ollama settings
+  ollamaBaseUrl: text('ollama_base_url').default('http://localhost:11434'),
+  ollamaModel: text('ollama_model').default('llama3.2'),
+
+  // Groq settings
+  groqApiKey: text('groq_api_key'),
+  groqModel: text('groq_model').default('llama3-groq-70b-8192-tool-use-preview'),
+
+  // OpenAI settings
+  openaiApiKey: text('openai_api_key'),
+  openaiBaseUrl: text('openai_base_url').default('https://api.openai.com/v1'),
+  openaiModel: text('openai_model').default('gpt-4o-mini'),
+
+  // Custom/vLLM settings
+  customBaseUrl: text('custom_base_url'),
+  customApiKey: text('custom_api_key'),
+  customModel: text('custom_model'),
+
+  // General settings
+  temperature: real('temperature').default(0.7),
+  maxTokens: integer('max_tokens').default(2048),
+
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedBy: integer('updated_by'),
+});
+
 export type Brand = typeof brands.$inferSelect;
 export type NewBrand = typeof brands.$inferInsert;
 export type Model = typeof models.$inferSelect;
@@ -168,3 +200,5 @@ export type PenaltyDefinition = typeof penaltyDefinitions.$inferSelect;
 export type NewPenaltyDefinition = typeof penaltyDefinitions.$inferInsert;
 export type CustomField = typeof customFields.$inferSelect;
 export type NewCustomField = typeof customFields.$inferInsert;
+export type LlmSettings = typeof llmSettings.$inferSelect;
+export type NewLlmSettings = typeof llmSettings.$inferInsert;

@@ -65,6 +65,18 @@ const workOrderStatusConfig: Record<string, { label: string; variant: 'default' 
   cancelled: { label: 'Anulat', variant: 'destructive' },
 };
 
+// Safe date formatting helper
+function formatDate(dateValue: string | Date | null | undefined, formatStr: string = 'dd MMM yyyy'): string {
+  if (!dateValue) return '-';
+  try {
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return '-';
+    return format(date, formatStr, { locale: ro });
+  } catch {
+    return '-';
+  }
+}
+
 export default function VehicleDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -114,11 +126,6 @@ export default function VehicleDetailPage() {
       </div>
     );
   }
-
-  const formatDate = (date: string | null) => {
-    if (!date) return '-';
-    return format(new Date(date), 'dd MMMM yyyy', { locale: ro });
-  };
 
   const fuelTransactions = fuelData?.data || [];
   const workOrders = maintenanceData?.data || [];
@@ -426,14 +433,14 @@ export default function VehicleDetailPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {workOrders.map((wo) => {
+                      {workOrders.map((wo, index) => {
                         const statusConf = workOrderStatusConfig[wo.status] || workOrderStatusConfig.pending;
                         return (
-                          <TableRow key={wo.id}>
+                          <TableRow key={wo.id || `wo-${index}`}>
                             <TableCell className="font-medium">{wo.workOrderNumber}</TableCell>
                             <TableCell>{wo.maintenanceType?.name || '-'}</TableCell>
                             <TableCell>
-                              {format(new Date(wo.startDate || wo.createdAt), 'dd MMM yyyy', { locale: ro })}
+                              {formatDate(wo.startDate || wo.createdAt)}
                             </TableCell>
                             <TableCell>
                               <Badge variant={statusConf.variant}>{statusConf.label}</Badge>
@@ -506,7 +513,7 @@ export default function VehicleDetailPage() {
                       {fuelTransactions.map((tx) => (
                         <TableRow key={tx.id}>
                           <TableCell>
-                            {format(new Date(tx.transactionDate), 'dd MMM yyyy', { locale: ro })}
+                            {formatDate(tx.transactionDate)}
                           </TableCell>
                           <TableCell>{tx.fuelType?.name || '-'}</TableCell>
                           <TableCell className="text-right">

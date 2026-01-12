@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -32,9 +31,6 @@ import {
   Warehouse,
   DollarSign,
   AlertTriangle,
-  Barcode,
-  MapPin,
-  Calendar,
 } from 'lucide-react';
 import { useMaterial, useDeleteMaterial } from '@/lib/hooks';
 import { format } from 'date-fns';
@@ -107,7 +103,7 @@ export default function MaterialDetailPage() {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                {material.name}
+                {material.materialName || material.name}
               </h1>
               <Badge variant={material.isActive ? 'default' : 'secondary'}>
                 {material.isActive ? 'Activ' : 'Inactiv'}
@@ -213,7 +209,7 @@ export default function MaterialDetailPage() {
               </div>
               <div>
                 <p className="text-sm text-slate-500">Depozit</p>
-                <p className="text-lg font-semibold">{material.warehouse?.name || '-'}</p>
+                <p className="text-lg font-semibold">{material.warehouse?.warehouseName || material.warehouse?.name || '-'}</p>
               </div>
             </div>
           </CardContent>
@@ -229,7 +225,7 @@ export default function MaterialDetailPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <DetailRow label="Cod material" value={material.materialCode} />
-            <DetailRow label="Denumire" value={material.name} />
+            <DetailRow label="Denumire" value={material.materialName || material.name} />
             <DetailRow label="Descriere" value={material.description} />
             <DetailRow label="Unitate măsură" value={material.unit?.name} />
           </CardContent>
@@ -243,7 +239,7 @@ export default function MaterialDetailPage() {
           <CardContent className="space-y-4">
             <DetailRow label="Stoc curent" value={`${material.currentStock} ${material.unit?.abbreviation || 'buc'}`} />
             <DetailRow label="Nivel critic" value={material.criticalLevel?.toString()} />
-            <DetailRow label="Depozit" value={material.warehouse?.name} />
+            <DetailRow label="Depozit" value={material.warehouse?.warehouseName || material.warehouse?.name} />
             <DetailRow label="Locație în depozit" value={material.locationInWarehouse} />
           </CardContent>
         </Card>

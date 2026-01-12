@@ -12,6 +12,8 @@ import reportRoutes from './reports.js';
 import adminRoutes from './admin.js';
 import dashboardRoutes from './dashboard.js';
 import vehicleInventoryRoutes from './vehicleInventory.js';
+import chatRoutes from './chat.js';
+import llmSettingsRoutes from './llm-settings.js';
 
 const router = Router();
 
@@ -28,6 +30,8 @@ router.use('/documents', documentRoutes);
 router.use('/reports', reportRoutes);
 router.use('/admin', adminRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/chat', chatRoutes);
+router.use('/llm-settings', llmSettingsRoutes);
 
 // API documentation endpoint
 router.get('/docs', (req, res) => {
@@ -46,7 +50,8 @@ router.get('/docs', (req, res) => {
       documents: '/api/documents',
       reports: '/api/reports',
       admin: '/api/admin',
-      dashboard: '/api/dashboard'
+      dashboard: '/api/dashboard',
+      chat: '/api/chat'
     }
   });
 });

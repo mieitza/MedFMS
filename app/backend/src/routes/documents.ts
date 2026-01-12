@@ -11,6 +11,37 @@ import { AppError } from '../middleware/errorHandler.js';
 
 const router = Router();
 
+// Public routes (before authentication middleware)
+// Serve photo - public access for <img> tags
+router.get('/photos/view/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const db = getDb();
+
+    const [photo] = await db.select()
+      .from(photos)
+      .where(and(eq(photos.id, id), eq(photos.active, true)))
+      .limit(1);
+
+    if (!photo) {
+      throw new AppError('Photo not found', 404);
+    }
+
+    try {
+      await fs.access(photo.filePath);
+    } catch {
+      throw new AppError('Photo file not found', 404);
+    }
+
+    res.setHeader('Content-Type', photo.mimeType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+    res.sendFile(path.resolve(photo.filePath));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// All routes below require authentication
 router.use(authenticate);
 
 // Ensure uploads directory exists

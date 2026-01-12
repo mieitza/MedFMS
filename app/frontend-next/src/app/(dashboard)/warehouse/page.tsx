@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -49,7 +49,6 @@ import {
   Pencil,
   Trash2,
   Package,
-  Warehouse,
   AlertTriangle,
   DollarSign,
   ArrowRightLeft,
@@ -59,17 +58,34 @@ import {
 } from 'lucide-react';
 import {
   useMaterials,
-  useWarehouseStats,
+  useLowStockMaterials,
   useDeleteMaterial,
   useWarehouses,
   useTransferRequests,
   useUpdateTransferStatus,
 } from '@/lib/hooks';
 import type { MaterialFilters, TransferRequestFilters } from '@/lib/api';
-import type { Material, TransferRequest } from '@/types';
+import type { Material, TransferRequest, Warehouse, Vehicle } from '@/types';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import type { ColumnDef } from '@tanstack/react-table';
+
+// Backend returns nested structure for transfer requests
+interface TransferRequestApiResponse {
+  transferRequest: TransferRequest;
+  sourceWarehouse: Warehouse | null;
+  destinationWarehouse: Warehouse | null;
+  destinationVehicle: Vehicle | null;
+  material?: Material | null;
+}
+
+// Flatten the nested structure for display
+// Omit the optional relations from TransferRequest and redefine them as always present (but nullable)
+type FlattenedTransferRequest = Omit<TransferRequest, 'sourceWarehouse' | 'destinationWarehouse' | 'destinationVehicle'> & {
+  sourceWarehouse: Warehouse | null | undefined;
+  destinationWarehouse: Warehouse | null | undefined;
+  destinationVehicle: Vehicle | null | undefined;
+};
 
 const transferStatusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ElementType }> = {
   pending: { label: 'În așteptare', variant: 'secondary', icon: Clock },
@@ -81,7 +97,22 @@ const transferStatusConfig: Record<string, { label: string; variant: 'default' |
 
 export default function WarehousePage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = React.useState('materials');
+  const searchParams = useSearchParams();
+  const tabFromUrl = searchParams.get('tab');
+  const [activeTab, setActiveTab] = React.useState(tabFromUrl === 'transfers' ? 'transfers' : 'materials');
+
+  // Sync tab state with URL
+  React.useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'transfers' || tab === 'materials') {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    router.push(`/warehouse?tab=${value}`, { scroll: false });
+  };
 
   // Materials state
   const [materialFilters, setMaterialFilters] = React.useState<MaterialFilters>({
@@ -105,10 +136,29 @@ export default function WarehousePage() {
   // Data fetching
   const { data: materialsData, isLoading: loadingMaterials } = useMaterials(materialFilters);
   const { data: transfersData, isLoading: loadingTransfers } = useTransferRequests(transferFilters);
-  const { data: stats } = useWarehouseStats();
+  const { data: lowStockMaterials } = useLowStockMaterials();
   const { data: warehouses } = useWarehouses();
   const deleteMaterial = useDeleteMaterial();
   const updateTransferStatus = useUpdateTransferStatus();
+
+  // Flatten transfer data from nested API response
+  const flattenedTransfers = React.useMemo((): FlattenedTransferRequest[] => {
+    if (!transfersData?.data) return [];
+    return transfersData.data.map((item: TransferRequest | TransferRequestApiResponse) => {
+      // Check if data is already flat (has id directly) or nested (has transferRequest)
+      if ('transferRequest' in item) {
+        const nested = item as TransferRequestApiResponse;
+        return {
+          ...nested.transferRequest,
+          sourceWarehouse: nested.sourceWarehouse,
+          destinationWarehouse: nested.destinationWarehouse,
+          destinationVehicle: nested.destinationVehicle,
+        };
+      }
+      // Data is already flat
+      return item as FlattenedTransferRequest;
+    });
+  }, [transfersData]);
 
   const handleMaterialSearch = () => {
     setMaterialFilters((prev) => ({ ...prev, search: materialSearchInput, page: 1 }));
@@ -232,7 +282,7 @@ export default function WarehousePage() {
     },
   ];
 
-  const transferColumns: ColumnDef<TransferRequest>[] = [
+  const transferColumns: ColumnDef<FlattenedTransferRequest>[] = [
     {
       accessorKey: 'requestNumber',
       header: 'Nr. cerere',
@@ -275,8 +325,11 @@ export default function WarehousePage() {
     {
       accessorKey: 'requestedAt',
       header: 'Data cererii',
-      cell: ({ row }) =>
-        format(new Date(row.original.requestedAt), 'dd MMM yyyy', { locale: ro }),
+      cell: ({ row }) => {
+        return row.original.requestedAt
+          ? format(new Date(row.original.requestedAt), 'dd MMM yyyy', { locale: ro })
+          : '-';
+      },
     },
     {
       id: 'actions',
@@ -356,7 +409,7 @@ export default function WarehousePage() {
               </div>
               <div>
                 <p className="text-sm text-slate-500">Total materiale</p>
-                <p className="text-2xl font-bold">{stats?.totalMaterials || 0}</p>
+                <p className="text-2xl font-bold">{materialsData?.pagination?.totalItems || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -370,7 +423,7 @@ export default function WarehousePage() {
               </div>
               <div>
                 <p className="text-sm text-slate-500">Stoc critic</p>
-                <p className="text-2xl font-bold">{stats?.lowStockMaterials || 0}</p>
+                <p className="text-2xl font-bold">{lowStockMaterials?.length || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -384,7 +437,7 @@ export default function WarehousePage() {
               </div>
               <div>
                 <p className="text-sm text-slate-500">Valoare totală</p>
-                <p className="text-2xl font-bold">{formatCurrency(stats?.totalValue || 0)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(materialsData?.data?.reduce((sum, m) => sum + ((m.currentStock || 0) * (m.standardPrice || 0)), 0) || 0)}</p>
               </div>
             </div>
           </CardContent>
@@ -398,7 +451,7 @@ export default function WarehousePage() {
               </div>
               <div>
                 <p className="text-sm text-slate-500">Transferuri în așteptare</p>
-                <p className="text-2xl font-bold">{stats?.pendingTransfers || 0}</p>
+                <p className="text-2xl font-bold">{flattenedTransfers.filter((t) => t.status === 'pending').length || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -406,7 +459,7 @@ export default function WarehousePage() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="materials">
             <Package className="mr-2 h-4 w-4" />
@@ -445,31 +498,31 @@ export default function WarehousePage() {
                 {showMaterialFilters && (
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <Select
-                      value={materialFilters.warehouseId?.toString() || ''}
-                      onValueChange={(value) => handleMaterialFilterChange('warehouseId', value ? parseInt(value) : undefined)}
+                      value={materialFilters.warehouseId?.toString() || '_all'}
+                      onValueChange={(value) => handleMaterialFilterChange('warehouseId', value !== '_all' ? parseInt(value) : undefined)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Toate depozitele" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Toate depozitele</SelectItem>
+                        <SelectItem value="_all">Toate depozitele</SelectItem>
                         {warehouses?.map((warehouse) => (
                           <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
-                            {warehouse.name}
+                            {warehouse.warehouseName || warehouse.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
 
                     <Select
-                      value={materialFilters.lowStock?.toString() || ''}
+                      value={materialFilters.lowStock?.toString() || '_all'}
                       onValueChange={(value) => handleMaterialFilterChange('lowStock', value === 'true' ? true : undefined)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Toate stocurile" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Toate stocurile</SelectItem>
+                        <SelectItem value="_all">Toate stocurile</SelectItem>
                         <SelectItem value="true">Doar stoc critic</SelectItem>
                       </SelectContent>
                     </Select>
@@ -518,7 +571,7 @@ export default function WarehousePage() {
             <CardContent>
               <DataTable
                 columns={transferColumns}
-                data={transfersData?.data || []}
+                data={flattenedTransfers}
                 loading={loadingTransfers}
                 searchPlaceholder="Caută după nr. cerere..."
                 serverSide

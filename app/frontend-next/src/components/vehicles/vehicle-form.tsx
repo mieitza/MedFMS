@@ -84,6 +84,7 @@ export function VehicleForm({ vehicle, isLoading = false }: VehicleFormProps) {
 
   // Watch brandId to filter models
   const form = useForm<VehicleFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(vehicleFormSchema) as any,
     defaultValues: {
       vehicleCode: vehicle?.vehicleCode || '',
@@ -251,7 +252,7 @@ export function VehicleForm({ vehicle, isLoading = false }: VehicleFormProps) {
                             <SelectContent>
                               {brands?.map((brand) => (
                                 <SelectItem key={brand.id} value={brand.id.toString()}>
-                                  {brand.name}
+                                  {brand.name || `Marcă #${brand.id}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -280,7 +281,7 @@ export function VehicleForm({ vehicle, isLoading = false }: VehicleFormProps) {
                             <SelectContent>
                               {models?.map((model) => (
                                 <SelectItem key={model.id} value={model.id.toString()}>
-                                  {model.name}
+                                  {model.name || `Model #${model.id}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -331,7 +332,7 @@ export function VehicleForm({ vehicle, isLoading = false }: VehicleFormProps) {
                             <SelectContent>
                               {vehicleTypes?.map((type) => (
                                 <SelectItem key={type.id} value={type.id.toString()}>
-                                  {type.name}
+                                  {type.name || `Tip #${type.id}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -360,7 +361,7 @@ export function VehicleForm({ vehicle, isLoading = false }: VehicleFormProps) {
                             <SelectContent>
                               {statuses?.map((status) => (
                                 <SelectItem key={status.id} value={status.id.toString()}>
-                                  {status.name}
+                                  {status.name || `Status #${status.id}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>

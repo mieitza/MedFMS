@@ -9,13 +9,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Table,
   TableBody,
   TableCell,
@@ -29,7 +22,6 @@ import {
   TrendingUp,
   TrendingDown,
   Package,
-  DollarSign,
   FileText,
 } from 'lucide-react';
 import { warehouseApi, type PricingReportResponse } from '@/lib/api/warehouse';
@@ -199,17 +191,17 @@ export default function PricingReportPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <StatCard
           title="Total Materiale Analizate"
-          value={report?.summary.totalMaterials || 0}
+          value={report?.summary?.totalMaterials || 0}
           icon={Package}
           color="bg-blue-100 dark:bg-blue-900/30 text-blue-600"
           loading={isLoading}
         />
         <StatCard
           title="Variație Medie Prețuri"
-          value={report?.summary.averagePriceChange || 0}
+          value={report?.summary?.averagePriceChange || 0}
           suffix="%"
-          icon={report?.summary.averagePriceChange && report.summary.averagePriceChange > 0 ? TrendingUp : TrendingDown}
-          color={report?.summary.averagePriceChange && report.summary.averagePriceChange > 0
+          icon={report?.summary?.averagePriceChange && report.summary.averagePriceChange > 0 ? TrendingUp : TrendingDown}
+          color={report?.summary?.averagePriceChange && report.summary.averagePriceChange > 0
             ? "bg-red-100 dark:bg-red-900/30 text-red-600"
             : "bg-green-100 dark:bg-green-900/30 text-green-600"}
           loading={isLoading}

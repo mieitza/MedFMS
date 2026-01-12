@@ -84,12 +84,14 @@ export const maintenanceApi = {
 
   // Reference data
   getMaintenanceTypes: async (): Promise<MaintenanceType[]> => {
-    return api.get<MaintenanceType[]>('/system/maintenance-types');
+    return api.get<MaintenanceType[]>('/maintenance/types');
   },
 
   // Get work orders pending approval (managers/admins only)
-  getPendingApproval: async (filters: MaintenanceWorkOrderFilters = {}): Promise<PaginatedResponse<MaintenanceWorkOrder>> => {
-    return api.get<PaginatedResponse<MaintenanceWorkOrder>>('/maintenance/work-orders/pending-approval', filters as Record<string, string | number | boolean | undefined>);
+  // Note: Backend returns plain array, not paginated response
+  getPendingApproval: async (filters: MaintenanceWorkOrderFilters = {}): Promise<{ data: MaintenanceWorkOrder[] }> => {
+    const data = await api.get<MaintenanceWorkOrder[]>('/maintenance/work-orders/pending-approval', filters as Record<string, string | number | boolean | undefined>);
+    return { data };
   },
 
   // Approve work order

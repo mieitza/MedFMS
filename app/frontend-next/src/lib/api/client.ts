@@ -75,7 +75,20 @@ class ApiClient {
       return {} as T;
     }
 
-    return response.json();
+    const json = await response.json();
+
+    // Backend wraps responses in { success: boolean, data: T, pagination?: {...} }
+    // Unwrap the data if present
+    if (json && typeof json === 'object' && 'success' in json && 'data' in json) {
+      // For paginated responses, return { data, pagination }
+      if ('pagination' in json) {
+        return { data: json.data, pagination: json.pagination } as T;
+      }
+      // For single item responses, return just the data
+      return json.data as T;
+    }
+
+    return json;
   }
 
   // GET request
@@ -151,7 +164,14 @@ class ApiClient {
       throw new ApiClientError(errorData.message, response.status, errorData);
     }
 
-    return response.json();
+    const json = await response.json();
+
+    // Backend wraps responses in { success: boolean, data: T }
+    if (json && typeof json === 'object' && 'success' in json && 'data' in json) {
+      return json.data as T;
+    }
+
+    return json;
   }
 }
 

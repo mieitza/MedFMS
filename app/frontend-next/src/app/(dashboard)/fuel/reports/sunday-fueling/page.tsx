@@ -89,7 +89,7 @@ export default function SundayFuelingReportPage() {
 
   const defaultDates = getDefaultDates();
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('all');
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('_all');
   const [customStartDate, setCustomStartDate] = useState<string>(defaultDates.start);
   const [customEndDate, setCustomEndDate] = useState<string>(defaultDates.end);
 
@@ -131,7 +131,7 @@ export default function SundayFuelingReportPage() {
       }
 
       // Month filter
-      if (selectedMonth) {
+      if (selectedMonth && selectedMonth !== '_all') {
         const transactionMonth = new Date(transaction.transactionDate).toISOString().substring(0, 7);
         if (transactionMonth !== selectedMonth) {
           return false;
@@ -289,7 +289,7 @@ export default function SundayFuelingReportPage() {
                   <SelectValue placeholder="Toate lunile" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Toate lunile</SelectItem>
+                  <SelectItem value="_all">Toate lunile</SelectItem>
                   {uniqueMonths.map((month: string) => (
                     <SelectItem key={month} value={month}>
                       {new Date(month + '-01').toLocaleDateString('ro-RO', { year: 'numeric', month: 'long' })}

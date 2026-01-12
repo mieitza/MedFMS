@@ -84,6 +84,7 @@ export function MaintenanceForm({ workOrder, isLoading = false }: MaintenanceFor
   const vehicles = vehiclesData?.data || [];
 
   const form = useForm<MaintenanceFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(maintenanceFormSchema) as any,
     defaultValues: {
       vehicleId: workOrder?.vehicleId || 0,
@@ -218,7 +219,7 @@ export function MaintenanceForm({ workOrder, isLoading = false }: MaintenanceFor
                             <SelectContent>
                               {vehicles.map((vehicle) => (
                                 <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                                  {vehicle.licensePlate} - {vehicle.vehicleCode}
+                                  {vehicle.licensePlate || 'N/A'} - {vehicle.vehicleCode || `Vehicul #${vehicle.id}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -247,7 +248,7 @@ export function MaintenanceForm({ workOrder, isLoading = false }: MaintenanceFor
                             <SelectContent>
                               {maintenanceTypes?.map((type) => (
                                 <SelectItem key={type.id} value={type.id.toString()}>
-                                  {type.name}
+                                  {type.name || `Tip mentenanță #${type.id}`}
                                 </SelectItem>
                               ))}
                             </SelectContent>

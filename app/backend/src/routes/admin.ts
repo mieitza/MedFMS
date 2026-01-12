@@ -16,10 +16,14 @@ const DATA_TYPE_CONFIG = {
     table: schema.brands,
     schema: z.object({
       brandCode: z.string().min(1).max(50).optional(),
-      brandName: z.string().min(1).max(100),
+      brandName: z.string().min(1).max(100).optional(),
+      name: z.string().min(1).max(100).optional(), // Frontend compatibility
       description: z.string().optional().nullable(),
       country: z.string().optional().nullable(),
       active: z.boolean().optional(),
+      isActive: z.boolean().optional(), // Frontend compatibility
+    }).refine(data => data.brandName || data.name, {
+      message: "Either 'brandName' or 'name' is required"
     }),
     nameField: 'brandName',
   },
@@ -27,10 +31,14 @@ const DATA_TYPE_CONFIG = {
     table: schema.models,
     schema: z.object({
       modelCode: z.string().min(1).max(50).optional(),
-      modelName: z.string().min(1).max(100),
+      modelName: z.string().min(1).max(100).optional(),
+      name: z.string().min(1).max(100).optional(), // Frontend compatibility
       brandId: z.number().positive(),
       description: z.string().optional().nullable(),
       active: z.boolean().optional(),
+      isActive: z.boolean().optional(), // Frontend compatibility
+    }).refine(data => data.modelName || data.name, {
+      message: "Either 'modelName' or 'name' is required"
     }),
     nameField: 'modelName',
   },
@@ -92,20 +100,28 @@ const DATA_TYPE_CONFIG = {
     table: schema.vehicleTypes,
     schema: z.object({
       typeCode: z.string().min(1).max(50).optional(),
-      typeName: z.string().min(1).max(100),
+      typeName: z.string().min(1).max(100).optional(),
+      name: z.string().min(1).max(100).optional(), // Frontend compatibility
       description: z.string().optional().nullable(),
       active: z.boolean().optional(),
+      isActive: z.boolean().optional(), // Frontend compatibility
+    }).refine(data => data.typeName || data.name, {
+      message: "Either 'typeName' or 'name' is required"
     }),
     nameField: 'typeName',
   },
   vehicleStatuses: {
     table: schema.vehicleStatuses,
     schema: z.object({
-      statusCode: z.string().min(1).max(50),
-      statusName: z.string().min(1).max(100),
+      statusCode: z.string().min(1).max(50).optional(),
+      statusName: z.string().min(1).max(100).optional(),
+      name: z.string().min(1).max(100).optional(), // Frontend compatibility
       description: z.string().optional().nullable(),
       colorCode: z.string().optional().nullable(),
       active: z.boolean().optional(),
+      isActive: z.boolean().optional(), // Frontend compatibility
+    }).refine(data => data.statusName || data.name, {
+      message: "Either 'statusName' or 'name' is required"
     }),
     nameField: 'statusName',
   },
@@ -113,12 +129,16 @@ const DATA_TYPE_CONFIG = {
     table: schema.fuelTypes,
     schema: z.object({
       fuelCode: z.string().min(1).max(50).optional(),
-      fuelName: z.string().min(1).max(100),
+      fuelName: z.string().min(1).max(100).optional(),
+      name: z.string().min(1).max(100).optional(), // Frontend compatibility
       description: z.string().optional(),
       unit: z.string().optional(),
-      currentPrice: z.number(),
+      currentPrice: z.number().optional(),
       density: z.number().optional(),
       active: z.boolean().optional(),
+      isActive: z.boolean().optional(), // Frontend compatibility
+    }).refine(data => data.fuelName || data.name, {
+      message: "Either 'fuelName' or 'name' is required"
     }),
     nameField: 'fuelName',
   },
@@ -305,6 +325,35 @@ router.post('/:dataType', authorize('admin', 'manager'), async (req, res, next) 
     // Auto-generate code fields if not provided
     const insertData: any = { ...data };
 
+    // Normalize frontend field names to database field names
+    // Handle 'name' -> specific name field mapping
+    if (dataType === 'brands' && insertData.name && !insertData.brandName) {
+      insertData.brandName = insertData.name;
+      delete insertData.name;
+    }
+    if (dataType === 'models' && insertData.name && !insertData.modelName) {
+      insertData.modelName = insertData.name;
+      delete insertData.name;
+    }
+    if (dataType === 'vehicleTypes' && insertData.name && !insertData.typeName) {
+      insertData.typeName = insertData.name;
+      delete insertData.name;
+    }
+    if (dataType === 'vehicleStatuses' && insertData.name && !insertData.statusName) {
+      insertData.statusName = insertData.name;
+      delete insertData.name;
+    }
+    if (dataType === 'fuelTypes' && insertData.name && !insertData.fuelName) {
+      insertData.fuelName = insertData.name;
+      delete insertData.name;
+    }
+
+    // Handle 'isActive' -> 'active' mapping
+    if (insertData.isActive !== undefined && insertData.active === undefined) {
+      insertData.active = insertData.isActive;
+      delete insertData.isActive;
+    }
+
     // For brands, auto-generate brandCode from brandName
     if (dataType === 'brands' && !insertData.brandCode) {
       insertData.brandCode = insertData.brandName
@@ -337,17 +386,31 @@ router.post('/:dataType', authorize('admin', 'manager'), async (req, res, next) 
         .substring(0, 50);
     }
 
-    // For fuelTypes, auto-generate fuelCode from fuelName
-    if (dataType === 'fuelTypes' && !insertData.fuelCode) {
-      insertData.fuelCode = insertData.fuelName
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, '_')
-        .substring(0, 50);
+    // For fuelTypes, auto-generate fuelCode from fuelName and set default currentPrice
+    if (dataType === 'fuelTypes') {
+      if (!insertData.fuelCode) {
+        insertData.fuelCode = insertData.fuelName
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, '_')
+          .substring(0, 50);
+      }
+      // Set default currentPrice if not provided (required by database)
+      if (insertData.currentPrice === undefined) {
+        insertData.currentPrice = 0;
+      }
     }
 
     // For vehicleTypes, auto-generate typeCode from typeName
     if (dataType === 'vehicleTypes' && !insertData.typeCode) {
       insertData.typeCode = insertData.typeName
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '_')
+        .substring(0, 50);
+    }
+
+    // For vehicleStatuses, auto-generate statusCode from statusName
+    if (dataType === 'vehicleStatuses' && !insertData.statusCode) {
+      insertData.statusCode = insertData.statusName
         .toUpperCase()
         .replace(/[^A-Z0-9]/g, '_')
         .substring(0, 50);
@@ -390,7 +453,21 @@ router.put('/:dataType/:id', authorize('admin', 'manager'), async (req, res, nex
       throw new AppError('Invalid data type', 400);
     }
 
-    const data = config.schema.partial().parse(req.body);
+    // For partial updates, we need to handle validation differently
+    // since .refine() returns ZodEffects which doesn't have .partial()
+    const rawData = req.body;
+    let data: any;
+
+    try {
+      data = config.schema.parse(rawData);
+    } catch {
+      // If full validation fails, try parsing without the refine validation
+      // This is acceptable for partial updates
+      const baseSchema = config.schema instanceof z.ZodEffects
+        ? (config.schema as any)._def.schema
+        : config.schema;
+      data = baseSchema.partial().parse(rawData);
+    }
     const db = getDb();
 
     const [existing] = await db
@@ -403,9 +480,40 @@ router.put('/:dataType/:id', authorize('admin', 'manager'), async (req, res, nex
       throw new AppError('Record not found', 404);
     }
 
+    // Normalize frontend field names to database field names
+    const updateData: any = { ...data };
+
+    // Handle 'name' -> specific name field mapping
+    if (dataType === 'brands' && updateData.name && !updateData.brandName) {
+      updateData.brandName = updateData.name;
+      delete updateData.name;
+    }
+    if (dataType === 'models' && updateData.name && !updateData.modelName) {
+      updateData.modelName = updateData.name;
+      delete updateData.name;
+    }
+    if (dataType === 'vehicleTypes' && updateData.name && !updateData.typeName) {
+      updateData.typeName = updateData.name;
+      delete updateData.name;
+    }
+    if (dataType === 'vehicleStatuses' && updateData.name && !updateData.statusName) {
+      updateData.statusName = updateData.name;
+      delete updateData.name;
+    }
+    if (dataType === 'fuelTypes' && updateData.name && !updateData.fuelName) {
+      updateData.fuelName = updateData.name;
+      delete updateData.name;
+    }
+
+    // Handle 'isActive' -> 'active' mapping
+    if (updateData.isActive !== undefined && updateData.active === undefined) {
+      updateData.active = updateData.isActive;
+      delete updateData.isActive;
+    }
+
     const result = await db
       .update(config.table)
-      .set({ ...data, updatedAt: new Date() })
+      .set({ ...updateData, updatedAt: new Date() })
       .where(eq(config.table.id, parseInt(id)))
       .returning();
 
