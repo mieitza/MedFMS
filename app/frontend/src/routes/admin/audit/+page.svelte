@@ -35,13 +35,18 @@
 	// Check if user is admin
 	$: isAdmin = $auth.user?.role === 'admin';
 
-	onMount(async () => {
-		if (!isAdmin) {
+	// Track if we've already loaded data
+	let dataLoaded = false;
+
+	// Watch for auth changes and load data when admin is confirmed
+	$: if ($auth.user && !dataLoaded) {
+		if ($auth.user.role !== 'admin') {
 			goto('/dashboard');
-			return;
+		} else {
+			dataLoaded = true;
+			Promise.all([loadAuditLogs(), loadFilterOptions()]);
 		}
-		await Promise.all([loadAuditLogs(), loadFilterOptions()]);
-	});
+	}
 
 	async function loadFilterOptions() {
 		try {
