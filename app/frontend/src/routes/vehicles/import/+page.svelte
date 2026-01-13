@@ -244,10 +244,36 @@
   }
 
   function downloadTemplate() {
-    // Create a template workbook
+    // Create a template workbook with example data for all columns
+    const exampleRow = [
+      'VH001',           // vehicleCode
+      'B-123-ABC',       // licensePlate
+      'Toyota',          // brandName
+      'Corolla',         // modelName
+      2022,              // year
+      'Diesel',          // fuelTypeName
+      'Car',             // vehicleTypeName
+      'Active',          // statusName
+      '',                // locationName
+      '',                // departmentName
+      50000,             // odometer
+      'ENG123456',       // engineNumber
+      'JTDKN3DU5A0123', // chassisNumber
+      'Company vehicle', // description
+      '2022-01-15',      // registrationDate
+      '2022-01-01',      // acquisitionDate
+      25000,             // purchasePrice
+      20000,             // currentValue
+      'ANMDM-2022-001',  // anmdmAuthNumber
+      'Transport Medical', // anmdmAuthType
+      '2022-01-01',      // anmdmIssueDate
+      '2025-01-01',      // anmdmExpiryDate
+      'ANMDM Romania',   // anmdmIssuingAuthority
+      ''                 // anmdmNotes
+    ];
     const templateData = [
       expectedColumns, // Headers
-      ['VH001', 'B-123-ABC', 'Toyota', 'Corolla', 2022, 'Diesel', 'Car', 'Active', '', '', 50000, '', '', '', '', '', '', '', '', '', '', '', '', ''] // Example row
+      exampleRow       // Example row with sample data
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(templateData);
