@@ -230,7 +230,8 @@
       "resource": "Resource",
       "resourceId": "Resource ID",
       "ipAddress": "IP Address",
-      "details": "Details"
+      "details": "Details",
+      "viewDetails": "View"
     },
     "actions": {
       "create": "Create",
@@ -240,7 +241,14 @@
       "logout": "Logout",
       "passwordReset": "Password Reset",
       "approve": "Approve",
-      "reject": "Reject"
+      "reject": "Reject",
+      "CREATE": "Create",
+      "UPDATE": "Update",
+      "DELETE": "Delete",
+      "LOGIN": "Login",
+      "LOGOUT": "Logout",
+      "APPROVE": "Approve",
+      "REJECT": "Reject"
     },
     "resources": {
       "user": "User",
@@ -250,7 +258,8 @@
       "material": "Material",
       "maintenance": "Maintenance",
       "transfer": "Transfer",
-      "warehouse": "Warehouse"
+      "warehouse": "Warehouse",
+      "auth": "Authentication"
     },
     "detail": {
       "title": "Audit Log Details",

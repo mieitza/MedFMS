@@ -426,7 +426,8 @@
       "resource": "Resursă",
       "resourceId": "ID Resursă",
       "ipAddress": "Adresă IP",
-      "details": "Detalii"
+      "details": "Detalii",
+      "viewDetails": "Vezi"
     },
     "actions": {
       "create": "Creare",
@@ -436,7 +437,14 @@
       "logout": "Deconectare",
       "passwordReset": "Resetare Parolă",
       "approve": "Aprobare",
-      "reject": "Respingere"
+      "reject": "Respingere",
+      "CREATE": "Creare",
+      "UPDATE": "Actualizare",
+      "DELETE": "Ștergere",
+      "LOGIN": "Autentificare",
+      "LOGOUT": "Deconectare",
+      "APPROVE": "Aprobare",
+      "REJECT": "Respingere"
     },
     "resources": {
       "user": "Utilizator",
@@ -446,7 +454,8 @@
       "material": "Material",
       "maintenance": "Întreținere",
       "transfer": "Transfer",
-      "warehouse": "Depozit"
+      "warehouse": "Depozit",
+      "auth": "Autentificare"
     },
     "detail": {
       "title": "Detalii Jurnal Audit",
