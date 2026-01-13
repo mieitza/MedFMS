@@ -13,7 +13,9 @@
   let lowStockMaterials = [];
   let loading = false;
   let showEditModal = false;
+  let showDeleteConfirm = false;
   let isSaving = false;
+  let isDeleting = false;
   let searchTerm = '';
   let currentPage = 1;
   let pageSize = 20;
@@ -221,6 +223,23 @@
     }
   }
 
+  async function deleteWarehouse() {
+    if (!warehouse) return;
+
+    isDeleting = true;
+    try {
+      await api.deleteWarehouse(warehouseId);
+      alert($_('materials.messages.warehouseDeleteSuccess') || 'Warehouse deleted successfully');
+      goto('/materials');
+    } catch (error) {
+      console.error('Error deleting warehouse:', error);
+      alert(error.message || $_('materials.messages.warehouseDeleteFailed') || 'Failed to delete warehouse');
+    } finally {
+      isDeleting = false;
+      showDeleteConfirm = false;
+    }
+  }
+
   // Make viewMaterial globally available for the action buttons (browser only)
   if (typeof window !== 'undefined') {
     window.viewMaterial = function(materialId) {
@@ -263,15 +282,26 @@
             <p class="text-gray-700 mb-4">{warehouse.description}</p>
           {/if}
         </div>
-        <button
-          on:click={openEditModal}
-          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          {$_('materials.warehouseDetail.editWarehouse')}
-        </button>
+        <div class="flex gap-2">
+          <button
+            on:click={openEditModal}
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            {$_('materials.warehouseDetail.editWarehouse')}
+          </button>
+          <button
+            on:click={() => showDeleteConfirm = true}
+            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            {$_('common.delete')}
+          </button>
+        </div>
       </div>
 
       <!-- Warehouse Details Grid -->
@@ -465,4 +495,56 @@
       </button>
     </div>
   </form>
+</Modal>
+
+<!-- Delete Confirmation Modal -->
+<Modal bind:open={showDeleteConfirm} title={$_('materials.warehouseDetail.deleteWarehouse') || 'Delete Warehouse'}>
+  <div class="space-y-4">
+    <div class="flex items-center gap-3 p-4 bg-red-50 rounded-lg">
+      <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <div>
+        <h3 class="font-medium text-red-900">{$_('materials.warehouseDetail.deleteConfirmTitle') || 'Are you sure you want to delete this warehouse?'}</h3>
+        <p class="text-sm text-red-700 mt-1">{$_('materials.warehouseDetail.deleteConfirmMessage') || 'This action cannot be undone. Make sure no materials are assigned to this warehouse.'}</p>
+      </div>
+    </div>
+
+    {#if warehouse}
+      <div class="p-3 bg-gray-50 rounded-lg">
+        <p class="text-sm text-gray-600">{$_('materials.warehouseDetail.warehouseToDelete') || 'Warehouse to delete'}:</p>
+        <p class="font-medium text-gray-900">{warehouse.warehouseName} ({warehouse.warehouseCode})</p>
+      </div>
+    {/if}
+
+    <div class="flex justify-end gap-3 pt-4">
+      <button
+        type="button"
+        on:click={() => showDeleteConfirm = false}
+        disabled={isDeleting}
+        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+      >
+        {$_('common.cancel')}
+      </button>
+      <button
+        type="button"
+        on:click={deleteWarehouse}
+        disabled={isDeleting}
+        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      >
+        {#if isDeleting}
+          <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          {$_('common.deleting') || 'Deleting...'}
+        {:else}
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          {$_('common.delete')}
+        {/if}
+      </button>
+    </div>
+  </div>
 </Modal>

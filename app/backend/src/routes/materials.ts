@@ -847,6 +847,44 @@ router.patch('/warehouses/:id', authorize('admin', 'manager'), async (req, res, 
   }
 });
 
+// DELETE /api/materials/warehouses/:id - Delete warehouse
+router.delete('/warehouses/:id', authorize('admin'), async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const db = getDb();
+
+    // Check if warehouse exists
+    const [existing] = await db.select()
+      .from(warehouses)
+      .where(eq(warehouses.id, id))
+      .limit(1);
+
+    if (!existing) {
+      throw new AppError('Warehouse not found', 404);
+    }
+
+    // Check if warehouse has any materials assigned
+    const [materialCount] = await db.select({ count: sql<number>`count(*)` })
+      .from(materials)
+      .where(eq(materials.warehouseId, id));
+
+    if (materialCount && materialCount.count > 0) {
+      throw new AppError('Cannot delete warehouse with assigned materials. Please reassign or remove materials first.', 400);
+    }
+
+    // Delete the warehouse
+    await db.delete(warehouses)
+      .where(eq(warehouses.id, id));
+
+    res.json({
+      success: true,
+      message: 'Warehouse deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ========== Material Units Routes ==========
 
 // GET /api/materials/units - Get all material units

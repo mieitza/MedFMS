@@ -1317,6 +1317,20 @@ export const api = {
     return response.json();
   },
 
+  async deleteWarehouse(id) {
+    const response = await fetch(`${API_BASE_URL}/materials/warehouses/${id}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || 'Failed to delete warehouse');
+    }
+
+    return response.json();
+  },
+
   // Material Units APIs
   async getMaterialUnits(params = {}) {
     const queryParams = new URLSearchParams();
