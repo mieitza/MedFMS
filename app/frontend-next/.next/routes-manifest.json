@@ -1,0 +1,393 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [
+      {
+        "source": "/api/:path*",
+        "destination": "http://localhost:3000/api/:path*",
+        "regex": "^/api(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+      }
+    ],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/drivers/[id]",
+      "regex": "^/drivers/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/drivers/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/drivers/[id]/edit",
+      "regex": "^/drivers/([^/]+?)/edit(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/drivers/(?<nxtPid>[^/]+?)/edit(?:/)?$"
+    },
+    {
+      "page": "/fuel/[id]",
+      "regex": "^/fuel/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/fuel/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/fuel/[id]/edit",
+      "regex": "^/fuel/([^/]+?)/edit(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/fuel/(?<nxtPid>[^/]+?)/edit(?:/)?$"
+    },
+    {
+      "page": "/maintenance/[id]",
+      "regex": "^/maintenance/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/maintenance/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/maintenance/[id]/edit",
+      "regex": "^/maintenance/([^/]+?)/edit(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/maintenance/(?<nxtPid>[^/]+?)/edit(?:/)?$"
+    },
+    {
+      "page": "/vehicles/[id]",
+      "regex": "^/vehicles/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/vehicles/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/vehicles/[id]/edit",
+      "regex": "^/vehicles/([^/]+?)/edit(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/vehicles/(?<nxtPid>[^/]+?)/edit(?:/)?$"
+    },
+    {
+      "page": "/warehouse/materials/[id]",
+      "regex": "^/warehouse/materials/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/warehouse/materials/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/warehouse/materials/[id]/edit",
+      "regex": "^/warehouse/materials/([^/]+?)/edit(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/warehouse/materials/(?<nxtPid>[^/]+?)/edit(?:/)?$"
+    },
+    {
+      "page": "/warehouse/transfers/[id]",
+      "regex": "^/warehouse/transfers/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/warehouse/transfers/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/warehouse/warehouses/[id]",
+      "regex": "^/warehouse/warehouses/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/warehouse/warehouses/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin",
+      "regex": "^/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin(?:/)?$"
+    },
+    {
+      "page": "/admin/users",
+      "regex": "^/admin/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/users(?:/)?$"
+    },
+    {
+      "page": "/assistant",
+      "regex": "^/assistant(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/assistant(?:/)?$"
+    },
+    {
+      "page": "/assistant/settings",
+      "regex": "^/assistant/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/assistant/settings(?:/)?$"
+    },
+    {
+      "page": "/drivers",
+      "regex": "^/drivers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/drivers(?:/)?$"
+    },
+    {
+      "page": "/drivers/new",
+      "regex": "^/drivers/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/drivers/new(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/fuel",
+      "regex": "^/fuel(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/fuel(?:/)?$"
+    },
+    {
+      "page": "/fuel/import",
+      "regex": "^/fuel/import(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/fuel/import(?:/)?$"
+    },
+    {
+      "page": "/fuel/new",
+      "regex": "^/fuel/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/fuel/new(?:/)?$"
+    },
+    {
+      "page": "/fuel/reports",
+      "regex": "^/fuel/reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/fuel/reports(?:/)?$"
+    },
+    {
+      "page": "/fuel/reports/daily-vehicle",
+      "regex": "^/fuel/reports/daily\\-vehicle(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/fuel/reports/daily\\-vehicle(?:/)?$"
+    },
+    {
+      "page": "/fuel/reports/sunday-fueling",
+      "regex": "^/fuel/reports/sunday\\-fueling(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/fuel/reports/sunday\\-fueling(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/maintenance",
+      "regex": "^/maintenance(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/maintenance(?:/)?$"
+    },
+    {
+      "page": "/maintenance/approvals",
+      "regex": "^/maintenance/approvals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/maintenance/approvals(?:/)?$"
+    },
+    {
+      "page": "/maintenance/new",
+      "regex": "^/maintenance/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/maintenance/new(?:/)?$"
+    },
+    {
+      "page": "/profile",
+      "regex": "^/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/profile(?:/)?$"
+    },
+    {
+      "page": "/reports",
+      "regex": "^/reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/reports(?:/)?$"
+    },
+    {
+      "page": "/settings",
+      "regex": "^/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/settings(?:/)?$"
+    },
+    {
+      "page": "/settings/admin",
+      "regex": "^/settings/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/settings/admin(?:/)?$"
+    },
+    {
+      "page": "/settings/organization",
+      "regex": "^/settings/organization(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/settings/organization(?:/)?$"
+    },
+    {
+      "page": "/settings/profile",
+      "regex": "^/settings/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/settings/profile(?:/)?$"
+    },
+    {
+      "page": "/vehicles",
+      "regex": "^/vehicles(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/vehicles(?:/)?$"
+    },
+    {
+      "page": "/vehicles/new",
+      "regex": "^/vehicles/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/vehicles/new(?:/)?$"
+    },
+    {
+      "page": "/warehouse",
+      "regex": "^/warehouse(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse(?:/)?$"
+    },
+    {
+      "page": "/warehouse/materials",
+      "regex": "^/warehouse/materials(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse/materials(?:/)?$"
+    },
+    {
+      "page": "/warehouse/materials/import",
+      "regex": "^/warehouse/materials/import(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse/materials/import(?:/)?$"
+    },
+    {
+      "page": "/warehouse/materials/new",
+      "regex": "^/warehouse/materials/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse/materials/new(?:/)?$"
+    },
+    {
+      "page": "/warehouse/reports",
+      "regex": "^/warehouse/reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse/reports(?:/)?$"
+    },
+    {
+      "page": "/warehouse/reports/expiration",
+      "regex": "^/warehouse/reports/expiration(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse/reports/expiration(?:/)?$"
+    },
+    {
+      "page": "/warehouse/reports/pricing",
+      "regex": "^/warehouse/reports/pricing(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse/reports/pricing(?:/)?$"
+    },
+    {
+      "page": "/warehouse/reports/stock",
+      "regex": "^/warehouse/reports/stock(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse/reports/stock(?:/)?$"
+    },
+    {
+      "page": "/warehouse/reports/transfers",
+      "regex": "^/warehouse/reports/transfers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse/reports/transfers(?:/)?$"
+    },
+    {
+      "page": "/warehouse/reports/usage",
+      "regex": "^/warehouse/reports/usage(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse/reports/usage(?:/)?$"
+    },
+    {
+      "page": "/warehouse/transfers",
+      "regex": "^/warehouse/transfers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse/transfers(?:/)?$"
+    },
+    {
+      "page": "/warehouse/transfers/approvals",
+      "regex": "^/warehouse/transfers/approvals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse/transfers/approvals(?:/)?$"
+    },
+    {
+      "page": "/warehouse/transfers/new",
+      "regex": "^/warehouse/transfers/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/warehouse/transfers/new(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

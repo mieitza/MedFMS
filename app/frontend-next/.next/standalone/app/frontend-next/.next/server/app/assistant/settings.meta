@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(dashboard)/layout,_N_T_/(dashboard)/assistant/layout,_N_T_/(dashboard)/assistant/settings/layout,_N_T_/(dashboard)/assistant/settings/page,_N_T_/assistant/settings"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KGRhc2hib2FyZCk/assistant/settings/__PAGE__",
+    "/!KGRhc2hib2FyZCk/assistant/settings",
+    "/!KGRhc2hib2FyZCk/assistant",
+    "/!KGRhc2hib2FyZCk",
+    "/_index",
+    "/_head"
+  ]
+}

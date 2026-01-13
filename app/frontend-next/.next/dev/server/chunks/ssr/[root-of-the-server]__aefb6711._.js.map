@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 22, "column": 0}, "map": {"version":3,"sources":["file:///Users/mihai/dev/GitHub/MedFMS/app/frontend-next/src/app/%28dashboard%29/settings/profile/page.tsx"],"sourcesContent":["import { redirect } from 'next/navigation';\n\nexport default function SettingsProfilePage() {\n  redirect('/settings?tab=profile');\n}\n"],"names":[],"mappings":";;;;AAAA;AAAA;;AAEe,SAAS;IACtB,IAAA,4NAAQ,EAAC;AACX"}}]
+}

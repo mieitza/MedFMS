@@ -1,0 +1,3 @@
+module.exports=[90186,a=>{"use strict";let b=(0,a.i(82530).default)("receipt",[["path",{d:"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z",key:"q3az6g"}],["path",{d:"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8",key:"1h4pet"}],["path",{d:"M12 17.5v-11",key:"1jc1ny"}]]);a.s(["Receipt",()=>b],90186)},70861,a=>{"use strict";var b=a.i(3236),c=a.i(36305),d=a.i(82063);a.i(84332);var e=a.i(14059);function f(){let a=(0,c.useParams)(),f=a.id?parseInt(a.id):null,{data:g,isLoading:h}=(0,e.useFuelTransaction)(f);return(0,b.jsx)(d.FuelForm,{transaction:g,isLoading:h})}a.s(["default",()=>f])}];
+
+//# sourceMappingURL=app_frontend-next_b3f914e1._.js.map

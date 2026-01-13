@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(dashboard)/layout,_N_T_/(dashboard)/fuel/layout,_N_T_/(dashboard)/fuel/import/layout,_N_T_/(dashboard)/fuel/import/page,_N_T_/fuel/import"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KGRhc2hib2FyZCk/fuel/import/__PAGE__",
+    "/!KGRhc2hib2FyZCk/fuel/import",
+    "/!KGRhc2hib2FyZCk/fuel",
+    "/!KGRhc2hib2FyZCk",
+    "/_index",
+    "/_head"
+  ]
+}

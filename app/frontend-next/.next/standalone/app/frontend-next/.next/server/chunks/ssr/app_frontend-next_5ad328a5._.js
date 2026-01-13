@@ -1,0 +1,3 @@
+module.exports=[52472,a=>{"use strict";let b=(0,a.i(82530).default)("dollar-sign",[["line",{x1:"12",x2:"12",y1:"2",y2:"22",key:"7eqyqh"}],["path",{d:"M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",key:"1b0p4s"}]]);a.s(["DollarSign",()=>b],52472)},64246,a=>{"use strict";var b=a.i(3236),c=a.i(36305),d=a.i(10551);a.i(84332);var e=a.i(54092);function f(){let a=(0,c.useParams)(),f=a.id?parseInt(a.id):null,{data:g,isLoading:h}=(0,e.useMaintenanceWorkOrder)(f);return(0,b.jsx)(d.MaintenanceForm,{workOrder:g,isLoading:h})}a.s(["default",()=>f])}];
+
+//# sourceMappingURL=app_frontend-next_5ad328a5._.js.map
