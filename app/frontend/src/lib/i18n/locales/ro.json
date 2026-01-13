@@ -2,7 +2,7 @@
   "nav": {
     "dashboard": "Panou de control",
     "vehicles": "Vehicule",
-    "drivers": "Șoferi",
+    "employees": "Angajați",
     "fuel": "Combustibil",
     "maintenance": "Întreținere",
     "materials": "Materiale",
@@ -173,11 +173,11 @@
     "totalVehicles": "Total Vehicule",
     "fuelTransactions": "Tranzacții Combustibil",
     "materialItems": "Articole Materiale",
-    "activeDrivers": "Șoferi Activi",
+    "activeEmployees": "Angajați Activi",
     "vehicleManagement": "Gestionare Vehicule",
     "vehicleManagementDesc": "Gestionați vehiculele din flotă, înmatriculările și documentația",
-    "driverManagement": "Gestionare Șoferi",
-    "driverManagementDesc": "Gestionați informațiile șoferilor, permisele și atribuirile",
+    "employeeManagement": "Gestionare Angajați",
+    "employeeManagementDesc": "Gestionați informațiile angajaților, permisele și atribuirile",
     "fuelManagement": "Gestionare Combustibil",
     "fuelManagementDesc": "Urmăriți consumul de combustibil, costurile și eficiența",
     "materialManagement": "Gestionare Materiale",
@@ -449,7 +449,7 @@
     "resources": {
       "user": "Utilizator",
       "vehicle": "Vehicul",
-      "driver": "Șofer",
+      "employee": "Angajat",
       "fuel": "Combustibil",
       "material": "Material",
       "maintenance": "Întreținere",
@@ -565,15 +565,15 @@
       "noChanges": "Nu există modificări de salvat"
     }
   },
-  "drivers": {
-    "title": "Gestionare Șoferi",
-    "pageTitle": "Gestionare Șoferi - MedFMS",
-    "addDriver": "Adaugă Șofer",
-    "editDriver": "Editează Șofer",
-    "addNewDriver": "Adaugă Șofer Nou",
-    "createDriver": "Creează Șofer",
-    "updateDriver": "Actualizează Șofer",
-    "driverCode": "Cod Șofer",
+  "employees": {
+    "title": "Gestionare Angajați",
+    "pageTitle": "Gestionare Angajați - MedFMS",
+    "addEmployee": "Adaugă Angajat",
+    "editEmployee": "Editează Angajat",
+    "addNewEmployee": "Adaugă Angajat Nou",
+    "createEmployee": "Creează Angajat",
+    "updateEmployee": "Actualizează Angajat",
+    "employeeCode": "Cod Angajat",
     "firstName": "Prenume",
     "lastName": "Nume",
     "fullName": "Nume Complet",
@@ -595,7 +595,7 @@
       "contactInfo": "Informații Contact"
     },
     "placeholders": {
-      "driverCode": "Introduceți cod șofer",
+      "employeeCode": "Introduceți cod angajat",
       "firstName": "Prenume",
       "lastName": "Nume",
       "fullName": "Generat automat din prenume și nume",
@@ -620,9 +620,9 @@
     },
     "messages": {
       "requiredFields": "Vă rugăm să completați toate câmpurile obligatorii",
-      "saveFailed": "Salvarea șoferului a eșuat. Încercați din nou.",
-      "deleteConfirm": "Sigur doriți să ștergeți șoferul {name}?",
-      "deleteFailed": "Ștergerea șoferului a eșuat. Încercați din nou."
+      "saveFailed": "Salvarea angajatului a eșuat. Încercați din nou.",
+      "deleteConfirm": "Sigur doriți să ștergeți angajatul {name}?",
+      "deleteFailed": "Ștergerea angajatului a eșuat. Încercați din nou."
     }
   },
   "vehicles": {
@@ -646,7 +646,7 @@
     "type": "Tip",
     "vehicleType": "Tip Vehicul",
     "odometer": "Kilometraj",
-    "driver": "Șofer",
+    "employee": "Angajat",
     "engineNumber": "Număr Motor",
     "chassisNumber": "Număr Șasiu",
     "vin": "VIN",
@@ -665,7 +665,7 @@
     "unknown": "Necunoscut",
     "notAssigned": "Neatribuit",
     "notRecorded": "Neînregistrat",
-    "assignedDriver": "Șofer Atribuit",
+    "assignedEmployee": "Angajat Atribuit",
     "created": "Creat",
     "lastUpdated": "Ultima Actualizare",
     "vehiclePhotos": "Fotografii Vehicul",
@@ -717,7 +717,7 @@
       "selectStatus": "Selectați status",
       "selectLocation": "Selectați locație",
       "selectDepartment": "Selectați departament",
-      "selectDriver": "Selectați șofer",
+      "selectEmployee": "Selectați angajat",
       "anmdmAuthNumber": "Introduceți număr aviz",
       "anmdmAuthType": "Introduceți tip autorizație",
       "anmdmIssuingAuthority": "Introduceți autoritatea emitentă",
@@ -834,8 +834,8 @@
     "filters": "Filtre",
     "vehicle": "Vehicul",
     "allVehicles": "Toate Vehiculele",
-    "driver": "Șofer",
-    "allDrivers": "Toți Șoferii",
+    "employee": "Angajat",
+    "allEmployees": "Toți Angajații",
     "station": "Stație",
     "allStations": "Toate Stațiile",
     "type": "Tip",
@@ -877,7 +877,7 @@
     },
     "placeholders": {
       "selectVehicle": "Selectați vehicul",
-      "selectDriver": "Selectați șofer",
+      "selectEmployee": "Selectați angajat",
       "selectFuelType": "Selectați tip combustibil",
       "selectStation": "Selectați stație",
       "quantity": "0.00",

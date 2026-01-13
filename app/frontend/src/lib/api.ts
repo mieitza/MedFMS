@@ -400,7 +400,7 @@ export const api = {
     return response.json();
   },
 
-  async getDrivers(params: {
+  async getEmployees(params: {
     page?: number;
     limit?: number;
     search?: string;
@@ -410,79 +410,79 @@ export const api = {
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.search) queryParams.append('search', params.search);
 
-    const response = await fetch(`${API_BASE_URL}/drivers?${queryParams}`, {
+    const response = await fetch(`${API_BASE_URL}/employees?${queryParams}`, {
       headers: this.getAuthHeaders(),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch drivers');
+      throw new Error('Failed to fetch employees');
     }
 
     return response.json();
   },
 
-  async getDriverById(id: number): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/drivers/${id}`, {
+  async getEmployeeById(id: number): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/employees/${id}`, {
       headers: this.getAuthHeaders(),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch driver');
+      throw new Error('Failed to fetch employee');
     }
 
     return response.json();
   },
 
-  async createDriver(driverData: any): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/drivers`, {
+  async createEmployee(employeeData: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/employees`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify(driverData),
+      body: JSON.stringify(employeeData),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create driver');
+      throw new Error('Failed to create employee');
     }
 
     return response.json();
   },
 
-  async updateDriver(id: number, driverData: any): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/drivers/${id}`, {
+  async updateEmployee(id: number, employeeData: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/employees/${id}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify(driverData),
+      body: JSON.stringify(employeeData),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to update driver');
+      throw new Error('Failed to update employee');
     }
 
     return response.json();
   },
 
-  async patchDriver(id: number, partialData: any): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/drivers/${id}`, {
+  async patchEmployee(id: number, partialData: any): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/employees/${id}`, {
       method: 'PUT', // Backend uses PUT but accepts partial data via .partial()
       headers: this.getAuthHeaders(),
       body: JSON.stringify(partialData),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to patch driver');
+      throw new Error('Failed to patch employee');
     }
 
     return response.json();
   },
 
-  async deleteDriver(id: number): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/drivers/${id}`, {
+  async deleteEmployee(id: number): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/employees/${id}`, {
       method: 'DELETE',
       headers: this.getAuthHeaders(),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to delete driver');
+      throw new Error('Failed to delete employee');
     }
 
     return response.json();
@@ -708,7 +708,7 @@ export const api = {
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.vehicleId) queryParams.append('vehicleId', params.vehicleId.toString());
-    if (params.driverId) queryParams.append('driverId', params.driverId.toString());
+    if (params.employeeId) queryParams.append('employeeId', params.employeeId.toString());
     if (params.stationId) queryParams.append('stationId', params.stationId.toString());
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);

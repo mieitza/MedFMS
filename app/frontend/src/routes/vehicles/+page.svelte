@@ -27,7 +27,7 @@
 	let fuelTypes = [];
 	let locations = [];
 	let departments = [];
-	let drivers = [];
+	let employees = [];
 
 	let columns = [];
 
@@ -112,8 +112,8 @@
 				render: renderOdometer
 			},
 			{
-				key: 'driverName',
-				label: $_('vehicles.driver'),
+				key: 'employeeName',
+				label: $_('vehicles.employee'),
 				sortable: true,
 				width: '150px'
 			}
@@ -156,7 +156,7 @@
 				statusName: vehicle.statusName || $_('vehicles.unknown'),
 				fuelType: vehicle.fuelTypeName || $_('vehicles.unknown'),
 				vehicleType: vehicle.vehicleTypeName || $_('vehicles.unknown'),
-				driverName: vehicle.driverName || $_('vehicles.notAssigned')
+				employeeName: vehicle.employeeName || $_('vehicles.notAssigned')
 			}));
 
 			totalItems = response.pagination?.total || response.data.length;
@@ -179,7 +179,7 @@
 				fuelTypesResponse,
 				locationsResponse,
 				departmentsResponse,
-				driversResponse
+				employeesResponse
 			] = await Promise.all([
 				api.getBrands(),
 				api.getModels(),
@@ -188,7 +188,7 @@
 				api.getFuelTypes(),
 				api.getLocations(),
 				api.getDepartments(),
-				api.getDrivers()
+				api.getEmployees()
 			]);
 
 			brands = brandsResponse.data || [];
@@ -198,7 +198,7 @@
 			fuelTypes = fuelTypesResponse.data || [];
 			locations = locationsResponse.data || [];
 			departments = departmentsResponse.data || [];
-			drivers = driversResponse.data || [];
+			employees = employeesResponse.data || [];
 		} catch (error) {
 			console.error('Failed to load dropdown data:', error);
 		}
@@ -219,10 +219,10 @@
 		return status?.statusName || $_('vehicles.unknown');
 	}
 
-	function getDriverName(driverId) {
-		if (!driverId) return $_('vehicles.notAssigned');
-		const driver = drivers.find(d => d.id === driverId);
-		return driver?.fullName || $_('vehicles.unknown');
+	function getEmployeeName(employeeId) {
+		if (!employeeId) return $_('vehicles.notAssigned');
+		const employee = employees.find(e => e.id === employeeId);
+		return employee?.fullName || $_('vehicles.unknown');
 	}
 
 	function handleSearch(event) {
@@ -389,7 +389,7 @@
 			{fuelTypes}
 			{locations}
 			{departments}
-			{drivers}
+			{employees}
 			on:success={handleFormSuccess}
 			on:error={handleFormError}
 			on:cancel={handleFormCancel}

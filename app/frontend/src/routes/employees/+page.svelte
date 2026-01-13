@@ -3,15 +3,15 @@
 	import { goto } from '$app/navigation';
 	import DataTable from '$lib/components/DataTable.svelte';
 	import Modal from '$lib/components/Modal.svelte';
-	import DriverForm from '$lib/components/DriverForm.svelte';
+	import EmployeeForm from '$lib/components/EmployeeForm.svelte';
 	import { api } from '$lib/api';
 	import { _ } from '$lib/i18n';
 
-	let drivers = [];
+	let employees = [];
 	let loading = false;
 	let showAddModal = false;
 	let showEditModal = false;
-	let selectedDriver = null;
+	let selectedEmployee = null;
 	let searchTerm = '';
 	let currentPage = 1;
 	let pageSize = 20;
@@ -27,7 +27,7 @@
 
 	// Make columns reactive to locale changes
 	$: {
-		const renderDriverName = (value, row) => {
+		const renderEmployeeName = (value, row) => {
 			return `<span class="font-semibold text-primary-600">${row.fullName}</span>`;
 		};
 
@@ -45,22 +45,22 @@
 
 		const renderLicense = (value, row) => {
 			if (!row.licenseNumber) return '-';
-			return `<div class="text-sm"><div><strong>${row.licenseNumber}</strong></div><div class="text-gray-500">${$_('drivers.licenseType')}: ${row.licenseType || 'N/A'}</div></div>`;
+			return `<div class="text-sm"><div><strong>${row.licenseNumber}</strong></div><div class="text-gray-500">${$_('employees.licenseType')}: ${row.licenseType || 'N/A'}</div></div>`;
 		};
 
 		columns = [
 			{
-				key: 'driverCode',
-				label: $_('drivers.driverCode'),
+				key: 'employeeCode',
+				label: $_('employees.employeeCode'),
 				sortable: true,
 				width: '120px'
 			},
 			{
 				key: 'fullName',
-				label: $_('drivers.name'),
+				label: $_('employees.name'),
 				sortable: true,
 				width: '200px',
-				render: renderDriverName
+				render: renderEmployeeName
 			},
 			{
 				key: 'email',
@@ -70,14 +70,14 @@
 			},
 			{
 				key: 'phoneNumber',
-				label: $_('drivers.phone'),
+				label: $_('employees.phone'),
 				sortable: true,
 				width: '150px',
 				render: renderContact
 			},
 			{
 				key: 'licenseNumber',
-				label: $_('drivers.license'),
+				label: $_('employees.license'),
 				sortable: true,
 				width: '150px',
 				render: renderLicense
@@ -100,24 +100,24 @@
 			return;
 		}
 
-		await loadDrivers();
+		await loadEmployees();
 		await loadDropdownData();
 	});
 
-	async function loadDrivers() {
+	async function loadEmployees() {
 		loading = true;
 		try {
-			const response = await api.getDrivers({
+			const response = await api.getEmployees({
 				page: currentPage,
 				limit: pageSize,
 				search: searchTerm
 			});
 
-			drivers = response.data || [];
+			employees = response.data || [];
 			totalItems = response.pagination?.total || response.data.length;
 		} catch (error) {
-			console.error('Failed to load drivers:', error);
-			drivers = [];
+			console.error('Failed to load employees:', error);
+			employees = [];
 		} finally {
 			loading = false;
 		}
@@ -143,62 +143,62 @@
 	function handleSearch(event) {
 		searchTerm = event.detail.term;
 		currentPage = 1;
-		loadDrivers();
+		loadEmployees();
 	}
 
 	function handlePageChange(event) {
 		currentPage = event.detail.page;
-		loadDrivers();
+		loadEmployees();
 	}
 
 	function handleRowClick(event) {
-		const driver = event.detail.row;
-		goto(`/drivers/${driver.id}`);
+		const employee = event.detail.row;
+		goto(`/employees/${employee.id}`);
 	}
 
 	function handleEdit(event) {
-		selectedDriver = event.detail;
+		selectedEmployee = event.detail;
 		showEditModal = true;
 	}
 
 	async function handleDelete(event) {
-		const driver = event.detail;
-		if (confirm($_('drivers.messages.deleteConfirm', { values: { name: driver.fullName } }))) {
+		const employee = event.detail;
+		if (confirm($_('employees.messages.deleteConfirm', { values: { name: employee.fullName } }))) {
 			try {
-				await api.deleteDriver(driver.id);
-				await loadDrivers();
+				await api.deleteEmployee(employee.id);
+				await loadEmployees();
 			} catch (error) {
-				console.error('Failed to delete driver:', error);
-				alert($_('drivers.messages.deleteFailed'));
+				console.error('Failed to delete employee:', error);
+				alert($_('employees.messages.deleteFailed'));
 			}
 		}
 	}
 
-	function handleAddDriver() {
-		selectedDriver = null;
+	function handleAddEmployee() {
+		selectedEmployee = null;
 		showAddModal = true;
 	}
 
 	function handleExport(event) {
 		const { format, data } = event.detail;
-		console.log(`Exporting ${data.length} drivers to ${format}`);
+		console.log(`Exporting ${data.length} employees to ${format}`);
 		// TODO: Implement export functionality
 	}
 
 	function closeModals() {
 		showAddModal = false;
 		showEditModal = false;
-		selectedDriver = null;
+		selectedEmployee = null;
 	}
 
 	async function refreshData() {
-		await loadDrivers();
+		await loadEmployees();
 		closeModals();
 	}
 
 	function handleFormSuccess(event) {
 		const { type, data } = event.detail;
-		console.log(`Driver ${type} successfully:`, data);
+		console.log(`Employee ${type} successfully:`, data);
 		refreshData();
 	}
 
@@ -213,7 +213,7 @@
 </script>
 
 <svelte:head>
-	<title>{$_('drivers.title')} - {$_('common.appName')}</title>
+	<title>{$_('employees.title')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -227,19 +227,19 @@
 						<ol class="flex items-center space-x-2 text-sm">
 							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li class="text-gray-900 font-medium">{$_('drivers.title')}</li>
+							<li class="text-gray-900 font-medium">{$_('employees.title')}</li>
 						</ol>
 					</nav>
 				</div>
 				<div class="flex items-center space-x-4">
 					<button
-						on:click={handleAddDriver}
+						on:click={handleAddEmployee}
 						class="btn btn-primary"
 					>
 						<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
 						</svg>
-						{$_('drivers.addDriver')}
+						{$_('employees.addEmployee')}
 					</button>
 				</div>
 			</div>
@@ -249,14 +249,14 @@
 	<!-- Main Content -->
 	<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 		<DataTable
-			data={drivers}
+			data={employees}
 			{columns}
 			{loading}
 			{searchTerm}
 			{currentPage}
 			{pageSize}
 			{totalItems}
-			title={$_('drivers.title')}
+			title={$_('employees.title')}
 			showSearch={true}
 			showPagination={true}
 			showExport={true}
@@ -270,15 +270,15 @@
 	</main>
 </div>
 
-<!-- Add/Edit Driver Modal -->
+<!-- Add/Edit Employee Modal -->
 <Modal
 	open={showAddModal || showEditModal}
-	title={selectedDriver ? $_('drivers.editDriver') : $_('drivers.addNewDriver')}
+	title={selectedEmployee ? $_('employees.editEmployee') : $_('employees.addNewEmployee')}
 	size="xl"
 	on:close={closeModals}
 >
-	<DriverForm
-		driver={selectedDriver}
+	<EmployeeForm
+		employee={selectedEmployee}
 		{cities}
 		{departments}
 		{positions}

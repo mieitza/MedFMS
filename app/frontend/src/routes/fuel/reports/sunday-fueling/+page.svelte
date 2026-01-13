@@ -52,11 +52,11 @@
       }
     },
     {
-      key: 'driver',
-      label: $_('fuel.driver'),
+      key: 'employee',
+      label: $_('fuel.employee'),
       sortable: true,
       render: (value, row) => {
-        return row.driver?.fullName || 'N/A';
+        return row.employee?.fullName || 'N/A';
       }
     },
     {
@@ -228,7 +228,7 @@
         formattedDate,
         t.vehicle?.licensePlate || 'N/A',
         t.vehicle?.vehicleCode || 'N/A',
-        t.driver?.fullName || 'N/A',
+        t.employee?.fullName || 'N/A',
         t.fuelStation?.stationName || 'N/A',
         t.fuelType?.fuelName || 'N/A',
         parseFloat(t.quantity || 0).toFixed(2),

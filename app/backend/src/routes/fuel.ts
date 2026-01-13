@@ -10,7 +10,7 @@ import {
   vehicleFuelTanks,
   fuelBudgets,
   vehicles,
-  drivers,
+  employees,
   brands,
   models,
   vehicleTypes,
@@ -28,7 +28,7 @@ router.use(authenticate);
 const fuelTransactionSchema = z.object({
   transactionType: z.enum(['purchase', 'consumption']),
   vehicleId: z.number().positive(),
-  driverId: z.number().optional(),
+  employeeId: z.number().optional(),
   fuelTypeId: z.number().positive(),
   locationId: z.number().optional(),
   supplierId: z.number().optional(),
@@ -154,7 +154,7 @@ router.get('/transactions', authorize('admin', 'manager', 'operator'), async (re
       page = 1,
       limit = 20,
       vehicleId,
-      driverId,
+      employeeId,
       stationId,
       startDate,
       endDate,
@@ -168,7 +168,7 @@ router.get('/transactions', authorize('admin', 'manager', 'operator'), async (re
       id: fuelTransactions.id,
       transactionType: fuelTransactions.transactionType,
       vehicleId: fuelTransactions.vehicleId,
-      driverId: fuelTransactions.driverId,
+      employeeId: fuelTransactions.employeeId,
       fuelTypeId: fuelTransactions.fuelTypeId,
       locationId: fuelTransactions.locationId,
       supplierId: fuelTransactions.supplierId,
@@ -188,10 +188,10 @@ router.get('/transactions', authorize('admin', 'manager', 'operator'), async (re
         vehicleCode: vehicles.vehicleCode,
         licensePlate: vehicles.licensePlate
       },
-      driver: {
-        id: drivers.id,
-        fullName: drivers.fullName,
-        driverCode: drivers.driverCode
+      employee: {
+        id: employees.id,
+        fullName: employees.fullName,
+        employeeCode: employees.employeeCode
       },
       fuelType: {
         id: fuelTypes.id,
@@ -205,14 +205,14 @@ router.get('/transactions', authorize('admin', 'manager', 'operator'), async (re
     })
     .from(fuelTransactions)
     .leftJoin(vehicles, eq(fuelTransactions.vehicleId, vehicles.id))
-    .leftJoin(drivers, eq(fuelTransactions.driverId, drivers.id))
+    .leftJoin(employees, eq(fuelTransactions.employeeId, employees.id))
     .leftJoin(fuelTypes, eq(fuelTransactions.fuelTypeId, fuelTypes.id))
     .leftJoin(fuelStations, eq(fuelTransactions.locationId, fuelStations.id));
 
     // Apply filters
     const conditions = [];
     if (vehicleId) conditions.push(eq(fuelTransactions.vehicleId, parseInt(vehicleId as string)));
-    if (driverId) conditions.push(eq(fuelTransactions.driverId, parseInt(driverId as string)));
+    if (employeeId) conditions.push(eq(fuelTransactions.employeeId, parseInt(employeeId as string)));
     if (stationId) conditions.push(eq(fuelTransactions.locationId, parseInt(stationId as string)));
     if (transactionType) conditions.push(eq(fuelTransactions.transactionType, transactionType as string));
     if (approved !== undefined) conditions.push(eq(fuelTransactions.approved, approved === 'true'));

@@ -2,7 +2,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "vehicles": "Vehicles",
-    "drivers": "Drivers",
+    "employees": "Employees",
     "fuel": "Fuel",
     "maintenance": "Maintenance",
     "materials": "Materials",
@@ -78,11 +78,11 @@
     "totalVehicles": "Total Vehicles",
     "fuelTransactions": "Fuel Transactions",
     "materialItems": "Material Items",
-    "activeDrivers": "Active Drivers",
+    "activeEmployees": "Active Employees",
     "vehicleManagement": "Vehicle Management",
     "vehicleManagementDesc": "Manage your fleet vehicles, registrations, and documentation",
-    "driverManagement": "Driver Management",
-    "driverManagementDesc": "Manage driver information, licenses, and assignments",
+    "employeeManagement": "Employee Management",
+    "employeeManagementDesc": "Manage employee information, licenses, and assignments",
     "fuelManagement": "Fuel Management",
     "fuelManagementDesc": "Track fuel consumption, costs, and efficiency",
     "materialManagement": "Material Management",
@@ -253,7 +253,7 @@
     "resources": {
       "user": "User",
       "vehicle": "Vehicle",
-      "driver": "Driver",
+      "employee": "Employee",
       "fuel": "Fuel",
       "material": "Material",
       "maintenance": "Maintenance",
@@ -369,15 +369,15 @@
       "noChanges": "No changes to save"
     }
   },
-  "drivers": {
-    "title": "Driver Management",
-    "pageTitle": "Driver Management - MedFMS",
-    "addDriver": "Add Driver",
-    "editDriver": "Edit Driver",
-    "addNewDriver": "Add New Driver",
-    "createDriver": "Create Driver",
-    "updateDriver": "Update Driver",
-    "driverCode": "Driver Code",
+  "employees": {
+    "title": "Employee Management",
+    "pageTitle": "Employee Management - MedFMS",
+    "addEmployee": "Add Employee",
+    "editEmployee": "Edit Employee",
+    "addNewEmployee": "Add New Employee",
+    "createEmployee": "Create Employee",
+    "updateEmployee": "Update Employee",
+    "employeeCode": "Employee Code",
     "firstName": "First Name",
     "lastName": "Last Name",
     "fullName": "Full Name",
@@ -399,7 +399,7 @@
       "contactInfo": "Contact Information"
     },
     "placeholders": {
-      "driverCode": "Enter driver code",
+      "employeeCode": "Enter employee code",
       "firstName": "First name",
       "lastName": "Last name",
       "fullName": "Auto-generated from first and last name",
@@ -424,9 +424,9 @@
     },
     "messages": {
       "requiredFields": "Please fill in all required fields",
-      "saveFailed": "Failed to save driver. Please try again.",
-      "deleteConfirm": "Are you sure you want to delete driver {name}?",
-      "deleteFailed": "Failed to delete driver. Please try again."
+      "saveFailed": "Failed to save employee. Please try again.",
+      "deleteConfirm": "Are you sure you want to delete employee {name}?",
+      "deleteFailed": "Failed to delete employee. Please try again."
     }
   },
   "vehicles": {
@@ -450,7 +450,7 @@
     "type": "Type",
     "vehicleType": "Vehicle Type",
     "odometer": "Odometer",
-    "driver": "Driver",
+    "employee": "Employee",
     "engineNumber": "Engine Number",
     "chassisNumber": "Chassis Number",
     "vin": "VIN",
@@ -469,7 +469,7 @@
     "unknown": "Unknown",
     "notAssigned": "Not assigned",
     "notRecorded": "Not recorded",
-    "assignedDriver": "Assigned Driver",
+    "assignedEmployee": "Assigned Employee",
     "created": "Created",
     "lastUpdated": "Last Updated",
     "vehiclePhotos": "Vehicle Photos",
@@ -521,7 +521,7 @@
       "selectStatus": "Select status",
       "selectLocation": "Select location",
       "selectDepartment": "Select department",
-      "selectDriver": "Select driver",
+      "selectEmployee": "Select employee",
       "anmdmAuthNumber": "Enter authorization number",
       "anmdmAuthType": "Enter authorization type",
       "anmdmIssuingAuthority": "Enter issuing authority",
@@ -638,8 +638,8 @@
     "filters": "Filters",
     "vehicle": "Vehicle",
     "allVehicles": "All Vehicles",
-    "driver": "Driver",
-    "allDrivers": "All Drivers",
+    "employee": "Employee",
+    "allEmployees": "All Employees",
     "station": "Station",
     "allStations": "All Stations",
     "type": "Type",
@@ -681,7 +681,7 @@
     },
     "placeholders": {
       "selectVehicle": "Select vehicle",
-      "selectDriver": "Select driver",
+      "selectEmployee": "Select employee",
       "selectFuelType": "Select fuel type",
       "selectStation": "Select station",
       "quantity": "0.00",

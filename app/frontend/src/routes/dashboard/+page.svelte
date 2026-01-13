@@ -9,7 +9,7 @@
 	let vehicleCount = 0;
 	let fuelTransactions = 0;
 	let materialItems = 0;
-	let activeDrivers = 0;
+	let activeEmployees = 0;
 	let user = { fullName: 'User', role: 'user' };
 
 	onMount(async () => {
@@ -33,7 +33,7 @@
 				vehicleCount = response.data.vehicleCount;
 				fuelTransactions = response.data.fuelTransactions;
 				materialItems = response.data.materialItems;
-				activeDrivers = response.data.activeDrivers;
+				activeEmployees = response.data.activeEmployees;
 			}
 		} catch (error) {
 			console.error('Failed to load dashboard data:', error);
@@ -139,8 +139,8 @@
 							</svg>
 						</div>
 						<div class="ml-4">
-							<p class="text-sm font-medium text-gray-600">{$_('dashboard.activeDrivers')}</p>
-							<p class="text-2xl font-bold text-gray-900">{activeDrivers}</p>
+							<p class="text-sm font-medium text-gray-600">{$_('dashboard.activeEmployees')}</p>
+							<p class="text-2xl font-bold text-gray-900">{activeEmployees}</p>
 						</div>
 					</div>
 				</div>
@@ -153,9 +153,9 @@
 					<p class="text-gray-600">{$_('dashboard.vehicleManagementDesc')}</p>
 				</a>
 
-				<a href="/drivers" class="card hover:shadow-md transition-shadow cursor-pointer">
-					<h3 class="text-lg font-semibold text-gray-900 mb-2">{$_('dashboard.driverManagement')}</h3>
-					<p class="text-gray-600">{$_('dashboard.driverManagementDesc')}</p>
+				<a href="/employees" class="card hover:shadow-md transition-shadow cursor-pointer">
+					<h3 class="text-lg font-semibold text-gray-900 mb-2">{$_('dashboard.employeeManagement')}</h3>
+					<p class="text-gray-600">{$_('dashboard.employeeManagementDesc')}</p>
 				</a>
 
 				<a href="/fuel" class="card hover:shadow-md transition-shadow cursor-pointer">

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { getDb } from '../db/index.js';
-import { drivers } from '../db/schema/drivers.js';
+import { employees } from '../db/schema/employees.js';
 import { eq, like, or, and } from 'drizzle-orm';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
@@ -10,8 +10,8 @@ const router = Router();
 
 router.use(authenticate);
 
-const driverSchema = z.object({
-  driverCode: z.string().min(1).max(50),
+const employeeSchema = z.object({
+  employeeCode: z.string().min(1).max(50),
   firstName: z.string().min(1).max(50),
   lastName: z.string().min(1).max(50),
   fullName: z.string().min(1).max(100),
@@ -39,17 +39,17 @@ router.get('/', async (req, res, next) => {
 
     const db = getDb();
 
-    let baseQuery = db.select().from(drivers).where(eq(drivers.active, true));
+    let baseQuery = db.select().from(employees).where(eq(employees.active, true));
 
     if (search) {
       baseQuery = baseQuery.where(
         and(
-          eq(drivers.active, true),
+          eq(employees.active, true),
           or(
-            like(drivers.driverCode, `%${search}%`),
-            like(drivers.fullName, `%${search}%`),
-            like(drivers.licenseNumber, `%${search}%`),
-            like(drivers.email, `%${search}%`)
+            like(employees.employeeCode, `%${search}%`),
+            like(employees.fullName, `%${search}%`),
+            like(employees.licenseNumber, `%${search}%`),
+            like(employees.email, `%${search}%`)
           )
         )
       );
@@ -58,17 +58,17 @@ router.get('/', async (req, res, next) => {
     const results = await baseQuery.limit(limit).offset(offset);
 
     // Get total count for pagination
-    let totalQuery = db.select({ count: drivers.id }).from(drivers).where(eq(drivers.active, true));
+    let totalQuery = db.select({ count: employees.id }).from(employees).where(eq(employees.active, true));
 
     if (search) {
       totalQuery = totalQuery.where(
         and(
-          eq(drivers.active, true),
+          eq(employees.active, true),
           or(
-            like(drivers.driverCode, `%${search}%`),
-            like(drivers.fullName, `%${search}%`),
-            like(drivers.licenseNumber, `%${search}%`),
-            like(drivers.email, `%${search}%`)
+            like(employees.employeeCode, `%${search}%`),
+            like(employees.fullName, `%${search}%`),
+            like(employees.licenseNumber, `%${search}%`),
+            like(employees.email, `%${search}%`)
           )
         )
       );
@@ -97,18 +97,18 @@ router.get('/:id', async (req, res, next) => {
     const id = parseInt(req.params.id);
 
     const db = getDb();
-    const [driver] = await db.select()
-      .from(drivers)
-      .where(eq(drivers.id, id))
+    const [employee] = await db.select()
+      .from(employees)
+      .where(eq(employees.id, id))
       .limit(1);
 
-    if (!driver) {
-      throw new AppError('Driver not found', 404);
+    if (!employee) {
+      throw new AppError('Employee not found', 404);
     }
 
     res.json({
       success: true,
-      data: driver
+      data: employee
     });
   } catch (error) {
     next(error);
@@ -117,25 +117,25 @@ router.get('/:id', async (req, res, next) => {
 
 router.post('/', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
   try {
-    const data = driverSchema.parse(req.body);
+    const data = employeeSchema.parse(req.body);
 
     const db = getDb();
 
     const [existing] = await db.select()
-      .from(drivers)
+      .from(employees)
       .where(
         or(
-          eq(drivers.driverCode, data.driverCode),
-          eq(drivers.licenseNumber, data.licenseNumber)
+          eq(employees.employeeCode, data.employeeCode),
+          eq(employees.licenseNumber, data.licenseNumber)
         )
       )
       .limit(1);
 
     if (existing) {
-      throw new AppError('Driver code or license number already exists', 409);
+      throw new AppError('Employee code or license number already exists', 409);
     }
 
-    const result = await db.insert(drivers).values(data).returning();
+    const result = await db.insert(employees).values(data).returning();
 
     res.status(201).json({
       success: true,
@@ -149,20 +149,20 @@ router.post('/', authorize('admin', 'manager', 'operator'), async (req, res, nex
 router.put('/:id', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
-    const data = driverSchema.partial().parse(req.body);
+    const data = employeeSchema.partial().parse(req.body);
 
     const db = getDb();
 
-    const result = await db.update(drivers)
+    const result = await db.update(employees)
       .set({
         ...data,
         updatedAt: new Date()
       })
-      .where(eq(drivers.id, id))
+      .where(eq(employees.id, id))
       .returning();
 
     if (result.length === 0) {
-      throw new AppError('Driver not found', 404);
+      throw new AppError('Employee not found', 404);
     }
 
     res.json({
@@ -180,21 +180,21 @@ router.delete('/:id', authorize('admin', 'manager'), async (req, res, next) => {
 
     const db = getDb();
 
-    const result = await db.update(drivers)
+    const result = await db.update(employees)
       .set({
         active: false,
         updatedAt: new Date()
       })
-      .where(eq(drivers.id, id))
+      .where(eq(employees.id, id))
       .returning();
 
     if (result.length === 0) {
-      throw new AppError('Driver not found', 404);
+      throw new AppError('Employee not found', 404);
     }
 
     res.json({
       success: true,
-      message: 'Driver deleted successfully'
+      message: 'Employee deleted successfully'
     });
   } catch (error) {
     next(error);

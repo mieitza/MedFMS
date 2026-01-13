@@ -77,7 +77,7 @@
 				api.getMaterials({ limit: 1000 }),
 				api.getVehicles({ limit: 1000 }),
 				api.getVehicleInventoryItems(),
-				api.getDrivers({ limit: 1000 }) // Using drivers as employees for now
+				api.getEmployees({ limit: 1000 })
 			]);
 
 			warehouses = warehousesRes.data || [];

@@ -1,7 +1,7 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 import { vehicles } from './vehicles';
-import { drivers } from './drivers';
+import { employees } from './employees';
 import { suppliers } from './system';
 
 // Maintenance types and categories
@@ -255,7 +255,7 @@ export const vehicleInspections = sqliteTable('vehicle_inspections', {
   inspectionNumber: text('inspection_number').notNull().unique(),
   vehicleId: integer('vehicle_id').notNull().references(() => vehicles.id),
   checklistId: integer('checklist_id').notNull().references(() => inspectionChecklists.id),
-  driverId: integer('driver_id').references(() => drivers.id),
+  employeeId: integer('employee_id').references(() => employees.id),
 
   // Inspection details
   inspectionDate: integer('inspection_date', { mode: 'timestamp' }).notNull(),

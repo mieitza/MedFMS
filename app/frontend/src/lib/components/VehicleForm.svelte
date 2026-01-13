@@ -12,7 +12,7 @@
 	export let fuelTypes = [];
 	export let locations = [];
 	export let departments = [];
-	export let drivers = [];
+	export let employees = [];
 
 	const dispatch = createEventDispatcher();
 
@@ -27,7 +27,7 @@
 		statusId: null,
 		locationId: null,
 		departmentId: null,
-		driverId: null,
+		employeeId: null,
 		odometer: '',
 		description: '',
 		// ANMDM Authorization fields
@@ -65,7 +65,7 @@
 				statusId: vehicle.statusId || null,
 				locationId: vehicle.locationId || null,
 				departmentId: vehicle.departmentId || null,
-				driverId: vehicle.driverId || null,
+				employeeId: vehicle.employeeId || null,
 				odometer: vehicle.odometer || '',
 				description: vehicle.description || '',
 				// ANMDM Authorization fields
@@ -230,7 +230,7 @@
 				statusId: parseInt(formData.statusId),
 				locationId: formData.locationId ? parseInt(formData.locationId) : undefined,
 				departmentId: formData.departmentId ? parseInt(formData.departmentId) : undefined,
-				driverId: formData.driverId ? parseInt(formData.driverId) : undefined,
+				employeeId: formData.employeeId ? parseInt(formData.employeeId) : undefined,
 				odometer: formData.odometer ? parseInt(formData.odometer) : undefined
 			};
 
@@ -244,7 +244,7 @@
 					if (key === 'brandId' || key === 'modelId' || key === 'year' ||
 					    key === 'fuelTypeId' || key === 'vehicleTypeId' || key === 'statusId') {
 						payload[key] = parseInt(changedFields[key]);
-					} else if (key === 'locationId' || key === 'departmentId' || key === 'driverId') {
+					} else if (key === 'locationId' || key === 'departmentId' || key === 'employeeId') {
 						payload[key] = changedFields[key] ? parseInt(changedFields[key]) : undefined;
 					} else if (key === 'odometer') {
 						payload[key] = changedFields[key] ? parseInt(changedFields[key]) : undefined;
@@ -486,19 +486,19 @@
 				</select>
 			</div>
 
-			<!-- Driver (Optional) -->
+			<!-- Employee (Optional) -->
 			<div>
-				<label for="driverId" class="block text-sm font-medium text-gray-700 mb-1">
-					{$_('vehicles.assignedDriver')}
+				<label for="employeeId" class="block text-sm font-medium text-gray-700 mb-1">
+					{$_('vehicles.assignedEmployee')}
 				</label>
 				<select
-					id="driverId"
-					bind:value={formData.driverId}
+					id="employeeId"
+					bind:value={formData.employeeId}
 					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
 				>
-					<option value={null}>{$_('vehicles.placeholders.selectDriver')}</option>
-					{#each drivers as driver}
-						<option value={driver.id}>{driver.fullName}</option>
+					<option value={null}>{$_('vehicles.placeholders.selectEmployee')}</option>
+					{#each employees as employee}
+						<option value={employee.id}>{employee.fullName}</option>
 					{/each}
 				</select>
 			</div>

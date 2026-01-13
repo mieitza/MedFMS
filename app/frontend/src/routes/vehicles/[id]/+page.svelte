@@ -23,7 +23,7 @@
 	let fuelTypes = [];
 	let locations = [];
 	let departments = [];
-	let drivers = [];
+	let employees = [];
 	let dropdownDataLoaded = false;
 
 	// Maintenance history data
@@ -73,7 +73,7 @@
 				fuelTypesResponse,
 				locationsResponse,
 				departmentsResponse,
-				driversResponse
+				employeesResponse
 			] = await Promise.all([
 				api.getBrands(),
 				api.getModels(),
@@ -82,7 +82,7 @@
 				api.getFuelTypes(),
 				api.getLocations(),
 				api.getDepartments(),
-				api.getDrivers()
+				api.getEmployees()
 			]);
 
 			brands = brandsResponse.data || [];
@@ -92,7 +92,7 @@
 			fuelTypes = fuelTypesResponse.data || [];
 			locations = locationsResponse.data || [];
 			departments = departmentsResponse.data || [];
-			drivers = driversResponse.data || [];
+			employees = employeesResponse.data || [];
 			dropdownDataLoaded = true;
 		} catch (error) {
 			console.error('Failed to load dropdown data:', error);
@@ -203,10 +203,10 @@
 		return department?.departmentName || $_('vehicles.unknown');
 	}
 
-	function getDriverName(driverId) {
-		if (!driverId) return $_('vehicles.notAssigned');
-		const driver = drivers.find(d => d.id === driverId);
-		return driver?.fullName || $_('vehicles.unknown');
+	function getEmployeeName(employeeId) {
+		if (!employeeId) return $_('vehicles.notAssigned');
+		const employee = employees.find(e => e.id === employeeId);
+		return employee?.fullName || $_('vehicles.unknown');
 	}
 
 	function getStatusColor(statusId) {
@@ -393,8 +393,8 @@
 							</h3>
 							<div class="space-y-3">
 								<div>
-									<label class="block text-sm font-medium text-gray-500">{$_('vehicles.assignedDriver')}</label>
-									<p class="mt-1 text-sm text-gray-900">{getDriverName(vehicle.driverId)}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('vehicles.assignedEmployee')}</label>
+									<p class="mt-1 text-sm text-gray-900">{getEmployeeName(vehicle.employeeId)}</p>
 								</div>
 								<div>
 									<label class="block text-sm font-medium text-gray-500">{$_('vehicles.location')}</label>
@@ -655,7 +655,7 @@
 				{fuelTypes}
 				{locations}
 				{departments}
-				{drivers}
+				{employees}
 				on:success={handleFormSuccess}
 				on:error={handleFormError}
 				on:cancel={handleFormCancel}

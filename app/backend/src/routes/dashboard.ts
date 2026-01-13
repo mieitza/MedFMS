@@ -3,7 +3,7 @@ import { getDb } from '../db/index.js';
 import { sql, count, eq } from 'drizzle-orm';
 import {
   vehicles,
-  drivers,
+  employees,
   materials,
   fuelTransactions
 } from '../db/schema/index.js';
@@ -34,17 +34,17 @@ router.get('/stats', authenticate, async (req, res) => {
       .from(materials)
       .where(eq(materials.active, true));
 
-    // Get active drivers count
-    const activeDriversCountResult = await db
+    // Get active employees count
+    const activeEmployeesCountResult = await db
       .select({ count: count() })
-      .from(drivers)
-      .where(eq(drivers.active, true));
+      .from(employees)
+      .where(eq(employees.active, true));
 
     const stats = {
       vehicleCount: vehicleCountResult[0]?.count || 0,
       fuelTransactions: fuelTransactionCountResult[0]?.count || 0,
       materialItems: materialItemsCountResult[0]?.count || 0,
-      activeDrivers: activeDriversCountResult[0]?.count || 0
+      activeEmployees: activeEmployeesCountResult[0]?.count || 0
     };
 
     logger.info('Dashboard stats retrieved', { stats });

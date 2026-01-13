@@ -8,7 +8,7 @@ import { vehicles } from '../db/schema/vehicles.js';
 import { brands, models, vehicleTypes, vehicleStatuses, locations, departments, systemFuelTypes } from '../db/schema/system.js';
 import { auditLogs } from '../db/schema/audit.js';
 import { nanoid } from 'nanoid';
-import { drivers } from '../db/schema/drivers.js';
+import { employees } from '../db/schema/employees.js';
 import { fuelTypes } from '../db/schema/fuel.js';
 import { eq, like, and, or, inArray } from 'drizzle-orm';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth.js';
@@ -118,7 +118,7 @@ const vehicleSchema = z.object({
   statusId: z.number().positive(),
   locationId: z.number().optional(),
   departmentId: z.number().optional(),
-  driverId: z.number().optional(),
+  employeeId: z.number().optional(),
   odometer: z.number().min(0).optional(),
   description: z.string().optional(),
   // ANMDM Authorization fields
@@ -157,8 +157,8 @@ router.get('/', async (req, res, next) => {
         vehicleTypeName: vehicleTypes.typeName,
         statusId: vehicles.statusId,
         statusName: vehicleStatuses.statusName,
-        driverId: vehicles.driverId,
-        driverName: drivers.fullName,
+        employeeId: vehicles.employeeId,
+        employeeName: employees.fullName,
         odometer: vehicles.odometer,
         description: vehicles.description,
         active: vehicles.active,
@@ -171,7 +171,7 @@ router.get('/', async (req, res, next) => {
       .leftJoin(fuelTypes, eq(vehicles.fuelTypeId, fuelTypes.id))
       .leftJoin(vehicleTypes, eq(vehicles.vehicleTypeId, vehicleTypes.id))
       .leftJoin(vehicleStatuses, eq(vehicles.statusId, vehicleStatuses.id))
-      .leftJoin(drivers, eq(vehicles.driverId, drivers.id))
+      .leftJoin(employees, eq(vehicles.employeeId, employees.id))
       .where(eq(vehicles.active, true));
 
     if (search) {
@@ -250,8 +250,8 @@ router.get('/:id', async (req, res, next) => {
         statusName: vehicleStatuses.statusName,
         locationId: vehicles.locationId,
         departmentId: vehicles.departmentId,
-        driverId: vehicles.driverId,
-        driverName: drivers.fullName,
+        employeeId: vehicles.employeeId,
+        employeeName: employees.fullName,
         odometer: vehicles.odometer,
         description: vehicles.description,
         active: vehicles.active,
@@ -272,7 +272,7 @@ router.get('/:id', async (req, res, next) => {
       .leftJoin(fuelTypes, eq(vehicles.fuelTypeId, fuelTypes.id))
       .leftJoin(vehicleTypes, eq(vehicles.vehicleTypeId, vehicleTypes.id))
       .leftJoin(vehicleStatuses, eq(vehicles.statusId, vehicleStatuses.id))
-      .leftJoin(drivers, eq(vehicles.driverId, drivers.id))
+      .leftJoin(employees, eq(vehicles.employeeId, employees.id))
       .where(and(eq(vehicles.id, id), eq(vehicles.active, true)))
       .limit(1);
 

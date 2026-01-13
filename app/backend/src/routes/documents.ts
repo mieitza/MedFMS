@@ -63,7 +63,7 @@ const upload = multer({
 const documentSchema = z.object({
   documentName: z.string().min(1).max(100),
   categoryId: z.number().optional(),
-  entityType: z.enum(['vehicle', 'driver', 'user', 'maintenance_work_order']),
+  entityType: z.enum(['vehicle', 'employee', 'user', 'maintenance_work_order']),
   entityId: z.number().positive(),
   description: z.string().optional(),
   expiryDate: z.string().optional(),
@@ -72,7 +72,7 @@ const documentSchema = z.object({
 
 const photoSchema = z.object({
   photoName: z.string().min(1).max(100),
-  entityType: z.enum(['vehicle', 'driver', 'user', 'incident', 'maintenance_work_order']),
+  entityType: z.enum(['vehicle', 'employee', 'user', 'incident', 'maintenance_work_order']),
   entityId: z.number().positive(),
   description: z.string().optional(),
   isPrimary: z.boolean().optional().default(false)

@@ -13,7 +13,7 @@ export const vehicles = sqliteTable('vehicles', {
   statusId: integer('status_id').notNull(),
   locationId: integer('location_id'),
   departmentId: integer('department_id'),
-  driverId: integer('driver_id'),
+  employeeId: integer('employee_id'),
   registrationDate: integer('registration_date', { mode: 'timestamp' }),
   acquisitionDate: integer('acquisition_date', { mode: 'timestamp' }),
   purchasePrice: real('purchase_price'),

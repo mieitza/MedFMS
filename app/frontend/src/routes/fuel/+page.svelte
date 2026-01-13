@@ -16,7 +16,7 @@
 
 	// Filter options
 	let selectedVehicle = '';
-	let selectedDriver = '';
+	let selectedEmployee = '';
 	let selectedStation = '';
 	let selectedType = '';
 	let startDate = '';
@@ -24,7 +24,7 @@
 
 	// Dropdown data
 	let vehicles = [];
-	let drivers = [];
+	let employees = [];
 	let stations = [];
 	let fuelTypes = [];
 
@@ -32,7 +32,7 @@
 	let formData = {
 		transactionType: 'purchase',
 		vehicleId: '',
-		driverId: '',
+		employeeId: '',
 		fuelTypeId: '',
 		fuelStationId: '',
 		transactionDate: new Date().toISOString().slice(0, 16),
@@ -69,9 +69,9 @@
 		return `<div class="text-sm"><div class="font-medium">${row.vehicle.vehicleCode}</div><div class="text-gray-500">${row.vehicle.licensePlate}</div></div>`;
 	}
 
-	function renderDriver(value, row) {
-		if (!row.driver) return '-';
-		return `<div class="text-sm"><div class="font-medium">${row.driver.fullName}</div><div class="text-gray-500">${row.driver.driverCode}</div></div>`;
+	function renderEmployee(value, row) {
+		if (!row.employee) return '-';
+		return `<div class="text-sm"><div class="font-medium">${row.employee.fullName}</div><div class="text-gray-500">${row.employee.employeeCode}</div></div>`;
 	}
 
 	function renderDate(value) {
@@ -136,11 +136,11 @@
 			render: renderVehicle
 		},
 		{
-			key: 'driver',
-			label: $_('fuel.driver'),
+			key: 'employee',
+			label: $_('fuel.employee'),
 			sortable: true,
 			width: '150px',
-			render: renderDriver
+			render: renderEmployee
 		},
 		{
 			key: 'quantity',
@@ -187,7 +187,7 @@
 			};
 
 			if (selectedVehicle) filters.vehicleId = selectedVehicle;
-			if (selectedDriver) filters.driverId = selectedDriver;
+			if (selectedEmployee) filters.employeeId = selectedEmployee;
 			if (selectedStation) filters.stationId = selectedStation;
 			if (selectedType) filters.transactionType = selectedType;
 			if (startDate) filters.startDate = startDate;
@@ -206,15 +206,15 @@
 
 	async function loadDropdownData() {
 		try {
-			const [vehiclesResponse, driversResponse, stationsResponse, typesResponse] = await Promise.all([
+			const [vehiclesResponse, employeesResponse, stationsResponse, typesResponse] = await Promise.all([
 				api.getVehicles(),
-				api.getDrivers(),
+				api.getEmployees(),
 				api.getFuelStations(),
 				api.getFuelTypes()
 			]);
 
 			vehicles = vehiclesResponse.data || [];
-			drivers = driversResponse.data || [];
+			employees = employeesResponse.data || [];
 			stations = stationsResponse.data || [];
 			fuelTypes = typesResponse.data || [];
 		} catch (error) {
@@ -377,7 +377,7 @@
 			const submitData = {
 				...formData,
 				vehicleId: parseInt(formData.vehicleId),
-				driverId: formData.driverId ? parseInt(formData.driverId) : undefined,
+				employeeId: formData.employeeId ? parseInt(formData.employeeId) : undefined,
 				fuelTypeId: parseInt(formData.fuelTypeId),
 				locationId: formData.fuelStationId ? parseInt(formData.fuelStationId) : undefined,
 				quantity: parseFloat(formData.quantity),
@@ -401,7 +401,7 @@
 		formData = {
 			transactionType: 'purchase',
 			vehicleId: '',
-			driverId: '',
+			employeeId: '',
 			fuelTypeId: '',
 			fuelStationId: '',
 			transactionDate: new Date().toISOString().slice(0, 16),
@@ -497,11 +497,11 @@
 					</select>
 				</div>
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.driver')}</label>
-					<select bind:value={selectedDriver} on:change={handleSearch} class="form-select">
-						<option value="">{$_('fuel.allDrivers')}</option>
-						{#each drivers as driver}
-							<option value={driver.id}>{driver.fullName}</option>
+					<label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.employee')}</label>
+					<select bind:value={selectedEmployee} on:change={handleSearch} class="form-select">
+						<option value="">{$_('fuel.allEmployees')}</option>
+						{#each employees as employee}
+							<option value={employee.id}>{employee.fullName}</option>
 						{/each}
 					</select>
 				</div>
@@ -599,17 +599,17 @@
 				</div>
 
 				<div>
-					<label for="driverId" class="block text-sm font-medium text-gray-700 mb-2">
-						{$_('fuel.driver')}
+					<label for="employeeId" class="block text-sm font-medium text-gray-700 mb-2">
+						{$_('fuel.employee')}
 					</label>
 					<select
-						id="driverId"
-						bind:value={formData.driverId}
+						id="employeeId"
+						bind:value={formData.employeeId}
 						class="form-select"
 					>
-						<option value="">{$_('fuel.placeholders.selectDriver')}</option>
-						{#each drivers as driver}
-							<option value={driver.id}>{driver.fullName}</option>
+						<option value="">{$_('fuel.placeholders.selectEmployee')}</option>
+						{#each employees as employee}
+							<option value={employee.id}>{employee.fullName}</option>
 						{/each}
 					</select>
 				</div>

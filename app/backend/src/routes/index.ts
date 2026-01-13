@@ -2,7 +2,7 @@ import { Router } from 'express';
 import authRoutes from './auth.js';
 import userRoutes from './users.js';
 import vehicleRoutes from './vehicles.js';
-import driverRoutes from './drivers.js';
+import employeeRoutes from './employees.js';
 import fuelRoutes from './fuel.js';
 import maintenanceRoutes from './maintenance.js';
 import materialRoutes from './materials.js';
@@ -19,7 +19,7 @@ const router = Router();
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/vehicles', vehicleRoutes);
-router.use('/drivers', driverRoutes);
+router.use('/employees', employeeRoutes);
 router.use('/fuel', fuelRoutes);
 router.use('/maintenance', maintenanceRoutes);
 router.use('/materials', materialRoutes);
@@ -39,7 +39,7 @@ router.get('/docs', (req, res) => {
       auth: '/api/auth',
       users: '/api/users',
       vehicles: '/api/vehicles',
-      drivers: '/api/drivers',
+      employees: '/api/employees',
       fuel: '/api/fuel',
       maintenance: '/api/maintenance',
       materials: '/api/materials',

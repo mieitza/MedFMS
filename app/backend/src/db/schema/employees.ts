@@ -1,9 +1,9 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
-export const drivers = sqliteTable('drivers', {
+export const employees = sqliteTable('employees', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  driverCode: text('driver_code').notNull().unique(),
+  employeeCode: text('employee_code').notNull().unique(),
   firstName: text('first_name').notNull(),
   lastName: text('last_name').notNull(),
   fullName: text('full_name').notNull(),
@@ -28,5 +28,5 @@ export const drivers = sqliteTable('drivers', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export type Driver = typeof drivers.$inferSelect;
-export type NewDriver = typeof drivers.$inferInsert;
+export type Employee = typeof employees.$inferSelect;
+export type NewEmployee = typeof employees.$inferInsert;

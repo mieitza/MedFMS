@@ -5,11 +5,11 @@
 	import { api } from '$lib/api';
 	import { _ } from '$lib/i18n';
 	import Modal from '$lib/components/Modal.svelte';
-	import DriverForm from '$lib/components/DriverForm.svelte';
+	import EmployeeForm from '$lib/components/EmployeeForm.svelte';
 	import DocumentManager from '$lib/components/DocumentManager.svelte';
 	import PhotoManager from '$lib/components/PhotoManager.svelte';
 
-	let driver = null;
+	let employee = null;
 	let loading = true;
 	let error = null;
 	let showEditModal = false;
@@ -25,7 +25,7 @@
 	let loadingMaterials = true;
 	let materialsError = null;
 
-	$: driverId = $page.params.id;
+	$: employeeId = $page.params.id;
 
 	onMount(async () => {
 		// Check authentication
@@ -35,20 +35,20 @@
 			return;
 		}
 
-		await loadDriver();
+		await loadEmployee();
 		await loadDropdownData();
 		await loadMaterials();
 	});
 
-	async function loadDriver() {
+	async function loadEmployee() {
 		loading = true;
 		error = null;
 		try {
-			const response = await api.getDriverById(parseInt(driverId));
-			driver = response.data;
+			const response = await api.getEmployeeById(parseInt(employeeId));
+			employee = response.data;
 		} catch (err) {
-			console.error('Failed to load driver:', err);
-			error = $_('drivers.messages.saveFailed');
+			console.error('Failed to load employee:', err);
+			error = $_('employees.messages.saveFailed');
 		} finally {
 			loading = false;
 		}
@@ -75,7 +75,7 @@
 		loadingMaterials = true;
 		materialsError = null;
 		try {
-			const response = await api.getEmployeeMaterials(parseInt(driverId));
+			const response = await api.getEmployeeMaterials(parseInt(employeeId));
 			materials = response.data || [];
 		} catch (err) {
 			console.error('Failed to load employee materials:', err);
@@ -90,21 +90,21 @@
 	}
 
 	async function handleDelete() {
-		if (confirm($_('drivers.messages.deleteConfirm', { values: { name: driver.fullName } }))) {
+		if (confirm($_('employees.messages.deleteConfirm', { values: { name: employee.fullName } }))) {
 			try {
-				await api.deleteDriver(driver.id);
-				goto('/drivers');
+				await api.deleteEmployee(employee.id);
+				goto('/employees');
 			} catch (error) {
-				console.error('Failed to delete driver:', error);
-				alert($_('drivers.messages.deleteFailed'));
+				console.error('Failed to delete employee:', error);
+				alert($_('employees.messages.deleteFailed'));
 			}
 		}
 	}
 
 	function handleFormSuccess(event) {
 		const { type, data } = event.detail;
-		console.log(`Driver ${type} successfully:`, data);
-		driver = data;
+		console.log(`Employee ${type} successfully:`, data);
+		employee = data;
 		showEditModal = false;
 	}
 
@@ -154,7 +154,7 @@
 </script>
 
 <svelte:head>
-	<title>{driver ? `${driver.fullName} - ${$_('drivers.title')}` : $_('drivers.title')} - {$_('common.appName')}</title>
+	<title>{employee ? `${employee.fullName} - ${$_('employees.title')}` : $_('employees.title')} - {$_('common.appName')}</title>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -168,15 +168,15 @@
 						<ol class="flex items-center space-x-2 text-sm">
 							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li><a href="/drivers" class="text-gray-500 hover:text-gray-700">{$_('drivers.title')}</a></li>
+							<li><a href="/employees" class="text-gray-500 hover:text-gray-700">{$_('employees.title')}</a></li>
 							<li class="text-gray-500">/</li>
 							<li class="text-gray-900 font-medium">
-								{driver ? driver.fullName : $_('common.loading')}
+								{employee ? employee.fullName : $_('common.loading')}
 							</li>
 						</ol>
 					</nav>
 				</div>
-				{#if driver}
+				{#if employee}
 					<div class="flex items-center space-x-4">
 						<button
 							on:click={handleEdit}
@@ -185,7 +185,7 @@
 							<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
 							</svg>
-							{$_('drivers.editDriver')}
+							{$_('employees.editEmployee')}
 						</button>
 						<button
 							on:click={handleDelete}
@@ -220,59 +220,59 @@
 					</div>
 				</div>
 			</div>
-		{:else if driver}
-			<!-- Driver Details -->
+		{:else if employee}
+			<!-- Employee Details -->
 			<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-				<!-- Driver Header -->
+				<!-- Employee Header -->
 				<div class="bg-gradient-to-br from-primary-50 to-primary-100 px-6 py-8">
 					<div class="flex items-center justify-between">
 						<div>
 							<h1 class="text-3xl font-bold text-gray-900">
-								{driver.fullName}
+								{employee.fullName}
 							</h1>
 							<p class="text-lg text-gray-600 mt-1">
-								{driver.licenseType} {$_('drivers.license')} • {driver.driverCode}
+								{employee.licenseType} {$_('employees.license')} • {employee.employeeCode}
 							</p>
 							<p class="text-sm text-gray-500 mt-2">
-								{$_('drivers.licenseNumber')}: {driver.licenseNumber}
+								{$_('employees.licenseNumber')}: {employee.licenseNumber}
 							</p>
 						</div>
 						<div class="text-right">
-							<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {getStatusColor(driver.active)}">
-								{getStatusText(driver.active)}
+							<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {getStatusColor(employee.active)}">
+								{getStatusText(employee.active)}
 							</span>
 						</div>
 					</div>
 				</div>
 
-				<!-- Driver Information -->
+				<!-- Employee Information -->
 				<div class="px-6 py-6">
 					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 						<!-- Personal Information -->
 						<div class="space-y-4">
 							<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-								{$_('drivers.sections.basicInfo')}
+								{$_('employees.sections.basicInfo')}
 							</h3>
 							<div class="space-y-3">
 								<div>
-									<label class="block text-sm font-medium text-gray-500">{$_('drivers.firstName')}</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.firstName || $_('vehicles.notRecorded')}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('employees.firstName')}</label>
+									<p class="mt-1 text-sm text-gray-900">{employee.firstName || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">{$_('drivers.lastName')}</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.lastName || $_('vehicles.notRecorded')}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('employees.lastName')}</label>
+									<p class="mt-1 text-sm text-gray-900">{employee.lastName || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">{$_('drivers.idNumber')}</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.idNumber || $_('vehicles.notRecorded')}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('employees.idNumber')}</label>
+									<p class="mt-1 text-sm text-gray-900">{employee.idNumber || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">{$_('drivers.dateOfBirth')}</label>
-									<p class="mt-1 text-sm text-gray-900">{formatDate(driver.dateOfBirth)}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('employees.dateOfBirth')}</label>
+									<p class="mt-1 text-sm text-gray-900">{formatDate(employee.dateOfBirth)}</p>
 								</div>
 								<div>
 									<label class="block text-sm font-medium text-gray-500">Age</label>
-									<p class="mt-1 text-sm text-gray-900">{calculateAge(driver.dateOfBirth)} years old</p>
+									<p class="mt-1 text-sm text-gray-900">{calculateAge(employee.dateOfBirth)} years old</p>
 								</div>
 							</div>
 						</div>
@@ -280,28 +280,28 @@
 						<!-- License Information -->
 						<div class="space-y-4">
 							<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-								{$_('drivers.sections.licenseInfo')}
+								{$_('employees.sections.licenseInfo')}
 							</h3>
 							<div class="space-y-3">
 								<div>
-									<label class="block text-sm font-medium text-gray-500">{$_('drivers.licenseNumber')}</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.licenseNumber}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('employees.licenseNumber')}</label>
+									<p class="mt-1 text-sm text-gray-900">{employee.licenseNumber}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">{$_('drivers.licenseType')}</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.licenseType || $_('vehicles.notRecorded')}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('employees.licenseType')}</label>
+									<p class="mt-1 text-sm text-gray-900">{employee.licenseType || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">{$_('drivers.licenseExpiryDate')}</label>
-									<p class="mt-1 text-sm text-gray-900">{formatDate(driver.licenseExpiryDate)}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('employees.licenseExpiryDate')}</label>
+									<p class="mt-1 text-sm text-gray-900">{formatDate(employee.licenseExpiryDate)}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">{$_('drivers.hireDate')}</label>
-									<p class="mt-1 text-sm text-gray-900">{formatDate(driver.hireDate)}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('employees.hireDate')}</label>
+									<p class="mt-1 text-sm text-gray-900">{formatDate(employee.hireDate)}</p>
 								</div>
 								<div>
 									<label class="block text-sm font-medium text-gray-500">{$_('users.department')}</label>
-									<p class="mt-1 text-sm text-gray-900">{getDepartmentName(driver.departmentId)}</p>
+									<p class="mt-1 text-sm text-gray-900">{getDepartmentName(employee.departmentId)}</p>
 								</div>
 							</div>
 						</div>
@@ -309,29 +309,29 @@
 						<!-- Contact Information -->
 						<div class="space-y-4">
 							<h3 class="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-								{$_('drivers.sections.contactInfo')}
+								{$_('employees.sections.contactInfo')}
 							</h3>
 							<div class="space-y-3">
 								<div>
 									<label class="block text-sm font-medium text-gray-500">{$_('users.phoneNumber')}</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.phoneNumber || $_('vehicles.notRecorded')}</p>
+									<p class="mt-1 text-sm text-gray-900">{employee.phoneNumber || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">{$_('drivers.mobileNumber')}</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.mobileNumber || $_('vehicles.notRecorded')}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('employees.mobileNumber')}</label>
+									<p class="mt-1 text-sm text-gray-900">{employee.mobileNumber || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
 									<label class="block text-sm font-medium text-gray-500">{$_('users.email')}</label>
-									<p class="mt-1 text-sm text-gray-900">{driver.email || $_('vehicles.notRecorded')}</p>
+									<p class="mt-1 text-sm text-gray-900">{employee.email || $_('vehicles.notRecorded')}</p>
 								</div>
 								<div>
-									<label class="block text-sm font-medium text-gray-500">{$_('drivers.city')}</label>
-									<p class="mt-1 text-sm text-gray-900">{getCityName(driver.cityId)}</p>
+									<label class="block text-sm font-medium text-gray-500">{$_('employees.city')}</label>
+									<p class="mt-1 text-sm text-gray-900">{getCityName(employee.cityId)}</p>
 								</div>
-								{#if driver.address}
+								{#if employee.address}
 									<div>
-										<label class="block text-sm font-medium text-gray-500">{$_('drivers.address')}</label>
-										<p class="mt-1 text-sm text-gray-900">{driver.address}</p>
+										<label class="block text-sm font-medium text-gray-500">{$_('employees.address')}</label>
+										<p class="mt-1 text-sm text-gray-900">{employee.address}</p>
 									</div>
 								{/if}
 							</div>
@@ -405,15 +405,15 @@
 			<div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
 				<!-- Photos -->
 				<PhotoManager
-					entityType="driver"
-					entityId={driver.id}
+					entityType="employee"
+					entityId={employee.id}
 					title={$_('vehicles.vehiclePhotos')}
 				/>
 
 				<!-- Documents -->
 				<DocumentManager
-					entityType="driver"
-					entityId={driver.id}
+					entityType="employee"
+					entityId={employee.id}
 					title={$_('vehicles.vehicleDocuments')}
 				/>
 			</div>
@@ -425,7 +425,7 @@
 				<h3 class="mt-2 text-sm font-medium text-gray-900">{$_('vehicles.vehicleNotFound')}</h3>
 				<p class="mt-1 text-sm text-gray-500">{$_('vehicles.vehicleNotFoundDesc')}</p>
 				<div class="mt-6">
-					<a href="/drivers" class="btn btn-primary">
+					<a href="/employees" class="btn btn-primary">
 						{$_('common.back')}
 					</a>
 				</div>
@@ -434,16 +434,16 @@
 	</main>
 </div>
 
-<!-- Edit Driver Modal -->
-{#if driver}
+<!-- Edit Employee Modal -->
+{#if employee}
 	<Modal
 		open={showEditModal}
-		title={$_('drivers.editDriver')}
+		title={$_('employees.editEmployee')}
 		size="xl"
 		on:close={handleFormCancel}
 	>
-		<DriverForm
-			{driver}
+		<EmployeeForm
+			{employee}
 			{cities}
 			{departments}
 			{positions}

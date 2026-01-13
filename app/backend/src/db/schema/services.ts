@@ -65,7 +65,7 @@ export const insuranceRecords = sqliteTable('insurance_records', {
 export const accidentRecords = sqliteTable('accident_records', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   vehicleId: integer('vehicle_id').notNull().references(() => vehicles.id),
-  driverId: integer('driver_id'),
+  employeeId: integer('employee_id'),
   accidentDate: integer('accident_date', { mode: 'timestamp' }).notNull(),
   location: text('location'),
   description: text('description'),
@@ -85,7 +85,7 @@ export const accidentRecords = sqliteTable('accident_records', {
 export const penaltyRecords = sqliteTable('penalty_records', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   vehicleId: integer('vehicle_id').notNull().references(() => vehicles.id),
-  driverId: integer('driver_id'),
+  employeeId: integer('employee_id'),
   penaltyDefinitionId: integer('penalty_definition_id'),
   violationDate: integer('violation_date', { mode: 'timestamp' }).notNull(),
   violationLocation: text('violation_location'),

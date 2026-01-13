@@ -1,7 +1,7 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 import { vehicles } from './vehicles';
-import { drivers } from './drivers';
+import { employees } from './employees';
 import { suppliers } from './system';
 
 export const fuelTypes = sqliteTable('fuel_types', {
@@ -44,7 +44,7 @@ export const fuelTransactions = sqliteTable('fuel_transactions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   transactionType: text('transaction_type', { enum: ['purchase', 'consumption'] }).notNull(),
   vehicleId: integer('vehicle_id').notNull().references(() => vehicles.id),
-  driverId: integer('driver_id').references(() => drivers.id),
+  employeeId: integer('employee_id').references(() => employees.id),
   fuelTypeId: integer('fuel_type_id').notNull().references(() => fuelTypes.id),
   locationId: integer('location_id').references(() => fuelStations.id),
   supplierId: integer('supplier_id').references(() => suppliers.id),
@@ -170,7 +170,7 @@ export const fuelCards = sqliteTable('fuel_cards', {
 
   // Assignment
   vehicleId: integer('vehicle_id').references(() => vehicles.id),
-  driverId: integer('driver_id').references(() => drivers.id),
+  employeeId: integer('employee_id').references(() => employees.id),
 
   // Card details
   expiryDate: integer('expiry_date', { mode: 'timestamp' }),
