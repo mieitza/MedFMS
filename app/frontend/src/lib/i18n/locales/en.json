@@ -1,4 +1,17 @@
 {
+  "nav": {
+    "dashboard": "Dashboard",
+    "vehicles": "Vehicles",
+    "drivers": "Drivers",
+    "fuel": "Fuel",
+    "maintenance": "Maintenance",
+    "materials": "Materials",
+    "warehouse": "Warehouse",
+    "reports": "Reports",
+    "admin": "Administration",
+    "profile": "Profile",
+    "import": "Import"
+  },
   "common": {
     "appName": "MedFMS",
     "appFullName": "Medical Fleet Management System",
@@ -441,6 +454,9 @@
     "insuranceExpiry": "Insurance Expiry",
     "description": "Description",
     "location": "Location",
+    "status": "Status",
+    "department": "Department",
+    "import": "Import Vehicles",
     "unknown": "Unknown",
     "notAssigned": "Not assigned",
     "notRecorded": "Not recorded",

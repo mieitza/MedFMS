@@ -1,4 +1,17 @@
 {
+  "nav": {
+    "dashboard": "Panou de control",
+    "vehicles": "Vehicule",
+    "drivers": "Șoferi",
+    "fuel": "Combustibil",
+    "maintenance": "Întreținere",
+    "materials": "Materiale",
+    "warehouse": "Depozit",
+    "reports": "Rapoarte",
+    "admin": "Administrare",
+    "profile": "Profil",
+    "import": "Import"
+  },
   "common": {
     "appName": "MedFMS",
     "appFullName": "Sistem de Gestionare a Flotei Medicale",
@@ -637,6 +650,9 @@
     "insuranceExpiry": "Expirare Asigurare",
     "description": "Descriere",
     "location": "Locație",
+    "status": "Status",
+    "department": "Departament",
+    "import": "Import Vehicule",
     "unknown": "Necunoscut",
     "notAssigned": "Neatribuit",
     "notRecorded": "Neînregistrat",
