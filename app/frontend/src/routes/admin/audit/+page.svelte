@@ -213,42 +213,42 @@
 		}
 	}
 
-	// DataTable columns
+	// DataTable columns - all render functions guard against null/undefined values
 	const columns = [
 		{
 			key: 'timestamp',
 			label: $_('audit.table.timestamp'),
-			render: (row: any) => `<span class="text-sm text-gray-600">${formatDateTime(row.timestamp)}</span>`
+			render: (row: any) => `<span class="text-sm text-gray-600">${row?.timestamp ? formatDateTime(row.timestamp) : '-'}</span>`
 		},
 		{
 			key: 'username',
 			label: $_('audit.table.user'),
-			render: (row: any) => `<span class="font-medium">${row.username || row.userId || '-'}</span>`
+			render: (row: any) => `<span class="font-medium">${row?.username || row?.userId || '-'}</span>`
 		},
 		{
 			key: 'action',
 			label: $_('audit.table.action'),
-			render: (row: any) => `<span class="px-2 py-1 text-xs font-medium rounded-full ${formatActionBadge(row.action)}">${$_(`audit.actions.${row.action}`) || row.action}</span>`
+			render: (row: any) => row?.action ? `<span class="px-2 py-1 text-xs font-medium rounded-full ${formatActionBadge(row.action)}">${$_(`audit.actions.${row.action}`) || row.action}</span>` : '-'
 		},
 		{
 			key: 'resource',
 			label: $_('audit.table.resource'),
-			render: (row: any) => `<span class="px-2 py-1 text-xs font-medium rounded-full ${formatResourceBadge(row.resource)}">${$_(`audit.resources.${row.resource}`) || row.resource}</span>`
+			render: (row: any) => row?.resource ? `<span class="px-2 py-1 text-xs font-medium rounded-full ${formatResourceBadge(row.resource)}">${$_(`audit.resources.${row.resource}`) || row.resource}</span>` : '-'
 		},
 		{
 			key: 'resourceId',
 			label: $_('audit.table.resourceId'),
-			render: (row: any) => `<span class="text-sm text-gray-600">${row.resourceId || '-'}</span>`
+			render: (row: any) => `<span class="text-sm text-gray-600">${row?.resourceId || '-'}</span>`
 		},
 		{
 			key: 'ipAddress',
 			label: $_('audit.table.ipAddress'),
-			render: (row: any) => `<span class="text-sm text-gray-500 font-mono">${row.ipAddress || '-'}</span>`
+			render: (row: any) => `<span class="text-sm text-gray-500 font-mono">${row?.ipAddress || '-'}</span>`
 		},
 		{
 			key: 'actions',
 			label: $_('audit.table.details'),
-			render: (row: any) => `<button onclick="viewDetails(${row.id})" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">${$_('audit.table.details')}</button>`
+			render: (row: any) => row?.id ? `<button onclick="viewDetails(${row.id})" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">${$_('audit.table.details')}</button>` : '-'
 		}
 	];
 
