@@ -17,7 +17,8 @@
     "chart.js": "^4.0.0",
     "date-fns": "^3.0.0",
     "pdfjs-dist": "^5.4.394",
-    "svelte-i18n": "^4.0.1"
+    "svelte-i18n": "^4.0.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^3.0.0",
