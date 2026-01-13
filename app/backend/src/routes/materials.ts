@@ -36,20 +36,74 @@ router.get('/', async (req, res, next) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const search = req.query.search as string;
+    const warehouseId = req.query.warehouseId as string;
+    const categoryId = req.query.categoryId as string;
+    const materialTypeId = req.query.materialTypeId as string;
+    const lowStockOnly = req.query.lowStockOnly as string;
     const offset = (page - 1) * limit;
 
     const db = getDb();
 
-    let query = db.select().from(materials);
+    // Build conditions array
+    const conditions = [];
 
     if (search) {
-      query = query.where(
+      conditions.push(
         or(
           like(materials.materialCode, `%${search}%`),
           like(materials.materialName, `%${search}%`)
         )
       );
     }
+
+    if (warehouseId) {
+      conditions.push(eq(materials.warehouseId, parseInt(warehouseId)));
+    }
+
+    if (categoryId) {
+      conditions.push(eq(materials.categoryId, parseInt(categoryId)));
+    }
+
+    if (materialTypeId) {
+      conditions.push(eq(materials.materialTypeId, parseInt(materialTypeId)));
+    }
+
+    if (lowStockOnly === 'true') {
+      conditions.push(sql`${materials.currentStock} <= ${materials.criticalLevel}`);
+    }
+
+    // Build query with joins for unit info
+    let query = db.select({
+      id: materials.id,
+      materialCode: materials.materialCode,
+      materialName: materials.materialName,
+      description: materials.description,
+      categoryId: materials.categoryId,
+      materialTypeId: materials.materialTypeId,
+      unitId: materials.unitId,
+      currentStock: materials.currentStock,
+      criticalLevel: materials.criticalLevel,
+      standardPrice: materials.standardPrice,
+      warehouseId: materials.warehouseId,
+      expirationDate: materials.expirationDate,
+      active: materials.active,
+      createdAt: materials.createdAt,
+      updatedAt: materials.updatedAt,
+      unit: materialUnits
+    })
+    .from(materials)
+    .leftJoin(materialUnits, eq(materials.unitId, materialUnits.id));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    // Get total count for pagination
+    let countQuery = db.select({ count: sql<number>`count(*)` }).from(materials);
+    if (conditions.length > 0) {
+      countQuery = countQuery.where(and(...conditions));
+    }
+    const [{ count: total }] = await countQuery;
 
     const results = await query.limit(limit).offset(offset);
 
@@ -59,7 +113,7 @@ router.get('/', async (req, res, next) => {
       pagination: {
         page,
         limit,
-        total: results.length
+        total
       }
     });
   } catch (error) {
