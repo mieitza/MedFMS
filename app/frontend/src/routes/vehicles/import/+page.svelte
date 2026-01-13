@@ -10,12 +10,15 @@
   let parsedData: any[] = [];
   let previewData: any[] = [];
   let importing = false;
+  let validating = false;
   let importResult: any = null;
+  let validationResult: any = null;
   let showPreview = false;
   let loading = false;
   let templateInfo: any = null;
+  let rollingBack = false;
 
-  // Expected columns based on backend schema
+  // Expected columns based on backend schema (including ANMDM fields)
   const expectedColumns = [
     'vehicleCode',
     'licensePlate',
@@ -34,7 +37,14 @@
     'registrationDate',
     'acquisitionDate',
     'purchasePrice',
-    'currentValue'
+    'currentValue',
+    // ANMDM fields
+    'anmdmAuthNumber',
+    'anmdmAuthType',
+    'anmdmIssueDate',
+    'anmdmExpiryDate',
+    'anmdmIssuingAuthority',
+    'anmdmNotes'
   ];
 
   onMount(async () => {
@@ -71,6 +81,7 @@
     }
 
     selectedFile = file;
+    validationResult = null;
     parseExcelFile(file);
   }
 
@@ -123,6 +134,31 @@
     reader.readAsArrayBuffer(file);
   }
 
+  async function handleValidate() {
+    if (!parsedData || parsedData.length === 0) {
+      alert($_('vehicleImport.messages.noData') || 'No data to validate');
+      return;
+    }
+
+    try {
+      validating = true;
+      validationResult = null;
+
+      const result = await api.post('/vehicles/import/validate', { vehicles: parsedData });
+
+      if (result.success) {
+        validationResult = result.data;
+      } else {
+        alert(result.message || 'Validation failed');
+      }
+    } catch (error: any) {
+      console.error('Validation error:', error);
+      alert(`Validation failed: ${error.message}`);
+    } finally {
+      validating = false;
+    }
+  }
+
   async function handleImport() {
     if (!parsedData || parsedData.length === 0) {
       alert($_('vehicleImport.messages.noData') || 'No data to import');
@@ -151,6 +187,7 @@
         parsedData = [];
         previewData = [];
         showPreview = false;
+        validationResult = null;
         if (fileInput) fileInput.value = '';
       } else {
         const errorMsg = $_('vehicleImport.messages.importFailed')?.replace('{error}', result.message || 'Unknown error')
@@ -167,12 +204,42 @@
     }
   }
 
+  async function handleRollback() {
+    if (!importResult?.data?.batchId) {
+      alert('No batch ID available for rollback');
+      return;
+    }
+
+    const confirmMsg = 'Are you sure you want to rollback this import? All imported vehicles will be removed.';
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+
+    try {
+      rollingBack = true;
+      const result = await api.post(`/vehicles/import/${importResult.data.batchId}/rollback`);
+
+      if (result.success) {
+        alert($_('vehicleImport.results.rollbackSuccess') || 'Import rolled back successfully');
+        importResult = null;
+      } else {
+        alert($_('vehicleImport.results.rollbackFailed') || 'Failed to rollback import');
+      }
+    } catch (error: any) {
+      console.error('Rollback error:', error);
+      alert(`Rollback failed: ${error.message}`);
+    } finally {
+      rollingBack = false;
+    }
+  }
+
   function resetForm() {
     selectedFile = null;
     parsedData = [];
     previewData = [];
     showPreview = false;
     importResult = null;
+    validationResult = null;
     if (fileInput) fileInput.value = '';
   }
 
@@ -180,7 +247,7 @@
     // Create a template workbook
     const templateData = [
       expectedColumns, // Headers
-      ['VH001', 'B-123-ABC', 'Toyota', 'Corolla', 2022, 'Diesel', 'Car', 'Active', '', '', 50000, '', '', '', '', '', '', ''] // Example row
+      ['VH001', 'B-123-ABC', 'Toyota', 'Corolla', 2022, 'Diesel', 'Car', 'Active', '', '', 50000, '', '', '', '', '', '', '', '', '', '', '', '', ''] // Example row
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(templateData);
@@ -289,6 +356,8 @@
           <span class="text-gray-600">engineNumber</span>
           <span class="text-gray-600">chassisNumber</span>
           <span class="text-gray-600">description</span>
+          <span class="text-gray-600">anmdmAuthNumber</span>
+          <span class="text-gray-600">anmdmExpiryDate</span>
         </div>
         <p class="mt-2 text-xs text-blue-600">* {$_('vehicleImport.requiredNote') || 'Required fields. Names are case-insensitive and matched against existing reference data.'}</p>
       </div>
@@ -326,6 +395,56 @@
       </div>
     </div>
 
+    <!-- Validation Result Section -->
+    {#if validationResult}
+      <div class="bg-white p-6 rounded-lg shadow border mb-6">
+        <h3 class="text-xl font-bold mb-4">{$_('vehicleImport.validation.title') || 'Validation Results'}</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div class="text-sm text-green-600 font-medium">{$_('vehicleImport.validation.validRows') || 'Valid Rows'}</div>
+            <div class="text-2xl font-bold text-green-700">{validationResult.validRows || 0}</div>
+          </div>
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div class="text-sm text-red-600 font-medium">{$_('vehicleImport.validation.invalidRows') || 'Invalid Rows'}</div>
+            <div class="text-2xl font-bold text-red-700">{validationResult.invalidRows || 0}</div>
+          </div>
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="text-sm text-blue-600 font-medium">Total Rows</div>
+            <div class="text-2xl font-bold text-blue-700">{validationResult.totalRows || 0}</div>
+          </div>
+        </div>
+
+        {#if validationResult.invalidRows === 0}
+          <div class="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
+            <svg class="w-6 h-6 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-green-700 font-medium">{$_('vehicleImport.validation.passed') || 'Validation Passed'} - Ready to import!</span>
+          </div>
+        {:else}
+          <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex items-center mb-2">
+              <svg class="w-6 h-6 text-yellow-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span class="text-yellow-700 font-medium">{$_('vehicleImport.validation.failed') || 'Validation Failed'}</span>
+            </div>
+            <div class="bg-white border border-yellow-200 rounded p-4 max-h-48 overflow-y-auto">
+              {#each validationResult.errors?.slice(0, 20) || [] as error}
+                <div class="text-sm text-red-700 mb-1">
+                  <span class="font-medium">{$_('vehicleImport.results.row') || 'Row'} {error.row}:</span> {error.error}
+                </div>
+              {/each}
+              {#if (validationResult.errors?.length || 0) > 20}
+                <p class="text-sm text-gray-500 mt-2">... and {validationResult.errors.length - 20} more errors</p>
+              {/if}
+            </div>
+          </div>
+        {/if}
+      </div>
+    {/if}
+
     <!-- Preview Section -->
     {#if showPreview && parsedData.length > 0}
       <div class="bg-white p-6 rounded-lg shadow border mb-6">
@@ -340,13 +459,31 @@
             <button
               on:click={resetForm}
               class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-              disabled={importing}
+              disabled={importing || validating}
             >
               {$_('common.cancel') || 'Cancel'}
             </button>
             <button
+              on:click={handleValidate}
+              disabled={validating || importing}
+              class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+            >
+              {#if validating}
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {$_('vehicleImport.dryRun.validating') || 'Validating...'}
+              {:else}
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {$_('vehicleImport.dryRun.button') || 'Validate Data'}
+              {/if}
+            </button>
+            <button
               on:click={handleImport}
-              disabled={importing}
+              disabled={importing || validating}
               class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
             >
               {#if importing}
@@ -408,7 +545,7 @@
       <div class="bg-white p-6 rounded-lg shadow border mb-6">
         <h3 class="text-xl font-bold mb-4">{$_('vehicleImport.results.title') || 'Import Results'}</h3>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           <div class="bg-green-50 border border-green-200 rounded-lg p-4">
             <div class="text-sm text-green-600 font-medium">{$_('vehicleImport.results.successful') || 'Successfully Imported'}</div>
             <div class="text-2xl font-bold text-green-700">{importResult.data?.success || 0}</div>
@@ -421,6 +558,12 @@
             <div class="text-sm text-blue-600 font-medium">{$_('vehicleImport.results.batchId') || 'Batch ID'}</div>
             <div class="text-sm font-mono text-blue-700 truncate">{importResult.data?.batchId || '-'}</div>
           </div>
+          {#if importResult.data?.canRollback}
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div class="text-sm text-yellow-600 font-medium">{$_('vehicleImport.transaction.canRollback') || 'Rollback Available'}</div>
+              <div class="text-xs text-yellow-700">24h window</div>
+            </div>
+          {/if}
         </div>
 
         {#if importResult.data?.errors && importResult.data.errors.length > 0}
@@ -438,10 +581,30 @@
           </div>
         {/if}
 
-        <div class="mt-4">
+        <div class="mt-4 flex gap-3">
           <a href="/vehicles" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
             {$_('vehicleImport.viewVehicles') || 'View Vehicles'}
           </a>
+          {#if importResult.data?.canRollback && importResult.data?.success > 0}
+            <button
+              on:click={handleRollback}
+              disabled={rollingBack}
+              class="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 disabled:opacity-50"
+            >
+              {#if rollingBack}
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Rolling back...
+              {:else}
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+                {$_('vehicleImport.results.rollback') || 'Rollback Import'}
+              {/if}
+            </button>
+          {/if}
         </div>
       </div>
     {/if}

@@ -1739,6 +1739,89 @@
       }
     }
   },
+  "vehicleImport": {
+    "pageTitle": "Import Vehicule - MedFMS",
+    "title": "Importați Vehicule din Excel",
+    "description": "Încărcați un fișier Excel (.xlsx sau .xls) care conține datele vehiculelor. Fișierul trebuie să aibă antetele pe primul rând.",
+    "breadcrumb": "Import",
+    "backToVehicles": "Înapoi la Vehicule",
+    "downloadTemplate": "Descarcă Șablon",
+    "requiredColumns": "Coloane Obligatorii",
+    "requiredNote": "Câmpuri obligatorii. Denumirile nu sunt sensibile la majuscule și sunt potrivite cu datele de referință existente.",
+    "selectFile": "Selectați Fișier Excel",
+    "selectedFile": "Fișier selectat:",
+    "upload": {
+      "invalidFileType": "Vă rugăm să selectați un fișier Excel (.xlsx sau .xls)",
+      "noData": "Nu s-au găsit date în fișierul Excel",
+      "parseError": "Eroare la parsarea fișierului Excel"
+    },
+    "preview": {
+      "title": "Previzualizare Date",
+      "count": "S-au găsit {count} vehicule de importat",
+      "moreRows": "... și încă {count} rânduri"
+    },
+    "validation": {
+      "title": "Rezultate Validare",
+      "running": "Se validează datele...",
+      "passed": "Validare Reușită",
+      "failed": "Validare Eșuată",
+      "warnings": "Avertismente",
+      "errors": "Erori",
+      "validRows": "Rânduri Valide",
+      "invalidRows": "Rânduri Invalide",
+      "proceedWithValid": "Continuă doar cu rândurile valide"
+    },
+    "dryRun": {
+      "title": "Verificare Preliminară",
+      "description": "Validați datele fără a importa. Verificați erorile înainte de a confirma.",
+      "button": "Validează Datele",
+      "validating": "Se validează..."
+    },
+    "importing": "Se importă...",
+    "importButton": "Importați {count} Vehicule",
+    "viewVehicles": "Vezi Vehicule",
+    "results": {
+      "title": "Rezultate Import",
+      "successful": "Importate cu Succes",
+      "failed": "Eșuate",
+      "batchId": "ID Lot",
+      "errorsTitle": "{count} Erori",
+      "row": "Rând",
+      "rollback": "Anulează Importul",
+      "rollbackSuccess": "Import anulat cu succes",
+      "rollbackFailed": "Anularea importului a eșuat"
+    },
+    "referenceData": {
+      "title": "Date de Referință Disponibile",
+      "description": "Folosiți aceste valori exacte în fișierul Excel. Denumirile nu sunt sensibile la majuscule."
+    },
+    "messages": {
+      "noData": "Nu există date de importat",
+      "confirmImport": "Sigur doriți să importați {count} vehicule?",
+      "importSuccess": "Import finalizat cu succes",
+      "importFailed": "Importul a eșuat: {error}",
+      "validationSuccess": "Toate cele {count} vehicule au fost validate cu succes",
+      "validationFailed": "S-au găsit {count} erori de validare"
+    },
+    "documents": {
+      "title": "Import Documente și Fotografii",
+      "description": "Opțional încărcați documentele ANMDM și fotografiile pentru vehiculele importate",
+      "anmdmDocuments": "Documente Autorizare ANMDM",
+      "vehiclePhotos": "Fotografii Vehicule",
+      "matchBy": "Potriviți documentele după codul vehiculului sau numărul de înmatriculare din numele fișierului",
+      "uploadHint": "Încărcați documentele după import. Numele fișierului trebuie să conțină codul vehiculului sau numărul de înmatriculare.",
+      "processing": "Se procesează documentele...",
+      "matched": "S-au potrivit {count} documente cu vehiculele",
+      "unmatched": "{count} documente nu au putut fi potrivite"
+    },
+    "transaction": {
+      "inProgress": "Tranzacție în curs...",
+      "success": "Toate vehiculele au fost importate cu succes",
+      "partialSuccess": "{success} vehicule importate, {failed} eșuate",
+      "rolledBack": "Importul a fost anulat din cauza erorilor",
+      "canRollback": "Puteți anula acest import în termen de 24 de ore"
+    }
+  },
   "inventory": {
     "title": "Inventar Medical",
     "addItem": "Adaugă Articol",

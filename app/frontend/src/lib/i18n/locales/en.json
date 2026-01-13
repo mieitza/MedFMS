@@ -1491,6 +1491,89 @@
       }
     }
   },
+  "vehicleImport": {
+    "pageTitle": "Vehicle Import - MedFMS",
+    "title": "Import Vehicles from Excel",
+    "description": "Upload an Excel file (.xlsx or .xls) containing vehicle data. The file should have headers in the first row.",
+    "breadcrumb": "Import",
+    "backToVehicles": "Back to Vehicles",
+    "downloadTemplate": "Download Template",
+    "requiredColumns": "Required Columns",
+    "requiredNote": "Required fields. Names are case-insensitive and matched against existing reference data.",
+    "selectFile": "Select Excel File",
+    "selectedFile": "Selected file:",
+    "upload": {
+      "invalidFileType": "Please select an Excel file (.xlsx or .xls)",
+      "noData": "No data found in the Excel file",
+      "parseError": "Error parsing the Excel file"
+    },
+    "preview": {
+      "title": "Data Preview",
+      "count": "Found {count} vehicles to import",
+      "moreRows": "... and {count} more rows"
+    },
+    "validation": {
+      "title": "Validation Results",
+      "running": "Validating data...",
+      "passed": "Validation Passed",
+      "failed": "Validation Failed",
+      "warnings": "Warnings",
+      "errors": "Errors",
+      "validRows": "Valid Rows",
+      "invalidRows": "Invalid Rows",
+      "proceedWithValid": "Proceed with valid rows only"
+    },
+    "dryRun": {
+      "title": "Dry Run",
+      "description": "Validate your data without importing. Check for errors before committing.",
+      "button": "Validate Data",
+      "validating": "Validating..."
+    },
+    "importing": "Importing...",
+    "importButton": "Import {count} Vehicles",
+    "viewVehicles": "View Vehicles",
+    "results": {
+      "title": "Import Results",
+      "successful": "Successfully Imported",
+      "failed": "Failed",
+      "batchId": "Batch ID",
+      "errorsTitle": "{count} Errors",
+      "row": "Row",
+      "rollback": "Rollback Import",
+      "rollbackSuccess": "Import rolled back successfully",
+      "rollbackFailed": "Failed to rollback import"
+    },
+    "referenceData": {
+      "title": "Available Reference Data",
+      "description": "Use these exact values in your Excel file. Names are case-insensitive."
+    },
+    "messages": {
+      "noData": "No data to import",
+      "confirmImport": "Are you sure you want to import {count} vehicles?",
+      "importSuccess": "Import completed successfully",
+      "importFailed": "Import failed: {error}",
+      "validationSuccess": "All {count} vehicles validated successfully",
+      "validationFailed": "{count} validation errors found"
+    },
+    "documents": {
+      "title": "Import Documents & Photos",
+      "description": "Optionally upload ANMDM documents and photos for imported vehicles",
+      "anmdmDocuments": "ANMDM Authorization Documents",
+      "vehiclePhotos": "Vehicle Photos",
+      "matchBy": "Match documents by vehicle code or license plate in filename",
+      "uploadHint": "Upload documents after import. Filename should contain vehicle code or license plate.",
+      "processing": "Processing documents...",
+      "matched": "Matched {count} documents to vehicles",
+      "unmatched": "{count} documents could not be matched"
+    },
+    "transaction": {
+      "inProgress": "Transaction in progress...",
+      "success": "All vehicles imported successfully",
+      "partialSuccess": "{success} vehicles imported, {failed} failed",
+      "rolledBack": "Import rolled back due to errors",
+      "canRollback": "You can rollback this import within 24 hours"
+    }
+  },
   "inventory": {
     "title": "Medical Inventory",
     "addItem": "Add Item",

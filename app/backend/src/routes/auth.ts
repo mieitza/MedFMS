@@ -141,9 +141,11 @@ router.post('/register', async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(data.password, parseInt(process.env.PASSWORD_SALT_ROUNDS || '10'));
 
     // Create user with password (no PIN, mustResetPassword = false for new users)
+    // Note: pin is set to empty string for legacy NOT NULL constraint compatibility
     const result = await db.insert(users).values({
       username: data.username,
       email: data.email,
+      pin: '', // Legacy field - kept for database compatibility
       password: hashedPassword,
       mustResetPassword: false,
       fullName: data.fullName,
