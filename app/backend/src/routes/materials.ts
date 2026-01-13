@@ -741,6 +741,58 @@ router.put('/warehouses/:id', authorize('admin', 'manager'), async (req, res, ne
   }
 });
 
+// PATCH /api/materials/warehouses/:id - Partial update warehouse
+router.patch('/warehouses/:id', authorize('admin', 'manager'), async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const schema = z.object({
+      warehouseCode: z.string().min(1).max(50).optional(),
+      warehouseName: z.string().min(1).max(100).optional(),
+      description: z.string().optional(),
+      locationId: z.number().optional(),
+      capacity: z.number().optional(),
+      responsiblePersonId: z.number().optional(),
+    });
+
+    const data = schema.parse(req.body);
+
+    const db = getDb();
+
+    const [existing] = await db.select()
+      .from(warehouses)
+      .where(eq(warehouses.id, id))
+      .limit(1);
+
+    if (!existing) {
+      throw new AppError('Warehouse not found', 404);
+    }
+
+    // Check if warehouse code is being changed and if it conflicts with another warehouse
+    if (data.warehouseCode && data.warehouseCode !== existing.warehouseCode) {
+      const [codeConflict] = await db.select()
+        .from(warehouses)
+        .where(eq(warehouses.warehouseCode, data.warehouseCode))
+        .limit(1);
+
+      if (codeConflict) {
+        throw new AppError('Warehouse code already exists', 409);
+      }
+    }
+
+    const result = await db.update(warehouses)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(warehouses.id, id))
+      .returning();
+
+    res.json({
+      success: true,
+      data: result[0]
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ========== Material Units Routes ==========
 
 // GET /api/materials/units - Get all material units

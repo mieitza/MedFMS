@@ -1300,13 +1300,14 @@ export const api = {
 
   async patchWarehouse(id, partialData) {
     const response = await fetch(`${API_BASE_URL}/materials/warehouses/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(partialData),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to patch warehouse');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || 'Failed to patch warehouse');
     }
 
     return response.json();
