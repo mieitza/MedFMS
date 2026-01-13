@@ -322,6 +322,15 @@
 					</nav>
 				</div>
 				<div class="flex items-center space-x-4">
+					<a
+						href="/vehicles/import"
+						class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 font-medium rounded-md transition-colors"
+					>
+						<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+						</svg>
+						{$_('vehicles.import') || 'Import'}
+					</a>
 					<button
 						on:click={handleAddVehicle}
 						class="btn btn-primary"
