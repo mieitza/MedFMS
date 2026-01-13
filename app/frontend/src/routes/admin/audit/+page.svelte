@@ -129,9 +129,13 @@
 		selectedLog = null;
 	}
 
-	function formatDateTime(dateString: string) {
-		if (!dateString) return '-';
-		return new Date(dateString).toLocaleString();
+	function formatDateTime(dateValue: string | number | Date) {
+		if (!dateValue) return '-';
+		// Handle both ISO string, timestamp number, and Date object
+		const date = typeof dateValue === 'number'
+			? new Date(dateValue)
+			: new Date(dateValue);
+		return isNaN(date.getTime()) ? '-' : date.toLocaleString();
 	}
 
 	function formatActionBadge(action: string) {
@@ -179,8 +183,8 @@
 
 			const headers = ['Timestamp', 'User', 'Action', 'Resource', 'Resource ID', 'IP Address', 'Details'];
 			const rows = response.data.map((log: any) => [
-				formatDateTime(log.createdAt),
-				log.user?.fullName || log.userId || '-',
+				formatDateTime(log.timestamp),
+				log.username || log.userId || '-',
 				log.action || '-',
 				log.resource || '-',
 				log.resourceId || '-',
@@ -207,14 +211,14 @@
 	// DataTable columns
 	const columns = [
 		{
-			key: 'createdAt',
+			key: 'timestamp',
 			label: $_('audit.table.timestamp'),
-			render: (row: any) => `<span class="text-sm text-gray-600">${formatDateTime(row.createdAt)}</span>`
+			render: (row: any) => `<span class="text-sm text-gray-600">${formatDateTime(row.timestamp)}</span>`
 		},
 		{
-			key: 'user',
+			key: 'username',
 			label: $_('audit.table.user'),
-			render: (row: any) => `<span class="font-medium">${row.user?.fullName || row.userId || '-'}</span>`
+			render: (row: any) => `<span class="font-medium">${row.username || row.userId || '-'}</span>`
 		},
 		{
 			key: 'action',
@@ -430,11 +434,11 @@
 				<div class="grid grid-cols-2 gap-4">
 					<div>
 						<span class="text-sm text-gray-500">{$_('audit.table.timestamp')}</span>
-						<p class="font-medium">{formatDateTime(selectedLog.createdAt)}</p>
+						<p class="font-medium">{formatDateTime(selectedLog.timestamp)}</p>
 					</div>
 					<div>
 						<span class="text-sm text-gray-500">{$_('audit.table.user')}</span>
-						<p class="font-medium">{selectedLog.user?.fullName || selectedLog.userId || '-'}</p>
+						<p class="font-medium">{selectedLog.username || selectedLog.userId || '-'}</p>
 					</div>
 					<div>
 						<span class="text-sm text-gray-500">{$_('audit.table.action')}</span>
