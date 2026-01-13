@@ -128,20 +128,23 @@
 
   async function loadWarehouseMaterials() {
     try {
-      // Load materials filtered by warehouse
+      // Load materials filtered by warehouse ID
       const materialsResponse = await api.getMaterials({
         page: currentPage,
         limit: pageSize,
-        search: searchTerm
+        search: searchTerm,
+        warehouseId: warehouseId
       });
 
-      // Filter materials by warehouse ID (assuming the API returns all materials)
-      materials = materialsResponse.data.filter(material => material.warehouseId === warehouseId);
-      totalItems = materials.length;
+      materials = materialsResponse.data || [];
+      totalItems = materialsResponse.pagination?.total || materials.length;
 
       // Also load low stock materials for this warehouse
-      const lowStockResponse = await api.getLowStockMaterials();
-      lowStockMaterials = lowStockResponse.data.filter(material => material.warehouseId === warehouseId);
+      const lowStockResponse = await api.getMaterials({
+        warehouseId: warehouseId,
+        lowStockOnly: true
+      });
+      lowStockMaterials = lowStockResponse.data || [];
     } catch (error) {
       console.error('Error loading warehouse materials:', error);
     }
