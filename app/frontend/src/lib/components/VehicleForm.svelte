@@ -36,7 +36,11 @@
 		anmdmIssueDate: '',
 		anmdmExpiryDate: '',
 		anmdmIssuingAuthority: '',
-		anmdmNotes: ''
+		anmdmNotes: '',
+		// Document expiry dates
+		rovinietaExpiryDate: '',
+		asigurareExpiryDate: '',
+		itpExpiryDate: ''
 	};
 
 	let filteredModels = [];
@@ -74,7 +78,11 @@
 				anmdmIssueDate: vehicle.anmdmIssueDate ? new Date(vehicle.anmdmIssueDate).toISOString().split('T')[0] : '',
 				anmdmExpiryDate: vehicle.anmdmExpiryDate ? new Date(vehicle.anmdmExpiryDate).toISOString().split('T')[0] : '',
 				anmdmIssuingAuthority: vehicle.anmdmIssuingAuthority || '',
-				anmdmNotes: vehicle.anmdmNotes || ''
+				anmdmNotes: vehicle.anmdmNotes || '',
+				// Document expiry dates
+				rovinietaExpiryDate: vehicle.rovinietaExpiryDate ? new Date(vehicle.rovinietaExpiryDate).toISOString().split('T')[0] : '',
+				asigurareExpiryDate: vehicle.asigurareExpiryDate ? new Date(vehicle.asigurareExpiryDate).toISOString().split('T')[0] : '',
+				itpExpiryDate: vehicle.itpExpiryDate ? new Date(vehicle.itpExpiryDate).toISOString().split('T')[0] : ''
 			};
 			updateFilteredModels();
 
@@ -725,6 +733,54 @@
 						{/if}
 					</div>
 				{/if}
+			</div>
+		</div>
+
+		<!-- Document Expiry Dates Section -->
+		<div class="mt-8">
+			<h4 class="text-md font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+				{$_('vehicles.sections.documentExpiry')}
+			</h4>
+
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+				<!-- Rovinieta Expiry Date -->
+				<div>
+					<label for="rovinietaExpiryDate" class="block text-sm font-medium text-gray-700 mb-1">
+						{$_('vehicles.rovinietaExpiryDate')}
+					</label>
+					<input
+						id="rovinietaExpiryDate"
+						type="date"
+						bind:value={formData.rovinietaExpiryDate}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+					/>
+				</div>
+
+				<!-- Asigurare Expiry Date -->
+				<div>
+					<label for="asigurareExpiryDate" class="block text-sm font-medium text-gray-700 mb-1">
+						{$_('vehicles.asigurareExpiryDate')}
+					</label>
+					<input
+						id="asigurareExpiryDate"
+						type="date"
+						bind:value={formData.asigurareExpiryDate}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+					/>
+				</div>
+
+				<!-- ITP Expiry Date -->
+				<div>
+					<label for="itpExpiryDate" class="block text-sm font-medium text-gray-700 mb-1">
+						{$_('vehicles.itpExpiryDate')}
+					</label>
+					<input
+						id="itpExpiryDate"
+						type="date"
+						bind:value={formData.itpExpiryDate}
+						class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+					/>
+				</div>
 			</div>
 		</div>
 

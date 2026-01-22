@@ -128,6 +128,10 @@ const vehicleSchema = z.object({
   anmdmExpiryDate: z.string().optional(), // Will be converted to timestamp
   anmdmIssuingAuthority: z.string().optional(),
   anmdmNotes: z.string().optional(),
+  // Document expiry dates
+  rovinietaExpiryDate: z.string().optional(), // Will be converted to timestamp
+  asigurareExpiryDate: z.string().optional(), // Will be converted to timestamp
+  itpExpiryDate: z.string().optional(), // Will be converted to timestamp
 });
 
 // Get all vehicles with pagination and search
@@ -263,6 +267,10 @@ router.get('/:id', async (req, res, next) => {
         anmdmIssuingAuthority: vehicles.anmdmIssuingAuthority,
         anmdmNotes: vehicles.anmdmNotes,
         anmdmDocumentPath: vehicles.anmdmDocumentPath,
+        // Document expiry dates
+        rovinietaExpiryDate: vehicles.rovinietaExpiryDate,
+        asigurareExpiryDate: vehicles.asigurareExpiryDate,
+        itpExpiryDate: vehicles.itpExpiryDate,
         createdAt: vehicles.createdAt,
         updatedAt: vehicles.updatedAt
       })
@@ -323,6 +331,22 @@ router.post('/', authorize('admin', 'manager', 'operator'), async (req, res, nex
     } else {
       delete insertData.anmdmExpiryDate;
     }
+    // Convert document expiry date strings to timestamps
+    if (data.rovinietaExpiryDate && data.rovinietaExpiryDate.trim() !== '') {
+      insertData.rovinietaExpiryDate = new Date(data.rovinietaExpiryDate);
+    } else {
+      delete insertData.rovinietaExpiryDate;
+    }
+    if (data.asigurareExpiryDate && data.asigurareExpiryDate.trim() !== '') {
+      insertData.asigurareExpiryDate = new Date(data.asigurareExpiryDate);
+    } else {
+      delete insertData.asigurareExpiryDate;
+    }
+    if (data.itpExpiryDate && data.itpExpiryDate.trim() !== '') {
+      insertData.itpExpiryDate = new Date(data.itpExpiryDate);
+    } else {
+      delete insertData.itpExpiryDate;
+    }
 
     const result = await db.insert(vehicles).values(insertData).returning();
 
@@ -354,6 +378,22 @@ router.put('/:id', authorize('admin', 'manager', 'operator'), async (req, res, n
       updateData.anmdmExpiryDate = new Date(data.anmdmExpiryDate);
     } else if (data.anmdmExpiryDate === '') {
       updateData.anmdmExpiryDate = null;
+    }
+    // Convert document expiry date strings to timestamps
+    if (data.rovinietaExpiryDate && data.rovinietaExpiryDate.trim() !== '') {
+      updateData.rovinietaExpiryDate = new Date(data.rovinietaExpiryDate);
+    } else if (data.rovinietaExpiryDate === '') {
+      updateData.rovinietaExpiryDate = null;
+    }
+    if (data.asigurareExpiryDate && data.asigurareExpiryDate.trim() !== '') {
+      updateData.asigurareExpiryDate = new Date(data.asigurareExpiryDate);
+    } else if (data.asigurareExpiryDate === '') {
+      updateData.asigurareExpiryDate = null;
+    }
+    if (data.itpExpiryDate && data.itpExpiryDate.trim() !== '') {
+      updateData.itpExpiryDate = new Date(data.itpExpiryDate);
+    } else if (data.itpExpiryDate === '') {
+      updateData.itpExpiryDate = null;
     }
 
     const result = await db.update(vehicles)

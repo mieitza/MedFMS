@@ -1,6 +1,7 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 import { vehicles } from './vehicles';
+import { drivers } from './drivers';
 
 // Define inventory item categories
 export const vehicleInventoryCategories = sqliteTable('vehicle_inventory_categories', {
@@ -73,6 +74,9 @@ export const vehicleInventoryAssignments = sqliteTable('vehicle_inventory_assign
   // Additional info
   location: text('location'), // Location within vehicle (e.g., "trunk", "cabin", "driver seat")
   notes: text('notes'),
+
+  // Assigned employee (for items like oxygen tubes that need responsible person tracking)
+  assignedEmployeeId: integer('assigned_employee_id').references(() => drivers.id),
 
   active: integer('active', { mode: 'boolean' }).notNull().default(true),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),

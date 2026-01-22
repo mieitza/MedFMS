@@ -9,6 +9,8 @@
 
   let materials = [];
   let formTracker = null; // For tracking changed fields when editing
+  let selectedMaterialIds = []; // For bulk selection
+  let isDeleting = false;
   let warehouses = [
     {
       id: 1,
@@ -65,7 +67,13 @@
   };
 
   // Data table columns
-  const columns = [
+  $: columns = [
+    {
+      key: 'select',
+      label: `<input type="checkbox" ${allSelected ? 'checked' : ''} onclick="document.dispatchEvent(new CustomEvent('toggleSelectAll'))" class="w-4 h-4 cursor-pointer" />`,
+      sortable: false,
+      render: (value, row) => `<input type="checkbox" ${selectedMaterialIds.includes(row?.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleMaterialSelection(${row?.id})" class="w-4 h-4 cursor-pointer" />`
+    },
     {
       key: 'materialCode',
       label: $_('materials.materialCode'),
@@ -416,6 +424,59 @@
       alert($_('materials.messages.deleteFailed') + ': ' + error.message);
     }
   }
+
+  // Bulk selection functions
+  function toggleMaterialSelection(id) {
+    if (selectedMaterialIds.includes(id)) {
+      selectedMaterialIds = selectedMaterialIds.filter(i => i !== id);
+    } else {
+      selectedMaterialIds = [...selectedMaterialIds, id];
+    }
+  }
+
+  function toggleSelectAll() {
+    if (selectedMaterialIds.length === materials.length) {
+      selectedMaterialIds = [];
+    } else {
+      selectedMaterialIds = materials.map(m => m.id);
+    }
+  }
+
+  $: allSelected = materials.length > 0 && selectedMaterialIds.length === materials.length;
+
+  async function bulkDeleteMaterials() {
+    if (selectedMaterialIds.length === 0) {
+      alert($_('materials.messages.noItemsSelected') || 'No items selected');
+      return;
+    }
+
+    if (!confirm($_('materials.messages.bulkDeleteConfirm', { values: { count: selectedMaterialIds.length } }) || `Are you sure you want to delete ${selectedMaterialIds.length} item(s)?`)) {
+      return;
+    }
+
+    try {
+      isDeleting = true;
+      const response = await api.bulkDeleteMaterials(selectedMaterialIds);
+      selectedMaterialIds = [];
+      await loadMaterials();
+      alert($_('materials.messages.bulkDeleteSuccess', { values: { count: response.data?.deleted || selectedMaterialIds.length } }) || `${response.data?.deleted || selectedMaterialIds.length} item(s) deleted successfully`);
+    } catch (error) {
+      console.error('Error bulk deleting materials:', error);
+      alert($_('materials.messages.bulkDeleteFailed') || 'Failed to delete materials: ' + error.message);
+    } finally {
+      isDeleting = false;
+    }
+  }
+
+  // Make functions globally available for inline onclick handlers (browser only)
+  if (typeof window !== 'undefined') {
+    window.toggleMaterialSelection = toggleMaterialSelection;
+
+    // Listen for custom toggleSelectAll event
+    document.addEventListener('toggleSelectAll', () => {
+      toggleSelectAll();
+    });
+  }
 </script>
 
 <svelte:head>
@@ -438,6 +499,27 @@
           </nav>
         </div>
         <div class="flex items-center gap-3">
+          <!-- Bulk Delete Button (shown when items are selected) -->
+          {#if selectedMaterialIds.length > 0}
+            <button
+              on:click={bulkDeleteMaterials}
+              disabled={isDeleting}
+              class="btn btn-danger"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              {isDeleting ? $_('common.deleting') : $_('materials.bulkDelete', { values: { count: selectedMaterialIds.length } }) || `Delete (${selectedMaterialIds.length})`}
+            </button>
+            <button
+              on:click={() => selectedMaterialIds = []}
+              class="btn btn-outline text-sm"
+            >
+              {$_('common.clearSelection') || 'Clear Selection'}
+            </button>
+            <div class="h-8 w-px bg-gray-300"></div>
+          {/if}
+
           <!-- Primary Actions -->
           <button
             on:click={() => openMaterialModal()}

@@ -9,6 +9,7 @@ import {
   vehicleInventoryDispensing
 } from '../db/schema/vehicleInventory.js';
 import { vehicles } from '../db/schema/vehicles.js';
+import { drivers } from '../db/schema/drivers.js';
 import { eq, and, desc, or, like } from 'drizzle-orm';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
@@ -64,6 +65,7 @@ const assignmentSchema = z.object({
   certificationExpiryDate: z.number().optional(),
   location: z.string().optional(),
   notes: z.string().optional(),
+  assignedEmployeeId: z.number().positive().optional().nullable(),
 });
 
 const inspectionSchema = z.object({
@@ -299,11 +301,16 @@ router.get('/vehicles/:vehicleId/assignments', async (req, res, next) => {
       .select({
         assignment: vehicleInventoryAssignments,
         item: vehicleInventoryItems,
-        category: vehicleInventoryCategories
+        category: vehicleInventoryCategories,
+        assignedEmployee: {
+          id: drivers.id,
+          fullName: drivers.fullName
+        }
       })
       .from(vehicleInventoryAssignments)
       .leftJoin(vehicleInventoryItems, eq(vehicleInventoryAssignments.itemId, vehicleInventoryItems.id))
       .leftJoin(vehicleInventoryCategories, eq(vehicleInventoryItems.categoryId, vehicleInventoryCategories.id))
+      .leftJoin(drivers, eq(vehicleInventoryAssignments.assignedEmployeeId, drivers.id))
       .where(
         and(
           eq(vehicleInventoryAssignments.vehicleId, vehicleId),
@@ -343,12 +350,17 @@ router.get('/assignments/:id', async (req, res, next) => {
         assignment: vehicleInventoryAssignments,
         item: vehicleInventoryItems,
         category: vehicleInventoryCategories,
-        vehicle: vehicles
+        vehicle: vehicles,
+        assignedEmployee: {
+          id: drivers.id,
+          fullName: drivers.fullName
+        }
       })
       .from(vehicleInventoryAssignments)
       .leftJoin(vehicleInventoryItems, eq(vehicleInventoryAssignments.itemId, vehicleInventoryItems.id))
       .leftJoin(vehicleInventoryCategories, eq(vehicleInventoryItems.categoryId, vehicleInventoryCategories.id))
       .leftJoin(vehicles, eq(vehicleInventoryAssignments.vehicleId, vehicles.id))
+      .leftJoin(drivers, eq(vehicleInventoryAssignments.assignedEmployeeId, drivers.id))
       .where(and(eq(vehicleInventoryAssignments.id, id), eq(vehicleInventoryAssignments.active, true)))
       .limit(1);
 

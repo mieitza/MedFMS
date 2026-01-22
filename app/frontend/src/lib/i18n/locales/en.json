@@ -38,7 +38,10 @@
     "upload": "Upload",
     "uploading": "Uploading...",
     "download": "Download",
-    "remove": "Remove"
+    "remove": "Remove",
+    "deleting": "Deleting...",
+    "clearSelection": "Clear Selection",
+    "none": "None"
   },
   "auth": {
     "signIn": "Sign In",
@@ -500,7 +503,8 @@
       "purchaseInfo": "Purchase Information",
       "insuranceInfo": "Insurance Information",
       "assignmentInfo": "Assignment Information",
-      "anmdmAuth": "ANMDM Authorization"
+      "anmdmAuth": "ANMDM Authorization",
+      "documentExpiry": "Document Expiry Tracking"
     },
     "placeholders": {
       "vehicleCode": "Enter vehicle code",
@@ -628,7 +632,25 @@
     "anmdmDocumentDownloadFailed": "Failed to download document",
     "anmdmDocumentDeleteFailed": "Failed to delete document",
     "confirmDeleteAnmdmDocument": "Are you sure you want to delete the ANMDM document?",
-    "downloadAnmdmDocument": "Download ANMDM Document"
+    "downloadAnmdmDocument": "Download ANMDM Document",
+    "rovinieta": "Rovinieta (Road Vignette)",
+    "rovinietaExpiryDate": "Rovinieta Expiry Date",
+    "rovinietaExpired": "Expired",
+    "rovinietaExpiringSoon": "Expiring Soon",
+    "rovinietaValid": "Valid",
+    "asigurare": "Insurance (Asigurare)",
+    "asigurareExpiryDate": "Insurance Expiry Date",
+    "asigurareExpired": "Expired",
+    "asigurareExpiringSoon": "Expiring Soon",
+    "asigurareValid": "Valid",
+    "itp": "ITP (Technical Inspection)",
+    "itpExpiryDate": "ITP Expiry Date",
+    "itpExpired": "Expired",
+    "itpExpiringSoon": "Expiring Soon",
+    "itpValid": "Valid",
+    "expiryDate": "Expiry Date",
+    "expiredDaysAgo": "Expired {days} days ago",
+    "expiresInDays": "Expires in {days} days"
   },
   "fuel": {
     "title": "Fuel Management",
@@ -910,8 +932,13 @@
       "transactionCreated": "Transaction created successfully",
       "transactionFailed": "Failed to save transaction",
       "updateFailed": "Failed to update material",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "noItemsSelected": "No items selected",
+      "bulkDeleteConfirm": "Are you sure you want to delete {count} item(s)?",
+      "bulkDeleteSuccess": "{count} item(s) deleted successfully",
+      "bulkDeleteFailed": "Failed to delete materials"
     },
+    "bulkDelete": "Delete ({count})",
     "transferRequests": {
       "title": "Transfer Requests",
       "pageTitle": "Warehouse Transfer Requests",
@@ -1633,6 +1660,7 @@
     "nextInspection": "Next Inspection",
     "notes": "Notes",
     "inspectionType": "Inspection Type",
+    "assignedEmployee": "Assigned Employee",
     "dispensing": {
       "title": "Dispense Item",
       "patientInfo": "Patient Information",

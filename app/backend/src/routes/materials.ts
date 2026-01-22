@@ -1976,6 +1976,51 @@ router.delete('/:id', authorize('admin', 'manager'), async (req, res, next) => {
   }
 });
 
+// POST /api/materials/bulk-delete - Delete multiple materials
+router.post('/bulk-delete', authorize('admin', 'manager'), async (req, res, next) => {
+  try {
+    const schema = z.object({
+      ids: z.array(z.number().positive()).min(1)
+    });
+
+    const { ids } = schema.parse(req.body);
+
+    const db = getDb();
+
+    // Check if all materials exist
+    const existingMaterials = await db.select({ id: materials.id })
+      .from(materials)
+      .where(sql`${materials.id} IN ${ids}`);
+
+    const existingIds = existingMaterials.map(m => m.id);
+    const notFoundIds = ids.filter(id => !existingIds.includes(id));
+
+    if (notFoundIds.length > 0) {
+      logger.warn(`Bulk delete: some materials not found: ${notFoundIds.join(', ')}`);
+    }
+
+    // Delete all existing materials
+    if (existingIds.length > 0) {
+      await db.delete(materials).where(sql`${materials.id} IN ${existingIds}`);
+    }
+
+    logger.info(`Bulk delete completed: ${existingIds.length} materials deleted`);
+
+    res.json({
+      success: true,
+      data: {
+        deleted: existingIds.length,
+        notFound: notFoundIds.length,
+        notFoundIds
+      },
+      message: `${existingIds.length} material(s) deleted successfully`
+    });
+  } catch (error) {
+    logger.error('Error bulk deleting materials:', error);
+    next(error);
+  }
+});
+
 // GET /api/materials/vehicles/:vehicleId/materials - Get all materials currently in a vehicle
 router.get('/vehicles/:vehicleId/materials', authorize('admin', 'manager', 'operator'), async (req: AuthRequest, res, next) => {
   try {

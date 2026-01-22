@@ -13,6 +13,7 @@
 	let items = [];
 	let categories = [];
 	let inspectionTypes = [];
+	let employees = []; // For assigned employee dropdown
 	let loading = true;
 	let error = null;
 	let formTracker = null; // For tracking changed fields when editing
@@ -37,7 +38,8 @@
 		manufactureDate: '',
 		certificationNumber: '',
 		certificationExpiryDate: '',
-		notes: ''
+		notes: '',
+		assignedEmployeeId: ''
 	};
 
 	// Inspection form data
@@ -90,7 +92,8 @@
 			loadAssignments(),
 			loadItems(),
 			loadCategories(),
-			loadInspectionTypes()
+			loadInspectionTypes(),
+			loadEmployees()
 		]);
 	});
 
@@ -135,6 +138,15 @@
 		}
 	}
 
+	async function loadEmployees() {
+		try {
+			const response = await api.getDrivers({ active: true });
+			employees = response.data || [];
+		} catch (err) {
+			console.error('Failed to load employees:', err);
+		}
+	}
+
 	function openAddModal() {
 		formData = {
 			itemId: '',
@@ -148,7 +160,8 @@
 			manufactureDate: '',
 			certificationNumber: '',
 			certificationExpiryDate: '',
-			notes: ''
+			notes: '',
+			assignedEmployeeId: ''
 		};
 		showAddModal = true;
 	}
@@ -173,7 +186,8 @@
 			certificationExpiryDate: assignment.assignment.certificationExpiryDate
 				? new Date(assignment.assignment.certificationExpiryDate).toISOString().split('T')[0]
 				: '',
-			notes: assignment.assignment.notes || ''
+			notes: assignment.assignment.notes || '',
+			assignedEmployeeId: assignment.assignment.assignedEmployeeId || ''
 		};
 		// Create form tracker with original data for change detection
 		formTracker = createFormTracker(formData);
@@ -231,6 +245,7 @@
 				certificationNumber: formData.certificationNumber || null,
 				certificationExpiryDate: formData.certificationExpiryDate ? new Date(formData.certificationExpiryDate).getTime() : null,
 				notes: formData.notes || null,
+				assignedEmployeeId: formData.assignedEmployeeId ? parseInt(formData.assignedEmployeeId) : null,
 				assignmentDate: Date.now()
 			};
 
@@ -257,7 +272,8 @@
 				manufactureDate: formData.manufactureDate ? new Date(formData.manufactureDate).getTime() : null,
 				certificationNumber: formData.certificationNumber || null,
 				certificationExpiryDate: formData.certificationExpiryDate ? new Date(formData.certificationExpiryDate).getTime() : null,
-				notes: formData.notes || null
+				notes: formData.notes || null,
+				assignedEmployeeId: formData.assignedEmployeeId ? parseInt(formData.assignedEmployeeId) : null
 			};
 
 			// For updates, detect and send only changed fields
@@ -266,8 +282,8 @@
 			// Apply type conversions to changed fields
 			const payload = {};
 			for (const key in changedFields) {
-				if (key === 'itemId' || key === 'quantity') {
-					payload[key] = parseInt(changedFields[key]);
+				if (key === 'itemId' || key === 'quantity' || key === 'assignedEmployeeId') {
+					payload[key] = changedFields[key] ? parseInt(changedFields[key]) : null;
 				} else if (key === 'expirationDate' || key === 'manufactureDate' || key === 'certificationExpiryDate') {
 					payload[key] = changedFields[key] ? new Date(changedFields[key]).getTime() : null;
 				} else {
@@ -483,6 +499,11 @@
 										<span class="font-medium">{$_('inventory.expirationDate')}:</span> {new Date(assignment.assignment.expirationDate).toLocaleDateString()}
 									</div>
 								{/if}
+								{#if assignment.employee}
+									<div>
+										<span class="font-medium">{$_('inventory.assignedEmployee')}:</span> {assignment.employee.firstName} {assignment.employee.lastName}
+									</div>
+								{/if}
 							</div>
 
 							{#if assignment.category}
@@ -605,6 +626,16 @@
 		</div>
 
 		<div>
+			<label class="block text-sm font-medium text-gray-700 mb-1">{$_('inventory.assignedEmployee')}</label>
+			<select bind:value={formData.assignedEmployeeId} class="input">
+				<option value="">{$_('common.none')}</option>
+				{#each employees as employee}
+					<option value={employee.id}>{employee.firstName} {employee.lastName}</option>
+				{/each}
+			</select>
+		</div>
+
+		<div>
 			<label class="block text-sm font-medium text-gray-700 mb-1">{$_('inventory.notes')}</label>
 			<textarea bind:value={formData.notes} rows="3" class="input"></textarea>
 		</div>
@@ -677,6 +708,16 @@
 				<label class="block text-sm font-medium text-gray-700 mb-1">{$_('inventory.expirationDate')}</label>
 				<input type="date" bind:value={formData.expirationDate} class="input" />
 			</div>
+		</div>
+
+		<div>
+			<label class="block text-sm font-medium text-gray-700 mb-1">{$_('inventory.assignedEmployee')}</label>
+			<select bind:value={formData.assignedEmployeeId} class="input">
+				<option value="">{$_('common.none')}</option>
+				{#each employees as employee}
+					<option value={employee.id}>{employee.firstName} {employee.lastName}</option>
+				{/each}
+			</select>
 		</div>
 
 		<div>

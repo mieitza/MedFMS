@@ -44,6 +44,12 @@ export const vehicles = sqliteTable('vehicles', {
   anmdmIssuingAuthority: text('anmdm_issuing_authority'),
   anmdmNotes: text('anmdm_notes'),
   anmdmDocumentPath: text('anmdm_document_path'),
+  // Rovinieta (road vignette) - expiry tracking
+  rovinietaExpiryDate: integer('rovinieta_expiry_date', { mode: 'timestamp' }),
+  // Asigurare (insurance) - expiry tracking
+  asigurareExpiryDate: integer('asigurare_expiry_date', { mode: 'timestamp' }),
+  // ITP (periodic technical inspection) - expiry tracking
+  itpExpiryDate: integer('itp_expiry_date', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });

@@ -244,6 +244,27 @@
 		}
 	}
 
+	function getDocumentExpiryStatus(expiryDate, docType) {
+		if (!expiryDate) return null;
+
+		const expiry = new Date(expiryDate);
+		const now = new Date();
+		const daysUntilExpiry = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+
+		if (daysUntilExpiry < 0) {
+			return { status: 'expired', color: 'bg-red-100 text-red-800 border-red-200', message: $_(`vehicles.${docType}Expired`), days: daysUntilExpiry };
+		} else if (daysUntilExpiry <= 30) {
+			return { status: 'expiring', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', message: $_(`vehicles.${docType}ExpiringSoon`), days: daysUntilExpiry };
+		} else {
+			return { status: 'valid', color: 'bg-green-100 text-green-800 border-green-200', message: $_(`vehicles.${docType}Valid`), days: daysUntilExpiry };
+		}
+	}
+
+	function formatExpiryDate(date) {
+		if (!date) return $_('vehicles.notRecorded');
+		return new Date(date).toLocaleDateString();
+	}
+
 	async function downloadAnmdmDocument() {
 		if (!vehicle?.id) return;
 
@@ -516,6 +537,88 @@
 						<p class="mt-2 text-sm">{$_('vehicles.notRecorded')}</p>
 					</div>
 				{/if}
+			</div>
+
+			<!-- Document Expiry Tracking Section (Rovinieta, Asigurare, ITP) -->
+			<div class="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+				<h3 class="text-lg font-semibold text-gray-900 mb-4">{$_('vehicles.sections.documentExpiry')}</h3>
+
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+					<!-- Rovinieta -->
+					<div class="p-4 rounded-lg border {getDocumentExpiryStatus(vehicle.rovinietaExpiryDate, 'rovinieta')?.color || 'border-gray-200 bg-gray-50'}">
+						<div class="flex items-center justify-between mb-2">
+							<h4 class="font-medium text-gray-900">{$_('vehicles.rovinieta')}</h4>
+							{#if getDocumentExpiryStatus(vehicle.rovinietaExpiryDate, 'rovinieta')}
+								<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {getDocumentExpiryStatus(vehicle.rovinietaExpiryDate, 'rovinieta').color}">
+									{getDocumentExpiryStatus(vehicle.rovinietaExpiryDate, 'rovinieta').message}
+								</span>
+							{/if}
+						</div>
+						<div class="text-sm">
+							<span class="text-gray-500">{$_('vehicles.expiryDate')}:</span>
+							<span class="ml-1 font-medium">{formatExpiryDate(vehicle.rovinietaExpiryDate)}</span>
+						</div>
+						{#if getDocumentExpiryStatus(vehicle.rovinietaExpiryDate, 'rovinieta')?.days !== undefined}
+							<div class="text-xs mt-1 text-gray-500">
+								{#if getDocumentExpiryStatus(vehicle.rovinietaExpiryDate, 'rovinieta').days < 0}
+									{$_('vehicles.expiredDaysAgo', { values: { days: Math.abs(getDocumentExpiryStatus(vehicle.rovinietaExpiryDate, 'rovinieta').days) } })}
+								{:else}
+									{$_('vehicles.expiresInDays', { values: { days: getDocumentExpiryStatus(vehicle.rovinietaExpiryDate, 'rovinieta').days } })}
+								{/if}
+							</div>
+						{/if}
+					</div>
+
+					<!-- Asigurare (Insurance) -->
+					<div class="p-4 rounded-lg border {getDocumentExpiryStatus(vehicle.asigurareExpiryDate, 'asigurare')?.color || 'border-gray-200 bg-gray-50'}">
+						<div class="flex items-center justify-between mb-2">
+							<h4 class="font-medium text-gray-900">{$_('vehicles.asigurare')}</h4>
+							{#if getDocumentExpiryStatus(vehicle.asigurareExpiryDate, 'asigurare')}
+								<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {getDocumentExpiryStatus(vehicle.asigurareExpiryDate, 'asigurare').color}">
+									{getDocumentExpiryStatus(vehicle.asigurareExpiryDate, 'asigurare').message}
+								</span>
+							{/if}
+						</div>
+						<div class="text-sm">
+							<span class="text-gray-500">{$_('vehicles.expiryDate')}:</span>
+							<span class="ml-1 font-medium">{formatExpiryDate(vehicle.asigurareExpiryDate)}</span>
+						</div>
+						{#if getDocumentExpiryStatus(vehicle.asigurareExpiryDate, 'asigurare')?.days !== undefined}
+							<div class="text-xs mt-1 text-gray-500">
+								{#if getDocumentExpiryStatus(vehicle.asigurareExpiryDate, 'asigurare').days < 0}
+									{$_('vehicles.expiredDaysAgo', { values: { days: Math.abs(getDocumentExpiryStatus(vehicle.asigurareExpiryDate, 'asigurare').days) } })}
+								{:else}
+									{$_('vehicles.expiresInDays', { values: { days: getDocumentExpiryStatus(vehicle.asigurareExpiryDate, 'asigurare').days } })}
+								{/if}
+							</div>
+						{/if}
+					</div>
+
+					<!-- ITP (Periodic Technical Inspection) -->
+					<div class="p-4 rounded-lg border {getDocumentExpiryStatus(vehicle.itpExpiryDate, 'itp')?.color || 'border-gray-200 bg-gray-50'}">
+						<div class="flex items-center justify-between mb-2">
+							<h4 class="font-medium text-gray-900">{$_('vehicles.itp')}</h4>
+							{#if getDocumentExpiryStatus(vehicle.itpExpiryDate, 'itp')}
+								<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {getDocumentExpiryStatus(vehicle.itpExpiryDate, 'itp').color}">
+									{getDocumentExpiryStatus(vehicle.itpExpiryDate, 'itp').message}
+								</span>
+							{/if}
+						</div>
+						<div class="text-sm">
+							<span class="text-gray-500">{$_('vehicles.expiryDate')}:</span>
+							<span class="ml-1 font-medium">{formatExpiryDate(vehicle.itpExpiryDate)}</span>
+						</div>
+						{#if getDocumentExpiryStatus(vehicle.itpExpiryDate, 'itp')?.days !== undefined}
+							<div class="text-xs mt-1 text-gray-500">
+								{#if getDocumentExpiryStatus(vehicle.itpExpiryDate, 'itp').days < 0}
+									{$_('vehicles.expiredDaysAgo', { values: { days: Math.abs(getDocumentExpiryStatus(vehicle.itpExpiryDate, 'itp').days) } })}
+								{:else}
+									{$_('vehicles.expiresInDays', { values: { days: getDocumentExpiryStatus(vehicle.itpExpiryDate, 'itp').days } })}
+								{/if}
+							</div>
+						{/if}
+					</div>
+				</div>
 			</div>
 
 			<!-- Vehicle Inventory -->

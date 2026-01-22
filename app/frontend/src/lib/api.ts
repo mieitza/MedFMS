@@ -1202,6 +1202,20 @@ export const api = {
     return response.json();
   },
 
+  async bulkDeleteMaterials(ids) {
+    const response = await fetch(`${API_BASE_URL}/materials/bulk-delete`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ ids }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to bulk delete materials');
+    }
+
+    return response.json();
+  },
+
   async getMaterialTransactions(materialId, params = {}) {
     const queryParams = new URLSearchParams();
     if (params.page) queryParams.append('page', params.page.toString());

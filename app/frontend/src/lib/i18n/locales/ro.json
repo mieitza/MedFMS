@@ -46,7 +46,10 @@
     "name": "Nume",
     "description": "Descriere",
     "fileSize": "Dimensiune Fișier",
-    "uploaded": "Încărcat"
+    "uploaded": "Încărcat",
+    "deleting": "Se șterge...",
+    "clearSelection": "Anulează Selecția",
+    "none": "Niciunul"
   },
   "photos": {
     "title": "Fotografii",
@@ -696,7 +699,8 @@
       "purchaseInfo": "Informații Achiziție",
       "insuranceInfo": "Informații Asigurare",
       "assignmentInfo": "Informații Atribuire",
-      "anmdmAuth": "Autorizație ANMDM"
+      "anmdmAuth": "Autorizație ANMDM",
+      "documentExpiry": "Urmărire Expirare Documente"
     },
     "placeholders": {
       "vehicleCode": "Introduceți cod vehicul",
@@ -824,7 +828,25 @@
     "anmdmDocumentDownloadFailed": "Descărcarea documentului a eșuat",
     "anmdmDocumentDeleteFailed": "Ștergerea documentului a eșuat",
     "confirmDeleteAnmdmDocument": "Sigur doriți să ștergeți documentul ANMDM?",
-    "downloadAnmdmDocument": "Descarcă Document ANMDM"
+    "downloadAnmdmDocument": "Descarcă Document ANMDM",
+    "rovinieta": "Rovinieta",
+    "rovinietaExpiryDate": "Data Expirare Rovinieta",
+    "rovinietaExpired": "Expirat",
+    "rovinietaExpiringSoon": "Expiră Curând",
+    "rovinietaValid": "Valid",
+    "asigurare": "Asigurare",
+    "asigurareExpiryDate": "Data Expirare Asigurare",
+    "asigurareExpired": "Expirat",
+    "asigurareExpiringSoon": "Expiră Curând",
+    "asigurareValid": "Valid",
+    "itp": "ITP (Inspecție Tehnică)",
+    "itpExpiryDate": "Data Expirare ITP",
+    "itpExpired": "Expirat",
+    "itpExpiringSoon": "Expiră Curând",
+    "itpValid": "Valid",
+    "expiryDate": "Data Expirare",
+    "expiredDaysAgo": "Expirat de {days} zile",
+    "expiresInDays": "Expiră în {days} zile"
   },
   "fuel": {
     "title": "Gestionare Combustibil",
@@ -1158,8 +1180,13 @@
       "transactionCreated": "Tranzacție creată cu succes",
       "transactionFailed": "Salvarea tranzacției a eșuat",
       "updateFailed": "Actualizarea materialului a eșuat",
-      "saving": "Se salvează..."
+      "saving": "Se salvează...",
+      "noItemsSelected": "Niciun articol selectat",
+      "bulkDeleteConfirm": "Sigur doriți să ștergeți {count} articol(e)?",
+      "bulkDeleteSuccess": "{count} articol(e) șterse cu succes",
+      "bulkDeleteFailed": "Ștergerea materialelor a eșuat"
     },
+    "bulkDelete": "Șterge ({count})",
     "transferRequests": {
       "title": "Cereri de Transfer",
       "pageTitle": "Cereri de Transfer Depozit",
@@ -1881,6 +1908,7 @@
     "nextInspection": "Următoarea Inspecție",
     "notes": "Observații",
     "inspectionType": "Tip Inspecție",
+    "assignedEmployee": "Angajat Responsabil",
     "dispensing": {
       "title": "Dispensează Articol",
       "patientInfo": "Informații Pacient",
