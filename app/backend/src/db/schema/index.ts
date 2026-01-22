@@ -1,3 +1,4 @@
+export * from './companies';
 export * from './users';
 export * from './vehicles';
 export * from './drivers';

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { getDb } from '../db/index.js';
 import { users, sessions } from '../db/schema/users.js';
+import { companies } from '../db/schema/companies.js';
 import { eq, and, gt } from 'drizzle-orm';
 import { AppError } from './errorHandler.js';
 
@@ -11,6 +12,9 @@ export interface AuthRequest extends Request {
     username: string;
     email: string;
     role: string;
+    companyId: number | null; // User's assigned company (null for super_admin)
+    selectedCompanyId: number | null; // Currently selected company (for super_admin switching)
+    effectiveCompanyId: number | null; // The company to filter data by
   };
 }
 
@@ -39,7 +43,10 @@ export const authenticate = async (
           id: 0,
           username: 'system',
           email: 'system@internal',
-          role: 'admin', // Internal service has admin access for read operations
+          role: 'super_admin', // Internal service has super_admin access
+          companyId: null,
+          selectedCompanyId: null,
+          effectiveCompanyId: null, // Can see all companies
         };
         return next();
       }
@@ -70,12 +77,13 @@ export const authenticate = async (
       throw new AppError('Invalid or expired session', 401);
     }
 
-    // Get user details
+    // Get user details including companyId
     const [user] = await db.select({
       id: users.id,
       username: users.username,
       email: users.email,
-      role: users.role
+      role: users.role,
+      companyId: users.companyId
     })
       .from(users)
       .where(eq(users.id, session.userId))
@@ -85,7 +93,38 @@ export const authenticate = async (
       throw new AppError('User not found', 401);
     }
 
-    req.user = user;
+    // Handle company selection for super_admin
+    let selectedCompanyId: number | null = null;
+    const selectedCompanyHeader = req.headers['x-selected-company'];
+
+    if (user.role === 'super_admin' && selectedCompanyHeader) {
+      // Super admin can switch companies via header
+      const parsedCompanyId = parseInt(selectedCompanyHeader as string, 10);
+      if (!isNaN(parsedCompanyId)) {
+        // Verify the company exists
+        const [company] = await db.select({ id: companies.id })
+          .from(companies)
+          .where(and(eq(companies.id, parsedCompanyId), eq(companies.active, true)))
+          .limit(1);
+
+        if (company) {
+          selectedCompanyId = company.id;
+        }
+      }
+    }
+
+    // Determine effective company ID for data filtering
+    // - For super_admin: use selectedCompanyId if set, otherwise null (sees all)
+    // - For other users: use their assigned companyId
+    const effectiveCompanyId = user.role === 'super_admin'
+      ? selectedCompanyId
+      : user.companyId;
+
+    req.user = {
+      ...user,
+      selectedCompanyId,
+      effectiveCompanyId
+    };
     next();
   } catch (error) {
     if (error instanceof AppError) {
@@ -113,10 +152,45 @@ export const authorize = (...allowedRoles: string[]) => {
       return next(new AppError('Authentication required', 401));
     }
 
+    // super_admin always has access
+    if (req.user.role === 'super_admin') {
+      return next();
+    }
+
     if (!allowedRoles.includes(req.user.role)) {
       return next(new AppError('Insufficient permissions', 403));
     }
 
     next();
   };
+};
+
+// Middleware to require a specific company context
+// Used for routes that require company-scoped data
+export const requireCompanyContext = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(new AppError('Authentication required', 401));
+  }
+
+  // super_admin without selected company can still proceed (sees all data)
+  if (req.user.role === 'super_admin') {
+    return next();
+  }
+
+  // Regular users must have a company assigned
+  if (!req.user.companyId) {
+    return next(new AppError('No company assigned to user', 403));
+  }
+
+  next();
+};
+
+// Helper function to get company filter condition for queries
+// Returns the companyId to filter by, or null if no filtering needed (super_admin seeing all)
+export const getCompanyFilter = (req: AuthRequest): number | null => {
+  return req.user?.effectiveCompanyId ?? null;
 };

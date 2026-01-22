@@ -1,5 +1,6 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
+import { companies } from './companies';
 import { vehicles } from './vehicles';
 import { drivers } from './drivers';
 import { suppliers } from './system';
@@ -51,6 +52,7 @@ export const maintenanceSchedules = sqliteTable('maintenance_schedules', {
 // Maintenance work orders
 export const maintenanceWorkOrders = sqliteTable('maintenance_work_orders', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id),
   workOrderNumber: text('work_order_number').notNull().unique(),
   vehicleId: integer('vehicle_id').notNull().references(() => vehicles.id),
   maintenanceTypeId: integer('maintenance_type_id').references(() => maintenanceTypes.id),

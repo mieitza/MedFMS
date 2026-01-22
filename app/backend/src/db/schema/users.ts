@@ -1,5 +1,6 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
+import { companies } from './companies';
 
 export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -7,7 +8,10 @@ export const users = sqliteTable('users', {
   email: text('email').notNull().unique(),
   pin: text('pin').notNull(), // Hashed PIN
   fullName: text('full_name').notNull(),
-  role: text('role').notNull().default('user'), // admin, manager, operator, viewer
+  // Roles: super_admin (all companies), admin, manager, operator, viewer
+  role: text('role').notNull().default('viewer'),
+  // Company for multi-tenancy (null for super_admin who can access all)
+  companyId: integer('company_id').references(() => companies.id),
   departmentId: integer('department_id'),
   locationId: integer('location_id'),
   phoneNumber: text('phone_number'),

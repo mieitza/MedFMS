@@ -1,8 +1,10 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
+import { companies } from './companies';
 
 export const drivers = sqliteTable('drivers', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id),
   driverCode: text('driver_code').notNull().unique(),
   firstName: text('first_name').notNull(),
   lastName: text('last_name').notNull(),

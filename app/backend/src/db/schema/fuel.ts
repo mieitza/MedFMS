@@ -1,5 +1,6 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
+import { companies } from './companies';
 import { vehicles } from './vehicles';
 import { drivers } from './drivers';
 import { suppliers } from './system';
@@ -42,6 +43,7 @@ export const fuelStations = sqliteTable('fuel_stations', {
 
 export const fuelTransactions = sqliteTable('fuel_transactions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id),
   transactionType: text('transaction_type', { enum: ['purchase', 'consumption'] }).notNull(),
   vehicleId: integer('vehicle_id').notNull().references(() => vehicles.id),
   driverId: integer('driver_id').references(() => drivers.id),

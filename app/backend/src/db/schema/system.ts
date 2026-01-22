@@ -1,5 +1,6 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
+import { companies } from './companies';
 
 // System definition tables for reference data
 
@@ -32,6 +33,7 @@ export const models = sqliteTable('models', {
 
 export const locations = sqliteTable('locations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id),
   locationCode: text('location_code').notNull().unique(),
   locationName: text('location_name').notNull(),
   parentLocationId: integer('parent_location_id'),
@@ -49,6 +51,7 @@ export const locations = sqliteTable('locations', {
 
 export const departments = sqliteTable('departments', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id),
   departmentCode: text('department_code').notNull().unique(),
   departmentName: text('department_name').notNull(),
   parentDepartmentId: integer('parent_department_id'),
@@ -73,6 +76,7 @@ export const cities = sqliteTable('cities', {
 
 export const suppliers = sqliteTable('suppliers', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id),
   supplierCode: text('supplier_code').notNull().unique(),
   supplierName: text('supplier_name').notNull(),
   contactPerson: text('contact_person'),

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import authRoutes from './auth.js';
 import userRoutes from './users.js';
+import companyRoutes from './companies.js';
 import vehicleRoutes from './vehicles.js';
 import driverRoutes from './drivers.js';
 import fuelRoutes from './fuel.js';
@@ -19,6 +20,7 @@ const router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
+router.use('/companies', companyRoutes);
 router.use('/vehicles', vehicleRoutes);
 router.use('/drivers', driverRoutes);
 router.use('/fuel', fuelRoutes);
@@ -40,6 +42,7 @@ router.get('/docs', (req, res) => {
     endpoints: {
       auth: '/api/auth',
       users: '/api/users',
+      companies: '/api/companies',
       vehicles: '/api/vehicles',
       drivers: '/api/drivers',
       fuel: '/api/fuel',

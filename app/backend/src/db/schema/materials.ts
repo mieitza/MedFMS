@@ -1,8 +1,10 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
+import { companies } from './companies';
 
 export const materials = sqliteTable('materials', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id),
   materialCode: text('material_code').notNull().unique(),
   materialName: text('material_name').notNull(),
   description: text('description'),
@@ -42,6 +44,7 @@ export const materials = sqliteTable('materials', {
 
 export const warehouses = sqliteTable('warehouses', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id),
   warehouseCode: text('warehouse_code').notNull().unique(),
   warehouseName: text('warehouse_name').notNull(),
   description: text('description'),
@@ -55,6 +58,7 @@ export const warehouses = sqliteTable('warehouses', {
 
 export const materialTransactions = sqliteTable('material_transactions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id),
   transactionType: text('transaction_type').notNull(), // entry, exit, transfer
   materialId: integer('material_id').notNull().references(() => materials.id),
   quantity: real('quantity').notNull(),
@@ -91,6 +95,7 @@ export const materialUnits = sqliteTable('material_units', {
 // Warehouse transfer requests (similar to maintenance work orders)
 export const warehouseTransferRequests = sqliteTable('warehouse_transfer_requests', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  companyId: integer('company_id').notNull().references(() => companies.id),
   requestNumber: text('request_number').notNull().unique(),
 
   // Transfer type and source
