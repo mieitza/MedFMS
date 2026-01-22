@@ -34,12 +34,15 @@ import {
   Wrench,
   Package,
   AlertTriangle,
+  Building2,
+  Check,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { dashboardApi } from '@/lib/api/dashboard';
+import { companiesApi } from '@/lib/api/companies';
 
 const pathNameMap: Record<string, string> = {
   '': 'Dashboard',
@@ -64,6 +67,27 @@ export function Header() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const { openCommandPalette } = useAppStore();
+  const { user, selectedCompanyId, setSelectedCompany } = useAuthStore();
+  const queryClient = useQueryClient();
+
+  const isSuperAdmin = user?.role === 'super_admin';
+
+  // Fetch companies for super_admin company selector
+  const { data: companies } = useQuery({
+    queryKey: ['companies'],
+    queryFn: () => companiesApi.getAll(),
+    enabled: isSuperAdmin,
+  });
+
+  // Get currently selected company name
+  const selectedCompany = companies?.find(c => c.id === selectedCompanyId);
+
+  // Handle company selection change
+  const handleCompanyChange = (companyId: number | null) => {
+    setSelectedCompany(companyId);
+    // Invalidate all queries to refetch data with new company context
+    queryClient.invalidateQueries();
+  };
 
   // Fetch dashboard stats for notification counts
   const { data: stats } = useQuery({
@@ -124,6 +148,57 @@ export function Header() {
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* Company Selector (Super Admin only) */}
+      {isSuperAdmin && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <Building2 className="h-4 w-4" />
+              <span className="hidden sm:inline max-w-[150px] truncate">
+                {selectedCompany?.companyName || 'Toate companiile'}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuLabel>Selectează compania</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => handleCompanyChange(null)}
+            >
+              <div className="flex items-center gap-2 flex-1">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                <span>Toate companiile</span>
+              </div>
+              {selectedCompanyId === null && (
+                <Check className="h-4 w-4 text-primary" />
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            {companies?.map((company) => (
+              <DropdownMenuItem
+                key={company.id}
+                className="cursor-pointer"
+                onClick={() => handleCompanyChange(company.id)}
+              >
+                <div className="flex items-center gap-2 flex-1">
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex flex-col">
+                    <span className="font-medium">{company.companyName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {company.companyCode}
+                    </span>
+                  </div>
+                </div>
+                {selectedCompanyId === company.id && (
+                  <Check className="h-4 w-4 text-primary" />
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
 
       {/* Search / Command Palette trigger */}
       <Button

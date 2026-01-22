@@ -5,12 +5,15 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/a
 class ApiClient {
   private baseUrl: string;
   private token: string | null = null;
+  private selectedCompanyId: number | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
-    // Initialize token from localStorage if available (client-side only)
+    // Initialize token and selectedCompanyId from localStorage if available (client-side only)
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('auth_token');
+      const storedCompanyId = localStorage.getItem('selected_company_id');
+      this.selectedCompanyId = storedCompanyId ? parseInt(storedCompanyId, 10) : null;
     }
   }
 
@@ -29,6 +32,21 @@ class ApiClient {
     return this.token;
   }
 
+  setSelectedCompany(companyId: number | null) {
+    this.selectedCompanyId = companyId;
+    if (typeof window !== 'undefined') {
+      if (companyId) {
+        localStorage.setItem('selected_company_id', String(companyId));
+      } else {
+        localStorage.removeItem('selected_company_id');
+      }
+    }
+  }
+
+  getSelectedCompany(): number | null {
+    return this.selectedCompanyId;
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -42,6 +60,11 @@ class ApiClient {
 
     if (this.token) {
       (headers as Record<string, string>)['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    // Add selected company header for super_admin company switching
+    if (this.selectedCompanyId) {
+      (headers as Record<string, string>)['X-Selected-Company'] = String(this.selectedCompanyId);
     }
 
     const response = await fetch(url, {
@@ -145,6 +168,9 @@ class ApiClient {
     const headers: HeadersInit = {};
     if (this.token) {
       (headers as Record<string, string>)['Authorization'] = `Bearer ${this.token}`;
+    }
+    if (this.selectedCompanyId) {
+      (headers as Record<string, string>)['X-Selected-Company'] = String(this.selectedCompanyId);
     }
     // Don't set Content-Type for FormData - browser will set it with boundary
 

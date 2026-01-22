@@ -135,6 +135,7 @@ import type {
   MaterialUnit,
 } from '@/types';
 import type { MaterialCategory, Position } from '@/lib/api/admin';
+import { useAuthStore } from '@/lib/stores/auth-store';
 
 // Tab configuration
 const adminTabs = [
@@ -157,7 +158,10 @@ const adminTabs = [
 export default function AdminPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useAuthStore();
   const currentTab = searchParams.get('tab') || 'brands';
+
+  const isSuperAdmin = user?.role === 'super_admin';
 
   const handleTabChange = (value: string) => {
     router.push(`/admin?tab=${value}`);
@@ -180,10 +184,18 @@ export default function AdminPage() {
             </p>
           </div>
         </div>
-        <Button variant="outline" onClick={() => router.push('/admin/users')}>
-          <Users className="mr-2 h-4 w-4" />
-          Utilizatori
-        </Button>
+        <div className="flex gap-2">
+          {isSuperAdmin && (
+            <Button variant="outline" onClick={() => router.push('/admin/companies')}>
+              <Building2 className="mr-2 h-4 w-4" />
+              Companii
+            </Button>
+          )}
+          <Button variant="outline" onClick={() => router.push('/admin/users')}>
+            <Users className="mr-2 h-4 w-4" />
+            Utilizatori
+          </Button>
+        </div>
       </div>
 
       {/* Tabs */}
