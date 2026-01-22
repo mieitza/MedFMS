@@ -5,3 +5,4 @@ export * from './use-maintenance';
 export * from './use-warehouse';
 export * from './use-admin';
 export * from './use-documents';
+export * from './use-companies';

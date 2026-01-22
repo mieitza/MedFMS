@@ -1,5 +1,6 @@
 export { api, ApiClientError } from './client';
 export { authApi } from './auth';
+export { companiesApi } from './companies';
 export { vehiclesApi } from './vehicles';
 export { driversApi } from './drivers';
 export { dashboardApi } from './dashboard';
@@ -40,3 +41,4 @@ export type {
   InspectionType,
 } from './admin';
 export type { ChatMessage, ChatResponse, ChatHealthResponse, ChatConfigResponse, ChatTool, StreamEvent } from './chat';
+export type { CompanyWithStats, CreateCompanyData, UpdateCompanyData } from './companies';

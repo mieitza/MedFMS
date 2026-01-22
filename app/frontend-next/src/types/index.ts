@@ -1,16 +1,55 @@
 // Core entity types matching the backend database schema
 
+// Company & Multi-tenancy
+export interface CompanySettings {
+  currency?: string;
+  dateFormat?: string;
+  timezone?: string;
+  language?: string;
+  enableFuelManagement?: boolean;
+  enableMaterialsManagement?: boolean;
+  enableMaintenanceManagement?: boolean;
+  enableTireManagement?: boolean;
+  maxUsers?: number;
+  maxVehicles?: number;
+}
+
+export interface Company {
+  id: number;
+  companyCode: string;
+  companyName: string;
+  legalName: string | null;
+  taxId: string | null;
+  registrationNumber: string | null;
+  address: string | null;
+  city: string | null;
+  county: string | null;
+  postalCode: string | null;
+  country: string | null;
+  phoneNumber: string | null;
+  email: string | null;
+  website: string | null;
+  logo: string | null;
+  settings: CompanySettings | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // User & Auth
 export interface User {
   id: number;
   username: string;
   fullName: string;
   email: string | null;
-  role: 'admin' | 'manager' | 'operator' | 'viewer';
+  role: 'super_admin' | 'admin' | 'manager' | 'operator' | 'viewer';
+  companyId: number | null;
   departmentId: number | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  // Relations
+  company?: Company;
 }
 
 export interface AuthState {
