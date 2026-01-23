@@ -404,11 +404,13 @@ export const api = {
     page?: number;
     limit?: number;
     search?: string;
+    active?: boolean;
   } = {}): Promise<any> {
     const queryParams = new URLSearchParams();
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.search) queryParams.append('search', params.search);
+    if (params.active !== undefined) queryParams.append('active', params.active.toString());
 
     const response = await fetch(`${API_BASE_URL}/employees?${queryParams}`, {
       headers: this.getAuthHeaders(),
@@ -461,15 +463,15 @@ export const api = {
     return response.json();
   },
 
-  async patchEmployee(id: number, partialData: any): Promise<any> {
+  async patchEmployee(id: number, employeeData: any): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/employees/${id}`, {
-      method: 'PUT', // Backend uses PUT but accepts partial data via .partial()
+      method: 'PUT',
       headers: this.getAuthHeaders(),
-      body: JSON.stringify(partialData),
+      body: JSON.stringify(employeeData),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to patch employee');
+      throw new Error('Failed to update employee');
     }
 
     return response.json();
@@ -708,7 +710,7 @@ export const api = {
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.vehicleId) queryParams.append('vehicleId', params.vehicleId.toString());
-    if (params.employeeId) queryParams.append('employeeId', params.employeeId.toString());
+    if (params.driverId) queryParams.append('driverId', params.driverId.toString());
     if (params.stationId) queryParams.append('stationId', params.stationId.toString());
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);
@@ -1119,10 +1121,6 @@ export const api = {
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.search) queryParams.append('search', params.search);
-    if (params.warehouseId) queryParams.append('warehouseId', params.warehouseId.toString());
-    if (params.categoryId) queryParams.append('categoryId', params.categoryId.toString());
-    if (params.materialTypeId) queryParams.append('materialTypeId', params.materialTypeId.toString());
-    if (params.lowStockOnly) queryParams.append('lowStockOnly', params.lowStockOnly.toString());
 
     const response = await fetch(`${API_BASE_URL}/materials?${queryParams}`, {
       headers: this.getAuthHeaders(),
@@ -1318,28 +1316,13 @@ export const api = {
 
   async patchWarehouse(id, partialData) {
     const response = await fetch(`${API_BASE_URL}/materials/warehouses/${id}`, {
-      method: 'PATCH',
+      method: 'PUT',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(partialData),
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || 'Failed to patch warehouse');
-    }
-
-    return response.json();
-  },
-
-  async deleteWarehouse(id) {
-    const response = await fetch(`${API_BASE_URL}/materials/warehouses/${id}`, {
-      method: 'DELETE',
-      headers: this.getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || 'Failed to delete warehouse');
+      throw new Error('Failed to patch warehouse');
     }
 
     return response.json();

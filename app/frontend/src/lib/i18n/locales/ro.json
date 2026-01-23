@@ -1,17 +1,4 @@
 {
-  "nav": {
-    "dashboard": "Panou de control",
-    "vehicles": "Vehicule",
-    "employees": "Angajați",
-    "fuel": "Combustibil",
-    "maintenance": "Întreținere",
-    "materials": "Materiale",
-    "warehouse": "Depozit",
-    "reports": "Rapoarte",
-    "admin": "Administrare",
-    "profile": "Profil",
-    "import": "Import"
-  },
   "common": {
     "appName": "MedFMS",
     "appFullName": "Sistem de Gestionare a Flotei Medicale",
@@ -49,7 +36,9 @@
     "uploaded": "Încărcat",
     "deleting": "Se șterge...",
     "clearSelection": "Anulează Selecția",
-    "none": "Niciunul"
+    "none": "Niciunul",
+    "selectAll": "Selectează Tot",
+    "deselectAll": "Deselectează Tot"
   },
   "photos": {
     "title": "Fotografii",
@@ -176,9 +165,12 @@
     "totalVehicles": "Total Vehicule",
     "fuelTransactions": "Tranzacții Combustibil",
     "materialItems": "Articole Materiale",
+    "activeDrivers": "Șoferi Activi",
     "activeEmployees": "Angajați Activi",
     "vehicleManagement": "Gestionare Vehicule",
     "vehicleManagementDesc": "Gestionați vehiculele din flotă, înmatriculările și documentația",
+    "driverManagement": "Gestionare Șoferi",
+    "driverManagementDesc": "Gestionați informațiile șoferilor, permisele și atribuirile",
     "employeeManagement": "Gestionare Angajați",
     "employeeManagementDesc": "Gestionați informațiile angajaților, permisele și atribuirile",
     "fuelManagement": "Gestionare Combustibil",
@@ -429,8 +421,7 @@
       "resource": "Resursă",
       "resourceId": "ID Resursă",
       "ipAddress": "Adresă IP",
-      "details": "Detalii",
-      "viewDetails": "Vezi"
+      "details": "Detalii"
     },
     "actions": {
       "create": "Creare",
@@ -440,25 +431,17 @@
       "logout": "Deconectare",
       "passwordReset": "Resetare Parolă",
       "approve": "Aprobare",
-      "reject": "Respingere",
-      "CREATE": "Creare",
-      "UPDATE": "Actualizare",
-      "DELETE": "Ștergere",
-      "LOGIN": "Autentificare",
-      "LOGOUT": "Deconectare",
-      "APPROVE": "Aprobare",
-      "REJECT": "Respingere"
+      "reject": "Respingere"
     },
     "resources": {
       "user": "Utilizator",
       "vehicle": "Vehicul",
-      "employee": "Angajat",
+      "driver": "Șofer",
       "fuel": "Combustibil",
       "material": "Material",
       "maintenance": "Întreținere",
       "transfer": "Transfer",
-      "warehouse": "Depozit",
-      "auth": "Autentificare"
+      "warehouse": "Depozit"
     },
     "detail": {
       "title": "Detalii Jurnal Audit",
@@ -568,6 +551,66 @@
       "noChanges": "Nu există modificări de salvat"
     }
   },
+  "drivers": {
+    "title": "Gestionare Șoferi",
+    "pageTitle": "Gestionare Șoferi - MedFMS",
+    "addDriver": "Adaugă Șofer",
+    "editDriver": "Editează Șofer",
+    "addNewDriver": "Adaugă Șofer Nou",
+    "createDriver": "Creează Șofer",
+    "updateDriver": "Actualizează Șofer",
+    "driverCode": "Cod Șofer",
+    "firstName": "Prenume",
+    "lastName": "Nume",
+    "fullName": "Nume Complet",
+    "name": "Nume",
+    "idNumber": "Număr Identificare",
+    "dateOfBirth": "Data Nașterii",
+    "hireDate": "Data Angajării",
+    "licenseNumber": "Număr Permis",
+    "licenseType": "Tip Permis",
+    "licenseExpiryDate": "Data Expirare Permis",
+    "mobileNumber": "Număr Mobil",
+    "address": "Adresă",
+    "city": "Oraș",
+    "license": "Permis",
+    "phone": "Telefon",
+    "sections": {
+      "basicInfo": "Informații de Bază",
+      "licenseInfo": "Informații Permis",
+      "contactInfo": "Informații Contact"
+    },
+    "placeholders": {
+      "driverCode": "Introduceți cod șofer",
+      "firstName": "Prenume",
+      "lastName": "Nume",
+      "fullName": "Generat automat din prenume și nume",
+      "idNumber": "Introduceți număr identificare",
+      "licenseNumber": "Introduceți număr permis",
+      "phoneNumber": "Introduceți număr telefon",
+      "mobileNumber": "Introduceți număr mobil",
+      "email": "Introduceți adresa de email",
+      "address": "Introduceți adresa",
+      "selectLicenseType": "Selectați tip permis",
+      "selectDepartment": "Selectați departament",
+      "selectCity": "Selectați oraș"
+    },
+    "licenseTypes": {
+      "classA": "Categoria A",
+      "classB": "Categoria B",
+      "classC": "Categoria C",
+      "cdlA": "CDL A",
+      "cdlB": "CDL B",
+      "cdlC": "CDL C",
+      "motorcycle": "Motocicletă"
+    },
+    "messages": {
+      "requiredFields": "Vă rugăm să completați toate câmpurile obligatorii",
+      "saveFailed": "Salvarea șoferului a eșuat. Încercați din nou.",
+      "deleteConfirm": "Sigur doriți să ștergeți șoferul {name}?",
+      "deleteFailed": "Ștergerea șoferului a eșuat. Încercați din nou."
+    }
+  },
   "employees": {
     "title": "Gestionare Angajați",
     "pageTitle": "Gestionare Angajați - MedFMS",
@@ -649,7 +692,7 @@
     "type": "Tip",
     "vehicleType": "Tip Vehicul",
     "odometer": "Kilometraj",
-    "employee": "Angajat",
+    "driver": "Șofer",
     "engineNumber": "Număr Motor",
     "chassisNumber": "Număr Șasiu",
     "vin": "VIN",
@@ -662,13 +705,10 @@
     "insuranceExpiry": "Expirare Asigurare",
     "description": "Descriere",
     "location": "Locație",
-    "status": "Status",
-    "department": "Departament",
-    "import": "Import Vehicule",
     "unknown": "Necunoscut",
     "notAssigned": "Neatribuit",
     "notRecorded": "Neînregistrat",
-    "assignedEmployee": "Angajat Atribuit",
+    "assignedDriver": "Șofer Atribuit",
     "created": "Creat",
     "lastUpdated": "Ultima Actualizare",
     "vehiclePhotos": "Fotografii Vehicul",
@@ -721,7 +761,7 @@
       "selectStatus": "Selectați status",
       "selectLocation": "Selectați locație",
       "selectDepartment": "Selectați departament",
-      "selectEmployee": "Selectați angajat",
+      "selectDriver": "Selectați șofer",
       "anmdmAuthNumber": "Introduceți număr aviz",
       "anmdmAuthType": "Introduceți tip autorizație",
       "anmdmIssuingAuthority": "Introduceți autoritatea emitentă",
@@ -856,8 +896,8 @@
     "filters": "Filtre",
     "vehicle": "Vehicul",
     "allVehicles": "Toate Vehiculele",
-    "employee": "Angajat",
-    "allEmployees": "Toți Angajații",
+    "driver": "Șofer",
+    "allDrivers": "Toți Șoferii",
     "station": "Stație",
     "allStations": "Toate Stațiile",
     "type": "Tip",
@@ -899,7 +939,7 @@
     },
     "placeholders": {
       "selectVehicle": "Selectați vehicul",
-      "selectEmployee": "Selectați angajat",
+      "selectDriver": "Selectați șofer",
       "selectFuelType": "Selectați tip combustibil",
       "selectStation": "Selectați stație",
       "quantity": "0.00",
@@ -1789,89 +1829,6 @@
       "messages": {
         "exportNotImplemented": "Funcționalitatea de export va fi implementată aici"
       }
-    }
-  },
-  "vehicleImport": {
-    "pageTitle": "Import Vehicule - MedFMS",
-    "title": "Importați Vehicule din Excel",
-    "description": "Încărcați un fișier Excel (.xlsx sau .xls) care conține datele vehiculelor. Fișierul trebuie să aibă antetele pe primul rând.",
-    "breadcrumb": "Import",
-    "backToVehicles": "Înapoi la Vehicule",
-    "downloadTemplate": "Descarcă Șablon",
-    "requiredColumns": "Coloane Obligatorii",
-    "requiredNote": "Câmpuri obligatorii. Denumirile nu sunt sensibile la majuscule și sunt potrivite cu datele de referință existente.",
-    "selectFile": "Selectați Fișier Excel",
-    "selectedFile": "Fișier selectat:",
-    "upload": {
-      "invalidFileType": "Vă rugăm să selectați un fișier Excel (.xlsx sau .xls)",
-      "noData": "Nu s-au găsit date în fișierul Excel",
-      "parseError": "Eroare la parsarea fișierului Excel"
-    },
-    "preview": {
-      "title": "Previzualizare Date",
-      "count": "S-au găsit {count} vehicule de importat",
-      "moreRows": "... și încă {count} rânduri"
-    },
-    "validation": {
-      "title": "Rezultate Validare",
-      "running": "Se validează datele...",
-      "passed": "Validare Reușită",
-      "failed": "Validare Eșuată",
-      "warnings": "Avertismente",
-      "errors": "Erori",
-      "validRows": "Rânduri Valide",
-      "invalidRows": "Rânduri Invalide",
-      "proceedWithValid": "Continuă doar cu rândurile valide"
-    },
-    "dryRun": {
-      "title": "Verificare Preliminară",
-      "description": "Validați datele fără a importa. Verificați erorile înainte de a confirma.",
-      "button": "Validează Datele",
-      "validating": "Se validează..."
-    },
-    "importing": "Se importă...",
-    "importButton": "Importați {count} Vehicule",
-    "viewVehicles": "Vezi Vehicule",
-    "results": {
-      "title": "Rezultate Import",
-      "successful": "Importate cu Succes",
-      "failed": "Eșuate",
-      "batchId": "ID Lot",
-      "errorsTitle": "{count} Erori",
-      "row": "Rând",
-      "rollback": "Anulează Importul",
-      "rollbackSuccess": "Import anulat cu succes",
-      "rollbackFailed": "Anularea importului a eșuat"
-    },
-    "referenceData": {
-      "title": "Date de Referință Disponibile",
-      "description": "Folosiți aceste valori exacte în fișierul Excel. Denumirile nu sunt sensibile la majuscule."
-    },
-    "messages": {
-      "noData": "Nu există date de importat",
-      "confirmImport": "Sigur doriți să importați {count} vehicule?",
-      "importSuccess": "Import finalizat cu succes",
-      "importFailed": "Importul a eșuat: {error}",
-      "validationSuccess": "Toate cele {count} vehicule au fost validate cu succes",
-      "validationFailed": "S-au găsit {count} erori de validare"
-    },
-    "documents": {
-      "title": "Import Documente și Fotografii",
-      "description": "Opțional încărcați documentele ANMDM și fotografiile pentru vehiculele importate",
-      "anmdmDocuments": "Documente Autorizare ANMDM",
-      "vehiclePhotos": "Fotografii Vehicule",
-      "matchBy": "Potriviți documentele după codul vehiculului sau numărul de înmatriculare din numele fișierului",
-      "uploadHint": "Încărcați documentele după import. Numele fișierului trebuie să conțină codul vehiculului sau numărul de înmatriculare.",
-      "processing": "Se procesează documentele...",
-      "matched": "S-au potrivit {count} documente cu vehiculele",
-      "unmatched": "{count} documente nu au putut fi potrivite"
-    },
-    "transaction": {
-      "inProgress": "Tranzacție în curs...",
-      "success": "Toate vehiculele au fost importate cu succes",
-      "partialSuccess": "{success} vehicule importate, {failed} eșuate",
-      "rolledBack": "Importul a fost anulat din cauza erorilor",
-      "canRollback": "Puteți anula acest import în termen de 24 de ore"
     }
   },
   "inventory": {

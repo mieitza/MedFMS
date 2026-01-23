@@ -1,17 +1,4 @@
 {
-  "nav": {
-    "dashboard": "Dashboard",
-    "vehicles": "Vehicles",
-    "employees": "Employees",
-    "fuel": "Fuel",
-    "maintenance": "Maintenance",
-    "materials": "Materials",
-    "warehouse": "Warehouse",
-    "reports": "Reports",
-    "admin": "Administration",
-    "profile": "Profile",
-    "import": "Import"
-  },
   "common": {
     "appName": "MedFMS",
     "appFullName": "Medical Fleet Management System",
@@ -41,7 +28,9 @@
     "remove": "Remove",
     "deleting": "Deleting...",
     "clearSelection": "Clear Selection",
-    "none": "None"
+    "none": "None",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All"
   },
   "auth": {
     "signIn": "Sign In",
@@ -81,9 +70,12 @@
     "totalVehicles": "Total Vehicles",
     "fuelTransactions": "Fuel Transactions",
     "materialItems": "Material Items",
+    "activeDrivers": "Active Drivers",
     "activeEmployees": "Active Employees",
     "vehicleManagement": "Vehicle Management",
     "vehicleManagementDesc": "Manage your fleet vehicles, registrations, and documentation",
+    "driverManagement": "Driver Management",
+    "driverManagementDesc": "Manage driver information, licenses, and assignments",
     "employeeManagement": "Employee Management",
     "employeeManagementDesc": "Manage employee information, licenses, and assignments",
     "fuelManagement": "Fuel Management",
@@ -233,8 +225,7 @@
       "resource": "Resource",
       "resourceId": "Resource ID",
       "ipAddress": "IP Address",
-      "details": "Details",
-      "viewDetails": "View"
+      "details": "Details"
     },
     "actions": {
       "create": "Create",
@@ -244,25 +235,17 @@
       "logout": "Logout",
       "passwordReset": "Password Reset",
       "approve": "Approve",
-      "reject": "Reject",
-      "CREATE": "Create",
-      "UPDATE": "Update",
-      "DELETE": "Delete",
-      "LOGIN": "Login",
-      "LOGOUT": "Logout",
-      "APPROVE": "Approve",
-      "REJECT": "Reject"
+      "reject": "Reject"
     },
     "resources": {
       "user": "User",
       "vehicle": "Vehicle",
-      "employee": "Employee",
+      "driver": "Driver",
       "fuel": "Fuel",
       "material": "Material",
       "maintenance": "Maintenance",
       "transfer": "Transfer",
-      "warehouse": "Warehouse",
-      "auth": "Authentication"
+      "warehouse": "Warehouse"
     },
     "detail": {
       "title": "Audit Log Details",
@@ -372,6 +355,66 @@
       "noChanges": "No changes to save"
     }
   },
+  "drivers": {
+    "title": "Driver Management",
+    "pageTitle": "Driver Management - MedFMS",
+    "addDriver": "Add Driver",
+    "editDriver": "Edit Driver",
+    "addNewDriver": "Add New Driver",
+    "createDriver": "Create Driver",
+    "updateDriver": "Update Driver",
+    "driverCode": "Driver Code",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "fullName": "Full Name",
+    "name": "Name",
+    "idNumber": "ID Number",
+    "dateOfBirth": "Date of Birth",
+    "hireDate": "Hire Date",
+    "licenseNumber": "License Number",
+    "licenseType": "License Type",
+    "licenseExpiryDate": "License Expiry Date",
+    "mobileNumber": "Mobile Number",
+    "address": "Address",
+    "city": "City",
+    "license": "License",
+    "phone": "Phone",
+    "sections": {
+      "basicInfo": "Basic Information",
+      "licenseInfo": "License Information",
+      "contactInfo": "Contact Information"
+    },
+    "placeholders": {
+      "driverCode": "Enter driver code",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "fullName": "Auto-generated from first and last name",
+      "idNumber": "Enter ID number",
+      "licenseNumber": "Enter license number",
+      "phoneNumber": "Enter phone number",
+      "mobileNumber": "Enter mobile number",
+      "email": "Enter email address",
+      "address": "Enter address",
+      "selectLicenseType": "Select license type",
+      "selectDepartment": "Select department",
+      "selectCity": "Select city"
+    },
+    "licenseTypes": {
+      "classA": "Class A",
+      "classB": "Class B",
+      "classC": "Class C",
+      "cdlA": "CDL A",
+      "cdlB": "CDL B",
+      "cdlC": "CDL C",
+      "motorcycle": "Motorcycle"
+    },
+    "messages": {
+      "requiredFields": "Please fill in all required fields",
+      "saveFailed": "Failed to save driver. Please try again.",
+      "deleteConfirm": "Are you sure you want to delete driver {name}?",
+      "deleteFailed": "Failed to delete driver. Please try again."
+    }
+  },
   "employees": {
     "title": "Employee Management",
     "pageTitle": "Employee Management - MedFMS",
@@ -453,7 +496,7 @@
     "type": "Type",
     "vehicleType": "Vehicle Type",
     "odometer": "Odometer",
-    "employee": "Employee",
+    "driver": "Driver",
     "engineNumber": "Engine Number",
     "chassisNumber": "Chassis Number",
     "vin": "VIN",
@@ -466,13 +509,10 @@
     "insuranceExpiry": "Insurance Expiry",
     "description": "Description",
     "location": "Location",
-    "status": "Status",
-    "department": "Department",
-    "import": "Import Vehicles",
     "unknown": "Unknown",
     "notAssigned": "Not assigned",
     "notRecorded": "Not recorded",
-    "assignedEmployee": "Assigned Employee",
+    "assignedDriver": "Assigned Driver",
     "created": "Created",
     "lastUpdated": "Last Updated",
     "vehiclePhotos": "Vehicle Photos",
@@ -525,7 +565,7 @@
       "selectStatus": "Select status",
       "selectLocation": "Select location",
       "selectDepartment": "Select department",
-      "selectEmployee": "Select employee",
+      "selectDriver": "Select driver",
       "anmdmAuthNumber": "Enter authorization number",
       "anmdmAuthType": "Enter authorization type",
       "anmdmIssuingAuthority": "Enter issuing authority",
@@ -660,8 +700,8 @@
     "filters": "Filters",
     "vehicle": "Vehicle",
     "allVehicles": "All Vehicles",
-    "employee": "Employee",
-    "allEmployees": "All Employees",
+    "driver": "Driver",
+    "allDrivers": "All Drivers",
     "station": "Station",
     "allStations": "All Stations",
     "type": "Type",
@@ -703,7 +743,7 @@
     },
     "placeholders": {
       "selectVehicle": "Select vehicle",
-      "selectEmployee": "Select employee",
+      "selectDriver": "Select driver",
       "selectFuelType": "Select fuel type",
       "selectStation": "Select station",
       "quantity": "0.00",
@@ -1541,89 +1581,6 @@
       "messages": {
         "exportNotImplemented": "Export functionality would be implemented here"
       }
-    }
-  },
-  "vehicleImport": {
-    "pageTitle": "Vehicle Import - MedFMS",
-    "title": "Import Vehicles from Excel",
-    "description": "Upload an Excel file (.xlsx or .xls) containing vehicle data. The file should have headers in the first row.",
-    "breadcrumb": "Import",
-    "backToVehicles": "Back to Vehicles",
-    "downloadTemplate": "Download Template",
-    "requiredColumns": "Required Columns",
-    "requiredNote": "Required fields. Names are case-insensitive and matched against existing reference data.",
-    "selectFile": "Select Excel File",
-    "selectedFile": "Selected file:",
-    "upload": {
-      "invalidFileType": "Please select an Excel file (.xlsx or .xls)",
-      "noData": "No data found in the Excel file",
-      "parseError": "Error parsing the Excel file"
-    },
-    "preview": {
-      "title": "Data Preview",
-      "count": "Found {count} vehicles to import",
-      "moreRows": "... and {count} more rows"
-    },
-    "validation": {
-      "title": "Validation Results",
-      "running": "Validating data...",
-      "passed": "Validation Passed",
-      "failed": "Validation Failed",
-      "warnings": "Warnings",
-      "errors": "Errors",
-      "validRows": "Valid Rows",
-      "invalidRows": "Invalid Rows",
-      "proceedWithValid": "Proceed with valid rows only"
-    },
-    "dryRun": {
-      "title": "Dry Run",
-      "description": "Validate your data without importing. Check for errors before committing.",
-      "button": "Validate Data",
-      "validating": "Validating..."
-    },
-    "importing": "Importing...",
-    "importButton": "Import {count} Vehicles",
-    "viewVehicles": "View Vehicles",
-    "results": {
-      "title": "Import Results",
-      "successful": "Successfully Imported",
-      "failed": "Failed",
-      "batchId": "Batch ID",
-      "errorsTitle": "{count} Errors",
-      "row": "Row",
-      "rollback": "Rollback Import",
-      "rollbackSuccess": "Import rolled back successfully",
-      "rollbackFailed": "Failed to rollback import"
-    },
-    "referenceData": {
-      "title": "Available Reference Data",
-      "description": "Use these exact values in your Excel file. Names are case-insensitive."
-    },
-    "messages": {
-      "noData": "No data to import",
-      "confirmImport": "Are you sure you want to import {count} vehicles?",
-      "importSuccess": "Import completed successfully",
-      "importFailed": "Import failed: {error}",
-      "validationSuccess": "All {count} vehicles validated successfully",
-      "validationFailed": "{count} validation errors found"
-    },
-    "documents": {
-      "title": "Import Documents & Photos",
-      "description": "Optionally upload ANMDM documents and photos for imported vehicles",
-      "anmdmDocuments": "ANMDM Authorization Documents",
-      "vehiclePhotos": "Vehicle Photos",
-      "matchBy": "Match documents by vehicle code or license plate in filename",
-      "uploadHint": "Upload documents after import. Filename should contain vehicle code or license plate.",
-      "processing": "Processing documents...",
-      "matched": "Matched {count} documents to vehicles",
-      "unmatched": "{count} documents could not be matched"
-    },
-    "transaction": {
-      "inProgress": "Transaction in progress...",
-      "success": "All vehicles imported successfully",
-      "partialSuccess": "{success} vehicles imported, {failed} failed",
-      "rolledBack": "Import rolled back due to errors",
-      "canRollback": "You can rollback this import within 24 hours"
     }
   },
   "inventory": {

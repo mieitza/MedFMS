@@ -21,13 +21,13 @@ const employeeSchema = z.object({
   licenseExpiryDate: z.coerce.date().optional(),
   phoneNumber: z.string().optional(),
   mobileNumber: z.string().optional(),
-  email: z.string().email().optional(),
+  email: z.string().email().optional().nullable().or(z.literal("")),
   address: z.string().optional(),
-  cityId: z.number().optional(),
+  cityId: z.number().optional().nullable(),
   dateOfBirth: z.coerce.date().optional(),
   hireDate: z.coerce.date().optional(),
-  departmentId: z.number().optional(),
-  positionId: z.number().optional(),
+  departmentId: z.number().optional().nullable(),
+  positionId: z.number().optional().nullable(),
 });
 
 router.get('/', async (req, res, next) => {

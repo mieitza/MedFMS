@@ -262,17 +262,17 @@
 		}
 	}
 
-	async function handleDownload(document) {
+	async function handleDownload(doc) {
 		try {
-			const blob = await api.downloadDocument(document.id);
+			const blob = await api.downloadDocument(doc.id);
 			const url = window.URL.createObjectURL(blob);
-			const a = document.createElement('a');
+			const a = window.document.createElement('a');
 			a.href = url;
-			a.download = document.originalFileName;
-			document.body.appendChild(a);
+			a.download = doc.originalFileName;
+			window.document.body.appendChild(a);
 			a.click();
 			window.URL.revokeObjectURL(url);
-			document.body.removeChild(a);
+			window.document.body.removeChild(a);
 		} catch (error) {
 			console.error('Failed to download document:', error);
 			alert('Failed to download document. Please try again.');

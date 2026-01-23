@@ -140,7 +140,7 @@
 
 	async function loadEmployees() {
 		try {
-			const response = await api.getDrivers({ active: true });
+			const response = await api.getEmployees({ active: true });
 			employees = response.data || [];
 		} catch (err) {
 			console.error('Failed to load employees:', err);

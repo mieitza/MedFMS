@@ -116,7 +116,7 @@ const DATA_TYPE_CONFIG = {
       fuelName: z.string().min(1).max(100),
       description: z.string().optional(),
       unit: z.string().optional(),
-      currentPrice: z.number(),
+      currentPrice: z.number().optional().default(0),
       density: z.number().optional(),
       active: z.boolean().optional(),
     }),

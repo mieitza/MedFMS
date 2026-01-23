@@ -70,9 +70,14 @@
   $: columns = [
     {
       key: 'select',
-      label: `<input type="checkbox" ${allSelected ? 'checked' : ''} onclick="document.dispatchEvent(new CustomEvent('toggleSelectAll'))" class="w-4 h-4 cursor-pointer" />`,
+      label: '☐',
       sortable: false,
-      render: (value, row) => `<input type="checkbox" ${selectedMaterialIds.includes(row?.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleMaterialSelection(${row?.id})" class="w-4 h-4 cursor-pointer" />`
+      width: '40px',
+      render: (value, row) => {
+        if (!row || !row.id) return '';
+        const isChecked = selectedMaterialIds.includes(row.id);
+        return `<input type="checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); window.toggleMaterialSelection && window.toggleMaterialSelection(${row.id})" class="w-4 h-4 cursor-pointer" />`;
+      }
     },
     {
       key: 'materialCode',
@@ -191,6 +196,11 @@
     if (!token) {
       goto('/');
       return;
+    }
+
+    // Make selection functions available globally for inline onclick handlers
+    if (typeof window !== 'undefined') {
+      window.toggleMaterialSelection = toggleMaterialSelection;
     }
 
     await loadMaterials();
@@ -468,15 +478,6 @@
     }
   }
 
-  // Make functions globally available for inline onclick handlers (browser only)
-  if (typeof window !== 'undefined') {
-    window.toggleMaterialSelection = toggleMaterialSelection;
-
-    // Listen for custom toggleSelectAll event
-    document.addEventListener('toggleSelectAll', () => {
-      toggleSelectAll();
-    });
-  }
 </script>
 
 <svelte:head>
@@ -499,6 +500,16 @@
           </nav>
         </div>
         <div class="flex items-center gap-3">
+          <!-- Selection Controls -->
+          {#if materials.length > 0}
+            <button
+              on:click={toggleSelectAll}
+              class="btn btn-outline text-sm"
+            >
+              {allSelected ? $_('common.deselectAll') || 'Deselect All' : $_('common.selectAll') || 'Select All'}
+            </button>
+          {/if}
+
           <!-- Bulk Delete Button (shown when items are selected) -->
           {#if selectedMaterialIds.length > 0}
             <button
