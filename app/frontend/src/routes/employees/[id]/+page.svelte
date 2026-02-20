@@ -90,7 +90,7 @@
 
 	async function loadProfilePhoto() {
 		try {
-			const response = await api.getPhotos('driver', parseInt(driverId));
+			const response = await api.getPhotos('employee', parseInt(driverId));
 			const photos = response.data || [];
 			if (photos.length > 0) {
 				const photo = photos.find(p => p.isPrimary) || photos[0];
