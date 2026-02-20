@@ -418,7 +418,7 @@
 
 											<div class="space-y-2 text-sm text-gray-600">
 												<div class="flex items-center">
-													<span class="font-medium">{$_('materials.quantity')}:</span>
+													<span class="font-medium">{$_('materials.transactions.quantity')}:</span>
 													<span class="ml-2">{material.quantity}</span>
 												</div>
 												{#if material.lastTransferDate}
@@ -429,7 +429,7 @@
 												{/if}
 												{#if material.requestNumber}
 													<div class="flex items-center">
-														<span class="font-medium">{$_('materials.requestNumber')}:</span>
+														<span class="font-medium">{$_('materials.transfers.requestNumber')}:</span>
 														<span class="ml-2">{material.requestNumber}</span>
 													</div>
 												{/if}
