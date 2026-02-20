@@ -429,7 +429,7 @@
 												{/if}
 												{#if material.requestNumber}
 													<div class="flex items-center">
-														<span class="font-medium">{$_('materials.transfers.requestNumber')}:</span>
+														<span class="font-medium">{$_('materials.transferRequests.requestNumber')}:</span>
 														<span class="ml-2">{material.requestNumber}</span>
 													</div>
 												{/if}
