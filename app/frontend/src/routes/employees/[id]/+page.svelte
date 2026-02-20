@@ -10,6 +10,9 @@
 
 	let driver = null;
 	let profilePhotoUrl = null;
+	let profilePhotoId = null;
+	let uploadingPhoto = false;
+	let photoFileInput;
 	let loading = true;
 	let error = null;
 	let showEditModal = false;
@@ -90,13 +93,70 @@
 			const response = await api.getPhotos('driver', parseInt(driverId));
 			const photos = response.data || [];
 			if (photos.length > 0) {
-				// Use primary photo or first photo
 				const photo = photos.find(p => p.isPrimary) || photos[0];
+				profilePhotoId = photo.id;
 				const blob = await api.downloadPhoto(photo.id);
+				if (profilePhotoUrl) URL.revokeObjectURL(profilePhotoUrl);
 				profilePhotoUrl = URL.createObjectURL(blob);
+			} else {
+				profilePhotoId = null;
+				profilePhotoUrl = null;
 			}
 		} catch (err) {
 			console.error('Failed to load profile photo:', err);
+		}
+	}
+
+	function triggerPhotoUpload() {
+		photoFileInput.click();
+	}
+
+	async function handlePhotoUpload(event) {
+		const file = event.target.files[0];
+		if (!file) return;
+
+		if (!file.type.startsWith('image/')) {
+			alert('Doar fisiere imagine sunt acceptate.');
+			return;
+		}
+
+		uploadingPhoto = true;
+		try {
+			// Delete existing photo first if there is one
+			if (profilePhotoId) {
+				await api.deletePhoto(profilePhotoId);
+			}
+
+			await api.uploadPhoto(file, {
+				photoName: `${driver.fullName} - Profile`,
+				description: 'Employee profile photo',
+				isPrimary: true,
+				entityType: 'driver',
+				entityId: driver.id
+			});
+
+			await loadProfilePhoto();
+		} catch (err) {
+			console.error('Failed to upload photo:', err);
+			alert('Eroare la incarcarea fotografiei.');
+		} finally {
+			uploadingPhoto = false;
+			event.target.value = '';
+		}
+	}
+
+	async function handlePhotoDelete() {
+		if (!profilePhotoId) return;
+		if (!confirm('Sigur doriti sa stergeti fotografia?')) return;
+
+		try {
+			await api.deletePhoto(profilePhotoId);
+			if (profilePhotoUrl) URL.revokeObjectURL(profilePhotoUrl);
+			profilePhotoUrl = null;
+			profilePhotoId = null;
+		} catch (err) {
+			console.error('Failed to delete photo:', err);
+			alert('Eroare la stergerea fotografiei.');
 		}
 	}
 
@@ -243,7 +303,14 @@
 					<div class="flex items-center justify-between">
 						<div class="flex items-center space-x-6">
 							<!-- Profile Photo -->
-							<div class="flex-shrink-0">
+							<div class="flex-shrink-0 relative group">
+								<input
+									type="file"
+									accept="image/*"
+									class="hidden"
+									bind:this={photoFileInput}
+									on:change={handlePhotoUpload}
+								/>
 								{#if profilePhotoUrl}
 									<img
 										src={profilePhotoUrl}
@@ -256,6 +323,35 @@
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
 										</svg>
 									</div>
+								{/if}
+								<!-- Upload/Edit overlay -->
+								{#if uploadingPhoto}
+									<div class="absolute inset-0 w-24 h-24 rounded-full bg-black bg-opacity-50 flex items-center justify-center border-4 border-white">
+										<div class="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+									</div>
+								{:else}
+									<div class="absolute inset-0 w-24 h-24 rounded-full bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center border-4 border-transparent transition-all cursor-pointer"
+										on:click={triggerPhotoUpload}
+										on:keydown={(e) => e.key === 'Enter' && triggerPhotoUpload()}
+										role="button"
+										tabindex="0"
+									>
+										<svg class="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+										</svg>
+									</div>
+								{/if}
+								{#if profilePhotoId}
+									<button
+										on:click={handlePhotoDelete}
+										class="absolute -top-1 -right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+										title="Sterge fotografia"
+									>
+										<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+										</svg>
+									</button>
 								{/if}
 							</div>
 							<div>
