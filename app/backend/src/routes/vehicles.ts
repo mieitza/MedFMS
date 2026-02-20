@@ -179,40 +179,60 @@ router.get('/', async (req, res, next) => {
       .where(eq(vehicles.active, true));
 
     if (search) {
+      const searchCondition = or(
+        like(vehicles.vehicleCode, `%${search}%`),
+        like(vehicles.licensePlate, `%${search}%`),
+        like(brands.brandName, `%${search}%`),
+        like(models.modelName, `%${search}%`),
+        like(vehicleTypes.typeName, `%${search}%`),
+        like(vehicleStatuses.statusName, `%${search}%`),
+        like(employees.fullName, `%${search}%`),
+        like(fuelTypes.fuelName, `%${search}%`),
+        like(vehicles.description, `%${search}%`),
+        like(vehicles.engineNumber, `%${search}%`),
+        like(vehicles.chassisNumber, `%${search}%`),
+        like(vehicles.anmdmAuthNumber, `%${search}%`)
+      );
       baseQuery = baseQuery.where(
-        and(
-          eq(vehicles.active, true),
-          or(
-            like(vehicles.vehicleCode, `%${search}%`),
-            like(vehicles.licensePlate, `%${search}%`),
-            like(brands.brandName, `%${search}%`),
-            like(models.modelName, `%${search}%`)
-          )
-        )
+        and(eq(vehicles.active, true), searchCondition)
       );
     }
 
     const results = await baseQuery.limit(limit).offset(offset);
 
-    // Get total count for pagination
-    const totalQuery = db
+    // Get total count for pagination (with same joins for search)
+    let countQuery = db
       .select({ count: vehicles.id })
       .from(vehicles)
+      .leftJoin(brands, eq(vehicles.brandId, brands.id))
+      .leftJoin(models, eq(vehicles.modelId, models.id))
+      .leftJoin(fuelTypes, eq(vehicles.fuelTypeId, fuelTypes.id))
+      .leftJoin(vehicleTypes, eq(vehicles.vehicleTypeId, vehicleTypes.id))
+      .leftJoin(vehicleStatuses, eq(vehicles.statusId, vehicleStatuses.id))
+      .leftJoin(employees, eq(vehicles.employeeId, employees.id))
       .where(eq(vehicles.active, true));
 
     if (search) {
-      totalQuery.where(
-        and(
-          eq(vehicles.active, true),
-          or(
-            like(vehicles.vehicleCode, `%${search}%`),
-            like(vehicles.licensePlate, `%${search}%`)
-          )
-        )
+      const searchCondition = or(
+        like(vehicles.vehicleCode, `%${search}%`),
+        like(vehicles.licensePlate, `%${search}%`),
+        like(brands.brandName, `%${search}%`),
+        like(models.modelName, `%${search}%`),
+        like(vehicleTypes.typeName, `%${search}%`),
+        like(vehicleStatuses.statusName, `%${search}%`),
+        like(employees.fullName, `%${search}%`),
+        like(fuelTypes.fuelName, `%${search}%`),
+        like(vehicles.description, `%${search}%`),
+        like(vehicles.engineNumber, `%${search}%`),
+        like(vehicles.chassisNumber, `%${search}%`),
+        like(vehicles.anmdmAuthNumber, `%${search}%`)
+      );
+      countQuery = countQuery.where(
+        and(eq(vehicles.active, true), searchCondition)
       );
     }
 
-    const totalResult = await totalQuery;
+    const totalResult = await countQuery;
     const total = totalResult.length;
 
     res.json({
