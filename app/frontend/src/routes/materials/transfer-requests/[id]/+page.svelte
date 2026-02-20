@@ -5,6 +5,7 @@
 	import { _ } from '$lib/i18n';
 	import { api } from '$lib/api';
 	import { createFormTracker } from '$lib/utils/formTracking';
+	import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
 	let transferRequest = null;
 	let warehouses = [];
@@ -405,18 +406,16 @@
 									<label for="sourceWarehouseId" class="block text-sm font-medium text-gray-700">
 										{$_('materials.transferRequests.sourceWarehouse')} *
 									</label>
-									<select
+									<SearchableSelect
 										id="sourceWarehouseId"
+										options={warehouses}
 										bind:value={formData.sourceWarehouseId}
+										labelField={(w) => `${w.warehouseName} (${w.warehouseCode})`}
+										valueField="id"
+										placeholder={$_('materials.transferRequests.selectWarehouse')}
 										disabled={!isEditable}
 										required
-										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-									>
-										<option value={null}>{$_('materials.transferRequests.selectWarehouse')}</option>
-										{#each warehouses as warehouse}
-											<option value={warehouse.id}>{warehouse.warehouseName} ({warehouse.warehouseCode})</option>
-										{/each}
-									</select>
+									/>
 								</div>
 							{/if}
 
@@ -426,18 +425,16 @@
 									<label for="sourceVehicleId" class="block text-sm font-medium text-gray-700">
 										{$_('materials.transferRequests.sourceVehicle')} *
 									</label>
-									<select
+									<SearchableSelect
 										id="sourceVehicleId"
+										options={vehicles}
 										bind:value={formData.sourceVehicleId}
+										labelField={(v) => `${v.licensePlate} - ${v.make} ${v.model}`}
+										valueField="id"
+										placeholder={$_('materials.transferRequests.selectVehicle')}
 										disabled={!isEditable}
 										required
-										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-									>
-										<option value={null}>{$_('materials.transferRequests.selectVehicle')}</option>
-										{#each vehicles as vehicle}
-											<option value={vehicle.id}>{vehicle.licensePlate} - {vehicle.make} {vehicle.model}</option>
-										{/each}
-									</select>
+									/>
 								</div>
 							{/if}
 
@@ -447,18 +444,16 @@
 									<label for="destinationWarehouseId" class="block text-sm font-medium text-gray-700">
 										{$_('materials.transferRequests.destinationWarehouse')} *
 									</label>
-									<select
+									<SearchableSelect
 										id="destinationWarehouseId"
+										options={warehouses}
 										bind:value={formData.destinationWarehouseId}
+										labelField={(w) => `${w.warehouseName} (${w.warehouseCode})`}
+										valueField="id"
+										placeholder={$_('materials.transferRequests.selectWarehouse')}
 										disabled={!isEditable}
 										required
-										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-									>
-										<option value={null}>{$_('materials.transferRequests.selectWarehouse')}</option>
-										{#each warehouses as warehouse}
-											<option value={warehouse.id}>{warehouse.warehouseName} ({warehouse.warehouseCode})</option>
-										{/each}
-									</select>
+									/>
 								</div>
 							{/if}
 
@@ -468,18 +463,16 @@
 									<label for="destinationVehicleId" class="block text-sm font-medium text-gray-700">
 										{$_('materials.transferRequests.destinationVehicle')} *
 									</label>
-									<select
+									<SearchableSelect
 										id="destinationVehicleId"
+										options={vehicles}
 										bind:value={formData.destinationVehicleId}
+										labelField={(v) => `${v.licensePlate} - ${v.make} ${v.model}`}
+										valueField="id"
+										placeholder={$_('materials.transferRequests.selectVehicle')}
 										disabled={!isEditable}
 										required
-										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-									>
-										<option value={null}>{$_('materials.transferRequests.selectVehicle')}</option>
-										{#each vehicles as vehicle}
-											<option value={vehicle.id}>{vehicle.licensePlate} - {vehicle.make} {vehicle.model}</option>
-										{/each}
-									</select>
+									/>
 								</div>
 							{/if}
 
@@ -489,18 +482,16 @@
 									<label for="destinationEmployeeId" class="block text-sm font-medium text-gray-700">
 										{$_('materials.transferRequests.destinationEmployee')} *
 									</label>
-									<select
+									<SearchableSelect
 										id="destinationEmployeeId"
+										options={employees}
 										bind:value={formData.destinationEmployeeId}
+										labelField={(e) => `${e.fullName} (${e.employeeNumber})`}
+										valueField="id"
+										placeholder={$_('materials.transferRequests.selectEmployee')}
 										disabled={!isEditable}
 										required
-										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-									>
-										<option value={null}>{$_('materials.transferRequests.selectEmployee')}</option>
-										{#each employees as employee}
-											<option value={employee.id}>{employee.fullName} ({employee.employeeNumber})</option>
-										{/each}
-									</select>
+									/>
 								</div>
 							{/if}
 
@@ -509,18 +500,16 @@
 								<label for="materialId" class="block text-sm font-medium text-gray-700">
 									{$_('materials.transferRequests.material')} *
 								</label>
-								<select
+								<SearchableSelect
 									id="materialId"
+									options={materials}
 									bind:value={formData.materialId}
+									labelField={(m) => `${m.materialName} (${m.materialCode})`}
+									valueField="id"
+									placeholder={$_('materials.transferRequests.selectMaterial')}
 									disabled={!isEditable}
 									required
-									class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-								>
-									<option value={null}>{$_('materials.transferRequests.selectMaterial')}</option>
-									{#each materials as material}
-										<option value={material.id}>{material.materialName} ({material.materialCode})</option>
-									{/each}
-								</select>
+								/>
 							</div>
 
 							<!-- Vehicle Inventory Item (only for vehicle-to-warehouse returns) -->

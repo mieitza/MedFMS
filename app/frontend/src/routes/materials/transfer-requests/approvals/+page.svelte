@@ -5,6 +5,7 @@
 	import { _ } from '$lib/i18n';
 	import DataTable from '$lib/components/DataTable.svelte';
 	import Modal from '$lib/components/Modal.svelte';
+	import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
 	let transferRequests = [];
 	let loading = false;
@@ -358,28 +359,24 @@
 
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.transferRequests.sourceWarehouse')}</label>
-					<select
+					<SearchableSelect
+						options={warehouses}
 						bind:value={filters.sourceWarehouseId}
-						class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					>
-						<option value={null}>{$_('materials.transferRequests.approvals.allWarehouses')}</option>
-						{#each warehouses as warehouse}
-							<option value={warehouse.id}>{warehouse.warehouseName}</option>
-						{/each}
-					</select>
+						labelField="warehouseName"
+						valueField="id"
+						placeholder={$_('materials.transferRequests.approvals.allWarehouses')}
+					/>
 				</div>
 
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.transferRequests.destinationWarehouse')}</label>
-					<select
+					<SearchableSelect
+						options={warehouses}
 						bind:value={filters.destinationWarehouseId}
-						class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					>
-						<option value={null}>{$_('materials.transferRequests.approvals.allWarehouses')}</option>
-						{#each warehouses as warehouse}
-							<option value={warehouse.id}>{warehouse.warehouseName}</option>
-						{/each}
-					</select>
+						labelField="warehouseName"
+						valueField="id"
+						placeholder={$_('materials.transferRequests.approvals.allWarehouses')}
+					/>
 				</div>
 
 				<div class="flex items-end gap-2">

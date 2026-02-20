@@ -5,6 +5,7 @@
 	import { _ } from '$lib/i18n';
 	import Modal from '$lib/components/Modal.svelte';
 	import { createFormTracker } from '$lib/utils/formTracking';
+	import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
 	export let vehicleId;
 	export let title = null;
@@ -564,12 +565,13 @@
 	<form on:submit|preventDefault={handleAddSubmit} class="space-y-4">
 		<div>
 			<label class="block text-sm font-medium text-gray-700 mb-1">{$_('inventory.itemName')} *</label>
-			<select bind:value={formData.itemId} required class="input">
-				<option value="">{$_('vehicles.inventory.placeholders.selectItem')}</option>
-				{#each items as item}
-					<option value={item.item.id}>{item.item.itemName}</option>
-				{/each}
-			</select>
+			<SearchableSelect
+				options={items.map(i => i.item)}
+				bind:value={formData.itemId}
+				labelField="itemName"
+				placeholder={$_('vehicles.inventory.placeholders.selectItem')}
+				required
+			/>
 		</div>
 
 		<div class="grid grid-cols-2 gap-4">
@@ -627,12 +629,12 @@
 
 		<div>
 			<label class="block text-sm font-medium text-gray-700 mb-1">{$_('inventory.assignedEmployee')}</label>
-			<select bind:value={formData.assignedEmployeeId} class="input">
-				<option value="">{$_('common.none')}</option>
-				{#each employees as employee}
-					<option value={employee.id}>{employee.firstName} {employee.lastName}</option>
-				{/each}
-			</select>
+			<SearchableSelect
+				options={employees}
+				bind:value={formData.assignedEmployeeId}
+				labelField={e => `${e.firstName} ${e.lastName}`}
+				placeholder={$_('common.none')}
+			/>
 		</div>
 
 		<div>
@@ -712,12 +714,12 @@
 
 		<div>
 			<label class="block text-sm font-medium text-gray-700 mb-1">{$_('inventory.assignedEmployee')}</label>
-			<select bind:value={formData.assignedEmployeeId} class="input">
-				<option value="">{$_('common.none')}</option>
-				{#each employees as employee}
-					<option value={employee.id}>{employee.firstName} {employee.lastName}</option>
-				{/each}
-			</select>
+			<SearchableSelect
+				options={employees}
+				bind:value={formData.assignedEmployeeId}
+				labelField={e => `${e.firstName} ${e.lastName}`}
+				placeholder={$_('common.none')}
+			/>
 		</div>
 
 		<div>

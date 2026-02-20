@@ -5,6 +5,7 @@
 	import { _ } from '$lib/i18n';
 	import DataTable from '$lib/components/DataTable.svelte';
 	import Modal from '$lib/components/Modal.svelte';
+	import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
 	let fuelTransactions = [];
 	let loading = false;
@@ -489,30 +490,36 @@
 			<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.vehicle')}</label>
-					<select bind:value={selectedVehicle} on:change={handleSearch} class="form-select">
-						<option value="">{$_('fuel.allVehicles')}</option>
-						{#each vehicles as vehicle}
-							<option value={vehicle.id}>{vehicle.vehicleCode} - {vehicle.licensePlate}</option>
-						{/each}
-					</select>
+					<SearchableSelect
+						options={vehicles}
+						bind:value={selectedVehicle}
+						labelField={v => v.vehicleCode + ' - ' + v.licensePlate}
+						valueField="id"
+						placeholder={$_('fuel.allVehicles')}
+						on:change={handleSearch}
+					/>
 				</div>
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.employee')}</label>
-					<select bind:value={selectedEmployee} on:change={handleSearch} class="form-select">
-						<option value="">{$_('fuel.allEmployees')}</option>
-						{#each employees as employee}
-							<option value={employee.id}>{employee.fullName}</option>
-						{/each}
-					</select>
+					<SearchableSelect
+						options={employees}
+						bind:value={selectedEmployee}
+						labelField="fullName"
+						valueField="id"
+						placeholder={$_('fuel.allEmployees')}
+						on:change={handleSearch}
+					/>
 				</div>
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.station')}</label>
-					<select bind:value={selectedStation} on:change={handleSearch} class="form-select">
-						<option value="">{$_('fuel.allStations')}</option>
-						{#each stations as station}
-							<option value={station.id}>{station.stationName}</option>
-						{/each}
-					</select>
+					<SearchableSelect
+						options={stations}
+						bind:value={selectedStation}
+						labelField="stationName"
+						valueField="id"
+						placeholder={$_('fuel.allStations')}
+						on:change={handleSearch}
+					/>
 				</div>
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.type')}</label>
@@ -585,33 +592,29 @@
 					<label for="vehicleId" class="block text-sm font-medium text-gray-700 mb-2">
 						{$_('fuel.vehicle')} *
 					</label>
-					<select
+					<SearchableSelect
 						id="vehicleId"
+						options={vehicles}
 						bind:value={formData.vehicleId}
-						class="form-select"
+						labelField={v => v.vehicleCode + ' - ' + v.licensePlate}
+						valueField="id"
+						placeholder={$_('fuel.placeholders.selectVehicle')}
 						required
-					>
-						<option value="">{$_('fuel.placeholders.selectVehicle')}</option>
-						{#each vehicles as vehicle}
-							<option value={vehicle.id}>{vehicle.vehicleCode} - {vehicle.licensePlate}</option>
-						{/each}
-					</select>
+					/>
 				</div>
 
 				<div>
 					<label for="employeeId" class="block text-sm font-medium text-gray-700 mb-2">
 						{$_('fuel.employee')}
 					</label>
-					<select
+					<SearchableSelect
 						id="employeeId"
+						options={employees}
 						bind:value={formData.employeeId}
-						class="form-select"
-					>
-						<option value="">{$_('fuel.placeholders.selectEmployee')}</option>
-						{#each employees as employee}
-							<option value={employee.id}>{employee.fullName}</option>
-						{/each}
-					</select>
+						labelField="fullName"
+						valueField="id"
+						placeholder={$_('fuel.placeholders.selectEmployee')}
+					/>
 				</div>
 
 				<div>
@@ -635,16 +638,14 @@
 					<label for="fuelStationId" class="block text-sm font-medium text-gray-700 mb-2">
 						{$_('fuel.fuelStation')}
 					</label>
-					<select
+					<SearchableSelect
 						id="fuelStationId"
+						options={stations}
 						bind:value={formData.fuelStationId}
-						class="form-select"
-					>
-						<option value="">{$_('fuel.placeholders.selectStation')}</option>
-						{#each stations as station}
-							<option value={station.id}>{station.stationName}</option>
-						{/each}
-					</select>
+						labelField="stationName"
+						valueField="id"
+						placeholder={$_('fuel.placeholders.selectStation')}
+					/>
 				</div>
 
 				<div>

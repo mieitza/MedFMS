@@ -3,6 +3,7 @@
 	import { api } from '$lib/api';
 	import { _ } from '$lib/i18n';
 	import { createFormTracker } from '$lib/utils/formTracking';
+	import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
 	export let driver = null;
 	export let cities = [];
@@ -315,16 +316,13 @@
 				<label for="departmentId" class="block text-sm font-medium text-gray-700 mb-2">
 					{$_('users.department')}
 				</label>
-				<select
+				<SearchableSelect
 					id="departmentId"
+					options={departments}
 					bind:value={formData.departmentId}
-					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-				>
-					<option value={null}>{$_('drivers.placeholders.selectDepartment')}</option>
-					{#each departments as department}
-						<option value={department.id}>{department.departmentName}</option>
-					{/each}
-				</select>
+					labelField="departmentName"
+					placeholder={$_('drivers.placeholders.selectDepartment')}
+				/>
 			</div>
 		</div>
 	</div>
@@ -379,16 +377,13 @@
 				<label for="cityId" class="block text-sm font-medium text-gray-700 mb-2">
 					{$_('drivers.city')}
 				</label>
-				<select
+				<SearchableSelect
 					id="cityId"
+					options={cities}
 					bind:value={formData.cityId}
-					class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-				>
-					<option value={null}>{$_('drivers.placeholders.selectCity')}</option>
-					{#each cities as city}
-						<option value={city.id}>{city.cityName}</option>
-					{/each}
-				</select>
+					labelField="cityName"
+					placeholder={$_('drivers.placeholders.selectCity')}
+				/>
 			</div>
 
 			<div class="md:col-span-2">

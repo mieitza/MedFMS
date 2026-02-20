@@ -3,6 +3,7 @@
 	import { api } from '$lib/api';
 	import { _ } from '$lib/i18n';
 	import { createFormTracker } from '$lib/utils/formTracking';
+	import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
 	export let vehicle = null;
 	export let brands = [];
@@ -332,19 +333,15 @@
 				<label for="brandId" class="block text-sm font-medium text-gray-700 mb-1">
 					{$_('vehicles.brand')} *
 				</label>
-				<select
+				<SearchableSelect
 					id="brandId"
+					options={brands}
 					bind:value={formData.brandId}
-					on:change={handleBrandChange}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-					class:border-red-500={errors.brandId}
+					labelField="brandName"
+					placeholder={$_('vehicles.placeholders.selectBrand')}
 					required
-				>
-					<option value={null}>{$_('vehicles.placeholders.selectBrand')}</option>
-					{#each brands as brand}
-						<option value={brand.id}>{brand.brandName}</option>
-					{/each}
-				</select>
+					on:change={handleBrandChange}
+				/>
 				{#if errors.brandId}
 					<p class="mt-1 text-sm text-red-600">{errors.brandId}</p>
 				{/if}
@@ -355,19 +352,15 @@
 				<label for="modelId" class="block text-sm font-medium text-gray-700 mb-1">
 					{$_('vehicles.model')} *
 				</label>
-				<select
+				<SearchableSelect
 					id="modelId"
+					options={filteredModels}
 					bind:value={formData.modelId}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-					class:border-red-500={errors.modelId}
+					labelField="modelName"
+					placeholder={$_('vehicles.placeholders.selectModel')}
 					disabled={!formData.brandId}
 					required
-				>
-					<option value={null}>{$_('vehicles.placeholders.selectModel')}</option>
-					{#each filteredModels as model}
-						<option value={model.id}>{model.modelName}</option>
-					{/each}
-				</select>
+				/>
 				{#if errors.modelId}
 					<p class="mt-1 text-sm text-red-600">{errors.modelId}</p>
 				{/if}
@@ -465,16 +458,13 @@
 				<label for="locationId" class="block text-sm font-medium text-gray-700 mb-1">
 					{$_('vehicles.location')}
 				</label>
-				<select
+				<SearchableSelect
 					id="locationId"
+					options={locations}
 					bind:value={formData.locationId}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-				>
-					<option value={null}>{$_('vehicles.placeholders.selectLocation')}</option>
-					{#each locations as location}
-						<option value={location.id}>{location.locationName}</option>
-					{/each}
-				</select>
+					labelField="locationName"
+					placeholder={$_('vehicles.placeholders.selectLocation')}
+				/>
 			</div>
 
 			<!-- Department (Optional) -->
@@ -482,16 +472,13 @@
 				<label for="departmentId" class="block text-sm font-medium text-gray-700 mb-1">
 					{$_('users.department')}
 				</label>
-				<select
+				<SearchableSelect
 					id="departmentId"
+					options={departments}
 					bind:value={formData.departmentId}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-				>
-					<option value={null}>{$_('vehicles.placeholders.selectDepartment')}</option>
-					{#each departments as department}
-						<option value={department.id}>{department.departmentName}</option>
-					{/each}
-				</select>
+					labelField="departmentName"
+					placeholder={$_('vehicles.placeholders.selectDepartment')}
+				/>
 			</div>
 
 			<!-- Employee (Optional) -->
@@ -499,16 +486,13 @@
 				<label for="employeeId" class="block text-sm font-medium text-gray-700 mb-1">
 					{$_('vehicles.assignedEmployee')}
 				</label>
-				<select
+				<SearchableSelect
 					id="employeeId"
+					options={employees}
 					bind:value={formData.employeeId}
-					class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-				>
-					<option value={null}>{$_('vehicles.placeholders.selectEmployee')}</option>
-					{#each employees as employee}
-						<option value={employee.id}>{employee.fullName}</option>
-					{/each}
-				</select>
+					labelField="fullName"
+					placeholder={$_('vehicles.placeholders.selectEmployee')}
+				/>
 			</div>
 
 			<!-- Odometer (Optional) -->

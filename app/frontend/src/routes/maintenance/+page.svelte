@@ -8,6 +8,7 @@
   import FileUpload from '$lib/components/FileUpload.svelte';
   import WorkOrderFiles from '$lib/components/WorkOrderFiles.svelte';
   import { createFormTracker } from '$lib/utils/formTracking';
+  import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
   let workOrders = [];
   let vehicles = [];
@@ -575,15 +576,13 @@
       <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.filters.vehicle')}</label>
-          <select
+          <SearchableSelect
+            options={vehicles}
             bind:value={filters.vehicleId}
-            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">{$_('maintenance.filters.allVehicles')}</option>
-            {#each vehicles as vehicle}
-              <option value={vehicle.id}>{vehicle.vehicleCode} ({vehicle.licensePlate})</option>
-            {/each}
-          </select>
+            labelField={v => v.vehicleCode + ' (' + v.licensePlate + ')'}
+            valueField="id"
+            placeholder={$_('maintenance.filters.allVehicles')}
+          />
         </div>
 
         <div>
@@ -680,30 +679,26 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.vehicleRequired')}</label>
-          <select
+          <SearchableSelect
+            options={vehicles}
             bind:value={formData.vehicleId}
+            labelField={v => v.vehicleCode + ' (' + v.licensePlate + ')'}
+            valueField="id"
+            placeholder={$_('maintenance.form.selectVehicle')}
             required
-            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">{$_('maintenance.form.selectVehicle')}</option>
-            {#each vehicles as vehicle}
-              <option value={vehicle.id}>{vehicle.vehicleCode} ({vehicle.licensePlate})</option>
-            {/each}
-          </select>
+          />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.form.maintenanceTypeRequired')}</label>
-          <select
+          <SearchableSelect
+            options={maintenanceTypes}
             bind:value={formData.maintenanceTypeId}
+            labelField={v => v.typeName + ' (' + v.category + ')'}
+            valueField="id"
+            placeholder={$_('maintenance.form.selectType')}
             required
-            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">{$_('maintenance.form.selectType')}</option>
-            {#each maintenanceTypes as type}
-              <option value={type.id}>{type.typeName} ({type.category})</option>
-            {/each}
-          </select>
+          />
         </div>
       </div>
 
@@ -812,34 +807,30 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">
             {$_('maintenance.form.vehicle')} <span class="text-red-500">*</span>
           </label>
-          <select
+          <SearchableSelect
+            options={vehicles}
             bind:value={formData.vehicleId}
+            labelField={v => v.vehicleCode + ' - ' + v.licensePlate}
+            valueField="id"
+            placeholder={$_('maintenance.form.selectAVehicle')}
             required
             disabled={loading}
-            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">{$_('maintenance.form.selectAVehicle')}</option>
-            {#each vehicles as vehicle}
-              <option value={vehicle.id}>{vehicle.vehicleCode} - {vehicle.licensePlate}</option>
-            {/each}
-          </select>
+          />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">
             {$_('maintenance.form.maintenanceType')} <span class="text-red-500">*</span>
           </label>
-          <select
+          <SearchableSelect
+            options={maintenanceTypes}
             bind:value={formData.maintenanceTypeId}
+            labelField={v => v.typeName + ' (' + v.category + ')'}
+            valueField="id"
+            placeholder={$_('maintenance.form.selectMaintenanceType')}
             required
             disabled={loading}
-            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">{$_('maintenance.form.selectMaintenanceType')}</option>
-            {#each maintenanceTypes as type}
-              <option value={type.id}>{type.typeName} ({type.category})</option>
-            {/each}
-          </select>
+          />
         </div>
 
         <div class="md:col-span-2">

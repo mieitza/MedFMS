@@ -5,6 +5,7 @@
 	import api from '$lib/api';
 	import { _ } from '$lib/i18n';
 	import DataTable from '$lib/components/DataTable.svelte';
+	import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
 	let loading = true;
 	let error = '';
@@ -326,15 +327,13 @@
 			<!-- User Filter -->
 			<div>
 				<label class="block text-sm font-medium text-gray-700 mb-1">{$_('audit.filters.user')}</label>
-				<select
+				<SearchableSelect
+					options={users}
 					bind:value={filters.userId}
-					class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-				>
-					<option value="">{$_('audit.filters.allUsers')}</option>
-					{#each users as user}
-						<option value={user.id}>{user.fullName}</option>
-					{/each}
-				</select>
+					labelField="fullName"
+					valueField="id"
+					placeholder={$_('audit.filters.allUsers')}
+				/>
 			</div>
 
 			<!-- Start Date -->

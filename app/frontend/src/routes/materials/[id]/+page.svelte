@@ -8,6 +8,7 @@
   import Modal from '$lib/components/Modal.svelte';
   import WorkOrderFiles from '$lib/components/WorkOrderFiles.svelte';
   import { createFormTracker } from '$lib/utils/formTracking';
+  import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
   let material = null;
   let warehouse = null;
@@ -703,16 +704,14 @@
       <!-- Warehouse -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.warehouse')}</label>
-        <select
+        <SearchableSelect
+          options={warehouses}
           bind:value={materialForm.warehouseId}
+          labelField={(w) => `${w.warehouseName} (${w.warehouseCode})`}
+          valueField="id"
+          placeholder={$_('materials.edit.noWarehouse')}
           disabled={isSaving}
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value={null}>{$_('materials.edit.noWarehouse')}</option>
-          {#each warehouses as warehouse}
-            <option value={warehouse.id}>{warehouse.warehouseName} ({warehouse.warehouseCode})</option>
-          {/each}
-        </select>
+        />
       </div>
 
       <!-- Current Stock -->

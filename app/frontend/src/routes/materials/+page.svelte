@@ -6,6 +6,7 @@
   import DataTable from '$lib/components/DataTable.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import { createFormTracker } from '$lib/utils/formTracking';
+  import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
   let materials = [];
   let formTracker = null; // For tracking changed fields when editing
@@ -738,16 +739,14 @@
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">{$_('materials.warehouse')}</label>
-        <select
+        <SearchableSelect
+          options={warehouses}
           bind:value={materialForm.warehouseId}
+          labelField="warehouseName"
+          valueField="id"
+          placeholder={$_('materials.placeholders.selectWarehouse')}
           disabled={isSaving}
-          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value={null}>{$_('materials.placeholders.selectWarehouse')}</option>
-          {#each warehouses as warehouse}
-            <option value={warehouse.id}>{warehouse.warehouseName}</option>
-          {/each}
-        </select>
+        />
       </div>
     </div>
 

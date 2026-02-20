@@ -3,10 +3,11 @@
   import { goto } from '$app/navigation';
   import { api } from '$lib/api';
   import { _ } from '$lib/i18n';
+  import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
   let isLoading = true;
   let vehicles = [];
-  let selectedVehicleId = 'all';
+  let selectedVehicleId = null;
   let selectedDateRange = '30';
   let customStartDate = '';
   let customEndDate = '';
@@ -81,7 +82,7 @@
     isLoading = true;
     try {
       const dateParams = getDateParams();
-      const vehicleParam = selectedVehicleId !== 'all' ? { vehicleId: parseInt(selectedVehicleId) } : {};
+      const vehicleParam = selectedVehicleId ? { vehicleId: parseInt(selectedVehicleId) } : {};
 
       const params = { ...dateParams, ...vehicleParam };
 
@@ -98,7 +99,7 @@
       reportData = calculateFuelAnalytics(transactions);
 
       // Calculate fleet analytics if all vehicles selected
-      if (selectedVehicleId === 'all') {
+      if (!selectedVehicleId) {
         fleetReportData = calculateFleetAnalytics(transactions);
       }
     } catch (error) {
@@ -488,7 +489,7 @@
   }
 
   function getSelectedVehicleName() {
-    if (selectedVehicleId === 'all') {
+    if (!selectedVehicleId) {
       return $_('fuel.reports.allVehicles');
     }
     const vehicle = vehicles.find(v => v.id === parseInt(selectedVehicleId));
@@ -576,16 +577,14 @@
         <!-- Vehicle Selection -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">{$_('fuel.reports.configuration.vehicle')}</label>
-          <select
+          <SearchableSelect
+            options={vehicles}
             bind:value={selectedVehicleId}
+            labelField={v => v.vehicleCode + ' - ' + v.licensePlate}
+            valueField="id"
+            placeholder={$_('fuel.reports.allVehicles')}
             on:change={handleVehicleChange}
-            class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">{$_('fuel.reports.allVehicles')}</option>
-            {#each vehicles as vehicle}
-              <option value={vehicle.id}>{vehicle.vehicleCode} - {vehicle.licensePlate}</option>
-            {/each}
-          </select>
+          />
         </div>
 
         <!-- Date Range Selection -->
@@ -632,7 +631,7 @@
       <div class="flex items-center justify-center h-64">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
-    {:else if selectedVehicleId === 'all'}
+    {:else if !selectedVehicleId}
       <!-- Fleet-Wide Report -->
       <div class="space-y-6">
         <!-- Report Title -->

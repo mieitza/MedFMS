@@ -7,6 +7,7 @@
   import WorkOrderFiles from '$lib/components/WorkOrderFiles.svelte';
   import { _ } from '$lib/i18n';
   import { createFormTracker } from '$lib/utils/formTracking';
+  import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
   let workOrder = null;
   let loading = false;
@@ -576,32 +577,28 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.workOrderDetail.editModal.vehicleLabel')}</label>
-        <select
+        <SearchableSelect
+          options={vehicles}
           bind:value={editFormData.vehicleId}
+          labelField={v => v.vehicleCode + ' (' + v.licensePlate + ')'}
+          valueField="id"
+          placeholder={$_('maintenance.workOrderDetail.editModal.selectVehicle')}
           required
           disabled={actionLoading}
-          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">{$_('maintenance.workOrderDetail.editModal.selectVehicle')}</option>
-          {#each vehicles as vehicle}
-            <option value={vehicle.id}>{vehicle.vehicleCode} ({vehicle.licensePlate})</option>
-          {/each}
-        </select>
+        />
       </div>
 
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">{$_('maintenance.workOrderDetail.editModal.maintenanceTypeLabel')}</label>
-        <select
+        <SearchableSelect
+          options={maintenanceTypes}
           bind:value={editFormData.maintenanceTypeId}
+          labelField={v => v.typeName + ' (' + v.category + ')'}
+          valueField="id"
+          placeholder={$_('maintenance.workOrderDetail.editModal.selectType')}
           required
           disabled={actionLoading}
-          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">{$_('maintenance.workOrderDetail.editModal.selectType')}</option>
-          {#each maintenanceTypes as type}
-            <option value={type.id}>{type.typeName} ({type.category})</option>
-          {/each}
-        </select>
+        />
       </div>
     </div>
 

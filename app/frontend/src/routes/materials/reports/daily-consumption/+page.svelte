@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { api } from '$lib/api';
   import { _ } from '$lib/i18n';
+  import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
   let isLoading = false;
   let hasLoaded = false;
@@ -167,13 +168,13 @@
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">Depozit (opțional)</label>
-        <select bind:value={selectedWarehouseId}
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="">Toate depozitele</option>
-          {#each warehouses as wh}
-            <option value={wh.id}>{wh.warehouseName}</option>
-          {/each}
-        </select>
+        <SearchableSelect
+          options={warehouses}
+          bind:value={selectedWarehouseId}
+          labelField="warehouseName"
+          valueField="id"
+          placeholder="Toate depozitele"
+        />
       </div>
       <div class="flex items-end">
         <button on:click={loadReport}

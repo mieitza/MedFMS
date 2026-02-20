@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { api } from '$lib/api';
   import { _ } from '$lib/i18n';
+  import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
   let loading = true;
   let error = null;
@@ -196,23 +197,27 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">
           {$_('maintenance.reports.warehouse.transferReport.filters.sourceWarehouse')}
         </label>
-        <select bind:value={filters.sourceWarehouseId} on:change={handleFilterChange} class="input">
-          <option value="">All Sources</option>
-          {#each warehouses as warehouse}
-            <option value={warehouse.id}>{warehouse.warehouseName}</option>
-          {/each}
-        </select>
+        <SearchableSelect
+          options={warehouses}
+          bind:value={filters.sourceWarehouseId}
+          labelField="warehouseName"
+          valueField="id"
+          placeholder="All Sources"
+          on:change={handleFilterChange}
+        />
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
           {$_('maintenance.reports.warehouse.transferReport.filters.destinationWarehouse')}
         </label>
-        <select bind:value={filters.destinationWarehouseId} on:change={handleFilterChange} class="input">
-          <option value="">All Destinations</option>
-          {#each warehouses as warehouse}
-            <option value={warehouse.id}>{warehouse.warehouseName}</option>
-          {/each}
-        </select>
+        <SearchableSelect
+          options={warehouses}
+          bind:value={filters.destinationWarehouseId}
+          labelField="warehouseName"
+          valueField="id"
+          placeholder="All Destinations"
+          on:change={handleFilterChange}
+        />
       </div>
       <div class="col-span-2">
         <label class="block text-sm font-medium text-gray-700 mb-1">

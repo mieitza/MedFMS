@@ -4,11 +4,12 @@
   import { api } from '$lib/api';
   import { _ } from '$lib/i18n';
   import DataTable from '$lib/components/DataTable.svelte';
+  import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
   let isLoading = true;
   let transactions = [];
   let filteredTransactions = [];
-  let selectedVehicleId = 'all';
+  let selectedVehicleId = null;
   let selectedMonth = '';
   let customStartDate = '';
   let customEndDate = '';
@@ -159,7 +160,7 @@
   function applyFilters() {
     filteredTransactions = transactions.filter(transaction => {
       // Vehicle filter
-      if (selectedVehicleId !== 'all' && transaction.vehicleId !== parseInt(selectedVehicleId)) {
+      if (selectedVehicleId && transaction.vehicleId !== parseInt(selectedVehicleId)) {
         return false;
       }
 
@@ -301,18 +302,14 @@
         <label class="block text-sm font-medium text-gray-700 mb-2">
           {$_('fuel.vehicle')}
         </label>
-        <select
+        <SearchableSelect
+          options={vehicles}
           bind:value={selectedVehicleId}
+          labelField={v => v.licensePlate + ' - ' + v.vehicleCode}
+          valueField="id"
+          placeholder={$_('fuel.reports.allVehicles')}
           on:change={handleVehicleChange}
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="all">{$_('fuel.reports.allVehicles')}</option>
-          {#each vehicles as vehicle}
-            <option value={vehicle.id}>
-              {vehicle.licensePlate} - {vehicle.vehicleCode}
-            </option>
-          {/each}
-        </select>
+        />
       </div>
 
       <!-- Month Filter -->

@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { api } from '$lib/api';
   import { _ } from '$lib/i18n';
+  import SearchableSelect from '$lib/components/SearchableSelect.svelte';
 
   let loading = true;
   let error = null;
@@ -140,17 +141,15 @@
       <!-- Warehouse Filter -->
       <div>
         <label for="warehouse" class="block text-sm font-medium text-gray-700 mb-1">Depozit</label>
-        <select
+        <SearchableSelect
           id="warehouse"
+          options={warehouses}
           bind:value={filters.warehouseId}
+          labelField="warehouseName"
+          valueField="id"
+          placeholder="Toate depozitele"
           on:change={handleFilterChange}
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Toate depozitele</option>
-          {#each warehouses as warehouse}
-            <option value={warehouse.id}>{warehouse.warehouseName}</option>
-          {/each}
-        </select>
+        />
       </div>
 
       <!-- Date Mode Toggle -->
