@@ -227,7 +227,8 @@ router.post('/work-orders', authorize('admin', 'manager', 'operator'), async (re
     const result = await db.insert(maintenanceWorkOrders).values({
       ...data,
       workOrderNumber,
-      requestedBy: req.user.id
+      requestedBy: req.user.id,
+      requestedDate: new Date()
     }).returning();
 
     res.status(201).json({ success: true, data: result[0] });
