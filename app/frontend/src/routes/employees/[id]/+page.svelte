@@ -131,7 +131,7 @@
 				photoName: `${driver.fullName} - Profile`,
 				description: 'Employee profile photo',
 				isPrimary: true,
-				entityType: 'driver',
+				entityType: 'employee',
 				entityId: driver.id
 			});
 
@@ -542,7 +542,7 @@
 			<!-- Employee Documents -->
 			<div class="mt-8">
 				<DocumentManager
-					entityType="driver"
+					entityType="employee"
 					entityId={driver.id}
 					title="Documente Angajat"
 				/>
