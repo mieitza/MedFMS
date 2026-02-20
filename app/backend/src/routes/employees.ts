@@ -28,6 +28,7 @@ const employeeSchema = z.object({
   hireDate: z.coerce.date().optional(),
   departmentId: z.number().optional().nullable(),
   positionId: z.number().optional().nullable(),
+  jobTitle: z.string().optional().nullable(),
 });
 
 router.get('/', async (req, res, next) => {

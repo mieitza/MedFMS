@@ -63,6 +63,12 @@
 				render: renderDriverName
 			},
 			{
+				key: 'jobTitle',
+				label: 'Rol / Functie',
+				sortable: true,
+				width: '150px'
+			},
+			{
 				key: 'email',
 				label: $_('users.email'),
 				sortable: true,

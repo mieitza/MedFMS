@@ -21,6 +21,7 @@ export const employees = sqliteTable('employees', {
   terminationDate: integer('termination_date', { mode: 'timestamp' }),
   departmentId: integer('department_id'),
   positionId: integer('position_id'),
+  jobTitle: text('job_title'),
   emergencyContact: text('emergency_contact'),
   emergencyPhone: text('emergency_phone'),
   active: integer('active', { mode: 'boolean' }).notNull().default(true),

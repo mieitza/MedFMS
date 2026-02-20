@@ -7,9 +7,9 @@
 	import Modal from '$lib/components/Modal.svelte';
 	import EmployeeForm from '$lib/components/EmployeeForm.svelte';
 	import DocumentManager from '$lib/components/DocumentManager.svelte';
-	import PhotoManager from '$lib/components/PhotoManager.svelte';
 
 	let driver = null;
+	let profilePhotoUrl = null;
 	let loading = true;
 	let error = null;
 	let showEditModal = false;
@@ -37,7 +37,7 @@
 
 		await loadDriver();
 		await loadDropdownData();
-		await loadMaterials();
+		await Promise.all([loadMaterials(), loadProfilePhoto()]);
 	});
 
 	async function loadDriver() {
@@ -82,6 +82,21 @@
 			materialsError = $_('materials.messages.loadFailed');
 		} finally {
 			loadingMaterials = false;
+		}
+	}
+
+	async function loadProfilePhoto() {
+		try {
+			const response = await api.getPhotos('driver', parseInt(driverId));
+			const photos = response.data || [];
+			if (photos.length > 0) {
+				// Use primary photo or first photo
+				const photo = photos.find(p => p.isPrimary) || photos[0];
+				const blob = await api.downloadPhoto(photo.id);
+				profilePhotoUrl = URL.createObjectURL(blob);
+			}
+		} catch (err) {
+			console.error('Failed to load profile photo:', err);
 		}
 	}
 
@@ -226,16 +241,39 @@
 				<!-- Driver Header -->
 				<div class="bg-gradient-to-br from-primary-50 to-primary-100 px-6 py-8">
 					<div class="flex items-center justify-between">
-						<div>
-							<h1 class="text-3xl font-bold text-gray-900">
-								{driver.fullName}
-							</h1>
-							<p class="text-lg text-gray-600 mt-1">
-								{driver.licenseType} {$_('drivers.license')} • {driver.driverCode}
-							</p>
-							<p class="text-sm text-gray-500 mt-2">
-								{$_('drivers.licenseNumber')}: {driver.licenseNumber}
-							</p>
+						<div class="flex items-center space-x-6">
+							<!-- Profile Photo -->
+							<div class="flex-shrink-0">
+								{#if profilePhotoUrl}
+									<img
+										src={profilePhotoUrl}
+										alt={driver.fullName}
+										class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+									/>
+								{:else}
+									<div class="w-24 h-24 rounded-full bg-primary-200 flex items-center justify-center border-4 border-white shadow-lg">
+										<svg class="w-12 h-12 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+										</svg>
+									</div>
+								{/if}
+							</div>
+							<div>
+								<h1 class="text-3xl font-bold text-gray-900">
+									{driver.fullName}
+								</h1>
+								{#if driver.jobTitle}
+									<p class="text-lg text-primary-700 font-medium mt-1">
+										{driver.jobTitle}
+									</p>
+								{/if}
+								<p class="text-sm text-gray-600 mt-1">
+									{driver.licenseType} {$_('drivers.license')} • {driver.driverCode}
+								</p>
+								<p class="text-sm text-gray-500">
+									{$_('drivers.licenseNumber')}: {driver.licenseNumber}
+								</p>
+							</div>
 						</div>
 						<div class="text-right">
 							<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {getStatusColor(driver.active)}">
@@ -273,6 +311,10 @@
 								<div>
 									<label class="block text-sm font-medium text-gray-500">Age</label>
 									<p class="mt-1 text-sm text-gray-900">{calculateAge(driver.dateOfBirth)} years old</p>
+								</div>
+								<div>
+									<label class="block text-sm font-medium text-gray-500">Rol / Functie</label>
+									<p class="mt-1 text-sm text-gray-900">{driver.jobTitle || $_('vehicles.notRecorded')}</p>
 								</div>
 							</div>
 						</div>
@@ -401,20 +443,12 @@
 				</div>
 			</div>
 
-			<!-- Document and Photo Management -->
-			<div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-				<!-- Photos -->
-				<PhotoManager
-					entityType="driver"
-					entityId={driver.id}
-					title={$_('vehicles.vehiclePhotos')}
-				/>
-
-				<!-- Documents -->
+			<!-- Employee Documents -->
+			<div class="mt-8">
 				<DocumentManager
 					entityType="driver"
 					entityId={driver.id}
-					title={$_('vehicles.vehicleDocuments')}
+					title="Documente Angajat"
 				/>
 			</div>
 		{:else}
