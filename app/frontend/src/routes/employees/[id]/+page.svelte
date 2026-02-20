@@ -5,7 +5,7 @@
 	import { api } from '$lib/api';
 	import { _ } from '$lib/i18n';
 	import Modal from '$lib/components/Modal.svelte';
-	import DriverForm from '$lib/components/DriverForm.svelte';
+	import EmployeeForm from '$lib/components/EmployeeForm.svelte';
 	import DocumentManager from '$lib/components/DocumentManager.svelte';
 	import PhotoManager from '$lib/components/PhotoManager.svelte';
 
@@ -93,7 +93,7 @@
 		if (confirm($_('drivers.messages.deleteConfirm', { values: { name: driver.fullName } }))) {
 			try {
 				await api.deleteEmployee(driver.id);
-				goto('/drivers');
+				goto('/employees');
 			} catch (error) {
 				console.error('Failed to delete driver:', error);
 				alert($_('drivers.messages.deleteFailed'));
@@ -168,7 +168,7 @@
 						<ol class="flex items-center space-x-2 text-sm">
 							<li><a href="/dashboard" class="text-gray-500 hover:text-gray-700">{$_('dashboard.title')}</a></li>
 							<li class="text-gray-500">/</li>
-							<li><a href="/drivers" class="text-gray-500 hover:text-gray-700">{$_('drivers.title')}</a></li>
+							<li><a href="/employees" class="text-gray-500 hover:text-gray-700">{$_('drivers.title')}</a></li>
 							<li class="text-gray-500">/</li>
 							<li class="text-gray-900 font-medium">
 								{driver ? driver.fullName : $_('common.loading')}
@@ -425,7 +425,7 @@
 				<h3 class="mt-2 text-sm font-medium text-gray-900">{$_('vehicles.vehicleNotFound')}</h3>
 				<p class="mt-1 text-sm text-gray-500">{$_('vehicles.vehicleNotFoundDesc')}</p>
 				<div class="mt-6">
-					<a href="/drivers" class="btn btn-primary">
+					<a href="/employees" class="btn btn-primary">
 						{$_('common.back')}
 					</a>
 				</div>
@@ -442,7 +442,7 @@
 		size="xl"
 		on:close={handleFormCancel}
 	>
-		<DriverForm
+		<EmployeeForm
 			{driver}
 			{cities}
 			{departments}

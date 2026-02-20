@@ -667,6 +667,249 @@ router.get('/reports/usage', authorize('admin', 'manager', 'operator'), async (r
   }
 });
 
+// GET /api/materials/reports/daily-consumption - Daily consumed items report
+router.get('/reports/daily-consumption', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
+  try {
+    const db = getDb();
+    const { startDate, endDate, warehouseId } = req.query;
+
+    if (!startDate || !endDate) {
+      throw new AppError('startDate and endDate are required', 400);
+    }
+
+    const start = new Date(startDate as string);
+    const end = new Date(endDate as string);
+    end.setHours(23, 59, 59, 999);
+
+    const conditions = [
+      eq(materialTransactions.transactionType, 'exit'),
+      gte(materialTransactions.transactionDate, start),
+      lte(materialTransactions.transactionDate, end)
+    ];
+
+    if (warehouseId) {
+      conditions.push(eq(materialTransactions.warehouseId, parseInt(warehouseId as string)));
+    }
+
+    const results = await db.select({
+      transaction: materialTransactions,
+      material: materials,
+      warehouse: warehouses,
+      unit: materialUnits
+    })
+    .from(materialTransactions)
+    .leftJoin(materials, eq(materialTransactions.materialId, materials.id))
+    .leftJoin(warehouses, eq(materialTransactions.warehouseId, warehouses.id))
+    .leftJoin(materialUnits, eq(materials.unitId, materialUnits.id))
+    .where(and(...conditions))
+    .orderBy(desc(materialTransactions.transactionDate));
+
+    // Group by date
+    const dailyGroups = new Map<string, any[]>();
+    results.forEach(r => {
+      const date = new Date(r.transaction.transactionDate).toISOString().split('T')[0];
+      if (!dailyGroups.has(date)) {
+        dailyGroups.set(date, []);
+      }
+      dailyGroups.get(date)!.push(r);
+    });
+
+    // Build daily summaries
+    const dailyData = Array.from(dailyGroups.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([date, transactions]) => {
+        // Group by material within each day
+        const materialGroups = new Map<number, any>();
+        transactions.forEach(t => {
+          const materialId = t.transaction.materialId;
+          if (!materialGroups.has(materialId)) {
+            materialGroups.set(materialId, {
+              materialId,
+              materialCode: t.material?.materialCode || '',
+              materialName: t.material?.materialName || '',
+              unitName: t.unit?.abbreviation || t.unit?.unitName || '',
+              warehouseName: t.warehouse?.warehouseName || '',
+              totalQuantity: 0,
+              transactions: []
+            });
+          }
+          const group = materialGroups.get(materialId)!;
+          group.totalQuantity += Math.abs(t.transaction.quantity);
+          group.transactions.push({
+            id: t.transaction.id,
+            quantity: Math.abs(t.transaction.quantity),
+            vehicleId: t.transaction.vehicleId,
+            description: t.transaction.description,
+            transactionDate: t.transaction.transactionDate,
+            userId: t.transaction.userId
+          });
+        });
+
+        const items = Array.from(materialGroups.values());
+
+        return {
+          date,
+          totalItems: items.length,
+          totalQuantity: items.reduce((sum, i) => sum + i.totalQuantity, 0),
+          totalTransactions: transactions.length,
+          items
+        };
+      });
+
+    // Overall summary
+    const summary = {
+      totalConsumed: results.length,
+      totalQuantity: results.reduce((sum, r) => sum + Math.abs(r.transaction.quantity), 0),
+      uniqueMaterials: new Set(results.map(r => r.transaction.materialId)).size,
+      daysWithData: dailyData.length
+    };
+
+    // Top consumed material
+    const materialTotals = new Map<number, { name: string; total: number; unit: string }>();
+    results.forEach(r => {
+      const id = r.transaction.materialId;
+      if (!materialTotals.has(id)) {
+        materialTotals.set(id, {
+          name: r.material?.materialName || '',
+          total: 0,
+          unit: r.unit?.abbreviation || ''
+        });
+      }
+      materialTotals.get(id)!.total += Math.abs(r.transaction.quantity);
+    });
+
+    let topConsumed = null;
+    if (materialTotals.size > 0) {
+      const sorted = Array.from(materialTotals.entries()).sort((a, b) => b[1].total - a[1].total);
+      topConsumed = { materialId: sorted[0][0], ...sorted[0][1] };
+    }
+
+    res.json({
+      success: true,
+      data: dailyData,
+      summary: { ...summary, topConsumed }
+    });
+  } catch (error) {
+    logger.error('Error generating daily consumption report:', error);
+    next(error);
+  }
+});
+
+// GET /api/materials/reports/daily-transfers - Daily transfers report
+router.get('/reports/daily-transfers', authorize('admin', 'manager', 'operator'), async (req, res, next) => {
+  try {
+    const db = getDb();
+    const { startDate, endDate, warehouseId, transferType } = req.query;
+
+    if (!startDate || !endDate) {
+      throw new AppError('startDate and endDate are required', 400);
+    }
+
+    const start = new Date(startDate as string);
+    const end = new Date(endDate as string);
+    end.setHours(23, 59, 59, 999);
+
+    const sourceWarehouse = alias(warehouses, 'source_warehouse');
+    const destWarehouse = alias(warehouses, 'dest_warehouse');
+
+    const conditions = [
+      gte(warehouseTransferRequests.requestedDate, start),
+      lte(warehouseTransferRequests.requestedDate, end)
+    ];
+
+    if (warehouseId) {
+      const whId = parseInt(warehouseId as string);
+      conditions.push(
+        or(
+          eq(warehouseTransferRequests.sourceWarehouseId, whId),
+          eq(warehouseTransferRequests.destinationWarehouseId, whId)
+        )!
+      );
+    }
+
+    if (transferType) {
+      conditions.push(eq(warehouseTransferRequests.transferType, transferType as string));
+    }
+
+    const results = await db.select({
+      transfer: warehouseTransferRequests,
+      sourceWarehouse: sourceWarehouse,
+      destinationWarehouse: destWarehouse,
+      material: materials,
+      unit: materialUnits
+    })
+    .from(warehouseTransferRequests)
+    .leftJoin(sourceWarehouse, eq(warehouseTransferRequests.sourceWarehouseId, sourceWarehouse.id))
+    .leftJoin(destWarehouse, eq(warehouseTransferRequests.destinationWarehouseId, destWarehouse.id))
+    .leftJoin(materials, eq(warehouseTransferRequests.materialId, materials.id))
+    .leftJoin(materialUnits, eq(materials.unitId, materialUnits.id))
+    .where(and(...conditions))
+    .orderBy(desc(warehouseTransferRequests.requestedDate));
+
+    // Group by date
+    const dailyGroups = new Map<string, any[]>();
+    results.forEach(r => {
+      const date = new Date(r.transfer.requestedDate).toISOString().split('T')[0];
+      if (!dailyGroups.has(date)) {
+        dailyGroups.set(date, []);
+      }
+      dailyGroups.get(date)!.push(r);
+    });
+
+    const dailyData = Array.from(dailyGroups.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([date, transfers]) => ({
+        date,
+        totalTransfers: transfers.length,
+        transfers: transfers.map(t => ({
+          id: t.transfer.id,
+          requestNumber: t.transfer.requestNumber,
+          transferType: t.transfer.transferType,
+          sourceWarehouse: t.sourceWarehouse?.warehouseName || '',
+          destinationWarehouse: t.destinationWarehouse?.warehouseName || '',
+          materialName: t.material?.materialName || '',
+          materialCode: t.material?.materialCode || '',
+          unitName: t.unit?.abbreviation || t.unit?.unitName || '',
+          quantity: t.transfer.quantity,
+          transferredQuantity: t.transfer.transferredQuantity,
+          status: t.transfer.status,
+          priority: t.transfer.priority,
+          requestedDate: t.transfer.requestedDate,
+          completedDate: t.transfer.completedDate
+        }))
+      }));
+
+    // Statistics
+    const statistics = {
+      totalTransfers: results.length,
+      daysWithData: dailyData.length,
+      byStatus: {
+        pending: results.filter(r => r.transfer.status === 'pending').length,
+        approved: results.filter(r => r.transfer.status === 'approved').length,
+        in_transit: results.filter(r => r.transfer.status === 'in_transit').length,
+        completed: results.filter(r => r.transfer.status === 'completed').length,
+        rejected: results.filter(r => r.transfer.status === 'rejected').length,
+        cancelled: results.filter(r => r.transfer.status === 'cancelled').length
+      },
+      byType: {
+        'warehouse-to-warehouse': results.filter(r => r.transfer.transferType === 'warehouse-to-warehouse').length,
+        'warehouse-to-vehicle': results.filter(r => r.transfer.transferType === 'warehouse-to-vehicle').length,
+        'warehouse-to-employee': results.filter(r => r.transfer.transferType === 'warehouse-to-employee').length,
+        'vehicle-to-warehouse': results.filter(r => r.transfer.transferType === 'vehicle-to-warehouse').length
+      }
+    };
+
+    res.json({
+      success: true,
+      data: dailyData,
+      statistics
+    });
+  } catch (error) {
+    logger.error('Error generating daily transfers report:', error);
+    next(error);
+  }
+});
+
 // ========== Warehouse Routes ==========
 
 // GET /api/materials/warehouses - Get all warehouses
@@ -2270,8 +2513,9 @@ router.post('/import/warehouse-inventory', authorize('admin', 'manager'), async 
         } else {
           // Create new material
           // Generate unique material code
-          const categoryPrefix = item.category === 'MEDICATIE' ? 'MED' :
-                                 item.category === 'MATERIALE SANITARE' ? 'MAT' : 'EQP';
+          const categoryUpper = item.category.toUpperCase();
+          const categoryPrefix = categoryUpper.includes('MEDICATIE') || categoryUpper.includes('MEDICAMENTE') ? 'MED' :
+                                 categoryUpper.includes('SANITARE') || categoryUpper.includes('MATERIALE') ? 'MAT' : 'EQP';
           const nameSlug = item.productName
             .substring(0, 20)
             .replace(/[^a-zA-Z0-9]/g, '')

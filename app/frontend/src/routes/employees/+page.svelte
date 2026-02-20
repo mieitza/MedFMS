@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import DataTable from '$lib/components/DataTable.svelte';
 	import Modal from '$lib/components/Modal.svelte';
-	import DriverForm from '$lib/components/DriverForm.svelte';
+	import EmployeeForm from '$lib/components/EmployeeForm.svelte';
 	import { api } from '$lib/api';
 	import { _ } from '$lib/i18n';
 
@@ -153,7 +153,7 @@
 
 	function handleRowClick(event) {
 		const driver = event.detail.row;
-		goto(`/drivers/${driver.id}`);
+		goto(`/employees/${driver.id}`);
 	}
 
 	function handleEdit(event) {
@@ -277,7 +277,7 @@
 	size="xl"
 	on:close={closeModals}
 >
-	<DriverForm
+	<EmployeeForm
 		driver={selectedDriver}
 		{cities}
 		{departments}

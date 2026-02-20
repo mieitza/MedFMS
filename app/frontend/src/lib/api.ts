@@ -1121,6 +1121,10 @@ export const api = {
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.search) queryParams.append('search', params.search);
+    if (params.warehouseId) queryParams.append('warehouseId', params.warehouseId.toString());
+    if (params.categoryId) queryParams.append('categoryId', params.categoryId.toString());
+    if (params.materialTypeId) queryParams.append('materialTypeId', params.materialTypeId.toString());
+    if (params.lowStockOnly) queryParams.append('lowStockOnly', params.lowStockOnly.toString());
 
     const response = await fetch(`${API_BASE_URL}/materials?${queryParams}`, {
       headers: this.getAuthHeaders(),

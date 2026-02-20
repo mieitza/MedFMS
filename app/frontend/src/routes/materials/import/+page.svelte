@@ -60,13 +60,23 @@
 
           let itemsInCategory = 0;
 
-          dataRows.forEach((row, idx) => {
-            // Skip header row (usually contains 'Nr. crt.', 'Product', 'Unit', 'STOC FINAL')
-            if (idx === 0 && (row[1] === 'Product' || row[1] === 'Product')) return;
+          // Common header patterns to skip
+          const headerPatterns = ['IANUARIE', 'FEBRUARIE', 'MARTIE', 'APRILIE', 'MAI', 'IUNIE',
+            'IULIE', 'AUGUST', 'SEPTEMBRIE', 'OCTOMBRIE', 'NOIEMBRIE', 'DECEMBRIE',
+            'PRODUCT', 'PRODUS', 'DENUMIRE', 'STOC'];
 
+          dataRows.forEach((row, idx) => {
             const productName = String(row[1] || '').trim();
             const unit = String(row[2] || '').trim();
-            const quantity = parseFloat(row[3]) || 0;
+            const rawQuantity = row[3];
+            const quantity = parseFloat(rawQuantity);
+
+            // Skip header rows - check if product name matches header patterns or quantity is not a valid number
+            const isHeader = headerPatterns.some(pattern =>
+              productName.toUpperCase().includes(pattern)
+            ) || isNaN(quantity) || unit.toUpperCase() === 'UM';
+
+            if (isHeader) return;
 
             if (productName && unit && !isNaN(quantity)) {
               parsedData.push({
