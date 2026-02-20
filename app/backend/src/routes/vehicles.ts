@@ -176,6 +176,7 @@ router.get('/', async (req, res, next) => {
       .leftJoin(vehicleTypes, eq(vehicles.vehicleTypeId, vehicleTypes.id))
       .leftJoin(vehicleStatuses, eq(vehicles.statusId, vehicleStatuses.id))
       .leftJoin(employees, eq(vehicles.employeeId, employees.id))
+      .leftJoin(locations, eq(vehicles.locationId, locations.id))
       .where(eq(vehicles.active, true));
 
     if (search) {
@@ -188,6 +189,7 @@ router.get('/', async (req, res, next) => {
         like(vehicleStatuses.statusName, `%${search}%`),
         like(employees.fullName, `%${search}%`),
         like(fuelTypes.fuelName, `%${search}%`),
+        like(locations.locationName, `%${search}%`),
         like(vehicles.description, `%${search}%`),
         like(vehicles.engineNumber, `%${search}%`),
         like(vehicles.chassisNumber, `%${search}%`),
@@ -210,6 +212,7 @@ router.get('/', async (req, res, next) => {
       .leftJoin(vehicleTypes, eq(vehicles.vehicleTypeId, vehicleTypes.id))
       .leftJoin(vehicleStatuses, eq(vehicles.statusId, vehicleStatuses.id))
       .leftJoin(employees, eq(vehicles.employeeId, employees.id))
+      .leftJoin(locations, eq(vehicles.locationId, locations.id))
       .where(eq(vehicles.active, true));
 
     if (search) {
@@ -222,6 +225,7 @@ router.get('/', async (req, res, next) => {
         like(vehicleStatuses.statusName, `%${search}%`),
         like(employees.fullName, `%${search}%`),
         like(fuelTypes.fuelName, `%${search}%`),
+        like(locations.locationName, `%${search}%`),
         like(vehicles.description, `%${search}%`),
         like(vehicles.engineNumber, `%${search}%`),
         like(vehicles.chassisNumber, `%${search}%`),
