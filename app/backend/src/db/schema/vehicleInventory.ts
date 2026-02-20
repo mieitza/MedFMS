@@ -1,7 +1,7 @@
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 import { vehicles } from './vehicles';
-import { drivers } from './drivers';
+import { employees as drivers } from './employees';
 
 // Define inventory item categories
 export const vehicleInventoryCategories = sqliteTable('vehicle_inventory_categories', {

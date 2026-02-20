@@ -9,7 +9,7 @@ import {
   vehicleInventoryDispensing
 } from '../db/schema/vehicleInventory.js';
 import { vehicles } from '../db/schema/vehicles.js';
-import { drivers } from '../db/schema/drivers.js';
+import { employees as drivers } from '../db/schema/employees.js';
 import { eq, and, desc, or, like } from 'drizzle-orm';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { AppError } from '../middleware/errorHandler.js';
