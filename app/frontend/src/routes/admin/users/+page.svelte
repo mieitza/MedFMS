@@ -173,18 +173,32 @@
 
 	async function handleSubmit() {
 		try {
+			// Clean form data - ensure proper types
+			const cleanData = {
+				...formData,
+				departmentId: formData.departmentId ? Number(formData.departmentId) : null,
+				locationId: formData.locationId ? Number(formData.locationId) : null,
+				phoneNumber: formData.phoneNumber || undefined
+			};
+
 			if (modalMode === 'create') {
-				await api.createUser(formData);
+				await api.createUser(cleanData);
 				alert($_('users.messages.createSuccess'));
 			} else {
 				// For updates, detect and send only changed fields
-				const changedFields = formTracker ? formTracker.detectChanges(formData) : formData;
+				const changedFields = formTracker ? formTracker.detectChanges(cleanData) : cleanData;
 
 				// Remove username (can't be changed) and empty password
 				const updateData = { ...changedFields };
 				delete updateData.username; // Can't change username
-				if (updateData.password === '' || updateData.password === null) {
+				if (updateData.password === '' || updateData.password === null || updateData.password === undefined) {
 					delete updateData.password; // Only update password if provided with a value
+				}
+				if ('departmentId' in updateData) {
+					updateData.departmentId = updateData.departmentId ? Number(updateData.departmentId) : null;
+				}
+				if ('locationId' in updateData) {
+					updateData.locationId = updateData.locationId ? Number(updateData.locationId) : null;
 				}
 
 				// Only send PATCH if there are changes
