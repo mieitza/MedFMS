@@ -2,6 +2,7 @@
   import { createEventDispatcher } from 'svelte';
   import { api } from '$lib/api';
   import FileUpload from './FileUpload.svelte';
+  import Modal from './Modal.svelte';
 
   export let workOrderId = null;
   export let showUpload = true;
@@ -11,6 +12,9 @@
 
   let existingFiles = [];
   let loading = false;
+  let showViewerModal = false;
+  let selectedFile = null;
+  let previewUrl = null;
 
   // Load existing files when workOrderId changes
   $: if (workOrderId) {
@@ -86,6 +90,35 @@
     return '📁';
   }
 
+  async function viewFile(file) {
+    try {
+      selectedFile = file;
+      const blob = file.type === 'photo'
+        ? await api.downloadPhoto(file.id)
+        : await api.downloadDocument(file.id);
+
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = URL.createObjectURL(blob);
+      showViewerModal = true;
+    } catch (error) {
+      console.error('Failed to load file preview:', error);
+      alert('Failed to load file preview: ' + error.message);
+    }
+  }
+
+  function closeViewer() {
+    showViewerModal = false;
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      previewUrl = null;
+    }
+    selectedFile = null;
+  }
+
+  function getPreviewMimeType(file) {
+    return file.mimeType || (file.type === 'photo' ? 'image/jpeg' : '');
+  }
+
   async function downloadFile(file) {
     try {
       const filename = file.originalFileName || file.documentName || file.photoName || file.fileName || 'download';
@@ -155,6 +188,16 @@
             </div>
             <div class="flex items-center space-x-2">
               <button
+                on:click={() => viewFile(file)}
+                class="p-2 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded"
+                title="Preview"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+              <button
                 on:click={() => downloadFile(file)}
                 class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
                 title="Download"
@@ -211,6 +254,62 @@
     </div>
   {/if}
 </div>
+
+{#if selectedFile}
+  <Modal
+    open={showViewerModal}
+    title={selectedFile.originalFileName || selectedFile.documentName || selectedFile.photoName || 'Preview'}
+    size="xl"
+    on:close={closeViewer}
+  >
+    <div class="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+      {#if previewUrl}
+        {@const mime = getPreviewMimeType(selectedFile)}
+        {#if mime.startsWith('image/')}
+          <img
+            src={previewUrl}
+            alt={selectedFile.documentName || selectedFile.photoName || ''}
+            class="max-w-full h-auto max-h-[70vh] mx-auto"
+          />
+        {:else if mime === 'application/pdf'}
+          <iframe
+            src={previewUrl}
+            title={selectedFile.documentName || 'PDF'}
+            class="w-full h-[70vh]"
+          ></iframe>
+        {:else}
+          <div class="p-12 text-center">
+            <span class="text-6xl">{getFileIcon(selectedFile)}</span>
+            <p class="mt-4 text-gray-600">Preview not available for this file type.</p>
+            <button
+              type="button"
+              class="btn btn-primary mt-4"
+              on:click={() => downloadFile(selectedFile)}
+            >
+              Download File
+            </button>
+          </div>
+        {/if}
+      {:else}
+        <div class="flex items-center justify-center h-64">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      {/if}
+    </div>
+
+    <svelte:fragment slot="footer">
+      <button type="button" class="btn btn-secondary" on:click={() => downloadFile(selectedFile)}>
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        Download
+      </button>
+      <button type="button" class="btn btn-primary" on:click={closeViewer}>
+        Close
+      </button>
+    </svelte:fragment>
+  </Modal>
+{/if}
 
 <style>
   .work-order-files {
